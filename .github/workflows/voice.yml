@@ -1,0 +1,35 @@
+# 話を追加・変更すると、VOICEVOX で声を自動録音して audio/ に入れる
+name: 声を録音
+on:
+  push:
+    branches: [main]
+    paths: ['episodes/**', 'index.html', 'tools/gen_voice.mjs', '.github/workflows/voice.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: voice
+jobs:
+  voice:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    services:
+      voicevox:
+        image: voicevox/voicevox_engine:cpu-latest
+        ports: ['50021:50021']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: ffmpeg を用意
+        run: which ffmpeg || (sudo apt-get update && sudo apt-get install -y ffmpeg)
+      - name: VOICEVOX の起動を待つ
+        run: for i in $(seq 1 60); do curl -sf http://127.0.0.1:50021/version && exit 0; sleep 5; done; exit 1
+      - name: 録音
+        run: node tools/gen_voice.mjs
+      - name: 録音した声を保存
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add audio
+          git diff --cached --quiet || (git commit -m "声を自動録音" && git pull --rebase && git push)

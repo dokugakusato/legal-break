@@ -9,3 +9,9 @@
 - `episodes/epNNN.js` … 1話分のデータ（事件3つ＋章ボス）
 
 ※登場人物・事件はすべて架空です。
+
+## 声（自動録音）
+
+- `tools/gen_voice.mjs` … VOICEVOX でナレーションとセリフを録音し、`audio/` に mp3 で入れる
+- `.github/workflows/voice.yml` … 話を追加・変更すると GitHub が自動で録音する
+- キャラごとの声は `tools/gen_voice.mjs` の `CAST` で決める

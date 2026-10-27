@@ -308,6 +308,7 @@ textarea{width:100%;min-height:96px;resize:vertical;background:#fbf6ec;color:#12
     <button class="btn ghost" id="voiceTest" type="button">登場人物の声を聞く</button>
     <p class="note">毎日1話ずつ更新中。1話は事件3つと章ボス。事件を法の拳で裁け。</p>
     <p class="note">※登場人物・事件はすべて架空です。</p>
+    <p class="note" id="credit"></p>
   </section>
 
   <section class="screen" id="s-select" hidden>
@@ -351,6 +352,7 @@ textarea{width:100%;min-height:96px;resize:vertical;background:#fbf6ec;color:#12
 </div>
 
 <script src="episodes/list.js"></script>
+<script src="audio/index.js"></script>
 <script>
 const $=s=>document.querySelector(s);
 const O='#120c0a',SK='#d9a27a',SK2='#b98560';
@@ -904,7 +906,8 @@ function sadTheme(delay=2){
 function sadStop(now){const a=AC;if(!SAD.g||!a)return;const g=SAD.g;SAD.g=null;g.gain.cancelScheduledValues(a.currentTime);g.gain.setValueAtTime(g.gain.value,a.currentTime);g.gain.linearRampToValueAtTime(0,a.currentTime+(now?.05:.8));setTimeout(()=>{try{g.disconnect()}catch(e){}},1200)}
 
 $('#titleHero').innerHTML=SIL.hero;
-$('#voiceTest').onclick=()=>{if(S.mute){S.mute=false;$('#mute').textContent='音：ON'}ac();pickVoice();say([['時は、にせんにじゅうエックスねん。荒野に、法の拳が戻ってくる。','narr'],['独学で戦うお前に、法の拳を教えてやる。','hero'],['ワシが地上げ王、権田だ！','boss'],['押さなきゃ、どうなるか分かってんだろうな。','dogra'],['ヒャッハー！形だけだ、形だけな！','thug'],['婆さん、この井戸はじき毒で枯れるぜ。','trick'],['お父ちゃん、今年は芽が出たよ！','girl'],['私は何も知らずに買ったんです。','mina'],['そうかい、なら仕方ないねえ。','oldwoman'],['名義だけ変えておけば、取り立てられまい。','old'],['伊藤さん、代金は来月でいいよ。','haru'],['もう払えるものがない。','inn']])};
+const VOICE_TEST=[['時は、にせんにじゅうエックスねん。荒野に、法の拳が戻ってくる。','narr'],['独学で戦うお前に、法の拳を教えてやる。','hero'],['ワシが地上げ王、権田だ！','boss'],['押さなきゃ、どうなるか分かってんだろうな。','dogra'],['ヒャッハー！形だけだ、形だけな！','thug'],['婆さん、この井戸はじき毒で枯れるぜ。','trick'],['お父ちゃん、今年は芽が出たよ！','girl'],['私は何も知らずに買ったんです。','mina'],['そうかい、なら仕方ないねえ。','oldwoman'],['名義だけ変えておけば、取り立てられまい。','old'],['伊藤さん、代金は来月でいいよ。','haru'],['もう払えるものがない。','inn']];
+$('#voiceTest').onclick=()=>{if(S.mute){S.mute=false;$('#mute').textContent='音：ON'}ac();pickVoice();say(VOICE_TEST)};
 $('#soundTest').onclick=()=>{if(S.mute){S.mute=false;$('#mute').textContent='音：ON'}const a=ac();if(!a){$('#soundTest').textContent='この環境では音が使えません';return}kiai();setTimeout(()=>{punch(1.2);scream(1,.8)},420)};
 $('#startBtn').onclick=()=>{ac();const nn=nextNo();if(nn)playEp(nn);else openSelect()};
 $('#selectBtn').onclick=()=>{ac();openSelect()};
@@ -913,6 +916,7 @@ $('#resetBtn').onclick=()=>{$('#resetBox').innerHTML=`<div class="card confirm">
   $('#resetYes').onclick=()=>{P=Object.assign({eps:{},streak:0,best:0,ok:0,n:0,clears:0,badges:{}});saveP();$('#resetBox').innerHTML='';renderSelect()};
   $('#resetNo').onclick=()=>{$('#resetBox').innerHTML=''}};
 refreshTitle();
+if(window.LB_VOICE_CREDIT&&LB_VOICE_CREDIT.length)$('#credit').textContent='声：'+LB_VOICE_CREDIT.join('、');
 
 /* ---------- オープニング ---------- */
 /* ---------- 第二章の登場人物 ---------- */
@@ -955,15 +959,28 @@ const voiceFor=k=>{const v=VP[k]||VP.narr,arr=(v.g==='f'?TTS.fem:TTS.male)||[];r
 const cleanTxt=t=>t.replace(/<br>/g,'').replace(/[「」―]/g,'').replace(/　/g,'');
 function fanfare(){const a=ac();if(!a)return;const t=a.currentTime;[[62,0],[66,.18],[69,.36],[74,.54]].forEach(([n,dt])=>I.brass(a,a.destination,n,t+dt,dt===.54?1.2:.16,.09));I.taiko(a,a.destination,t+.54,.7);I.whip(a,a.destination,t+.5,.3)}
 const MOBILE=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-function stopSay(){SAY.run++;try{TTS.ok&&speechSynthesis.cancel()}catch(e){}duck(false)}
+function stopSay(){SAY.run++;stopVoice();try{TTS.ok&&speechSynthesis.cancel()}catch(e){}duck(false)}
+/* 録音済みの声（audio/ フォルダ）。あれば再生し、なければ端末の読み上げを使う */
+const VO={map:window.LB_AUDIO||{},buf:new Map(),src:null};
+function vHash(s){let h=0x811c9dc5;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,0x01000193)}return (h>>>0).toString(16).padStart(8,'0')}
+const vKey=(t,k)=>vHash((VP[k]?k:'narr')+'|'+cleanTxt(t));
+function vLoad(h){if(!VO.buf.has(h))VO.buf.set(h,fetch('audio/'+h+'.mp3').then(r=>{if(!r.ok)throw new Error('no audio');return r.arrayBuffer()}).then(b=>AC.decodeAudioData(b)).catch(e=>{VO.buf.delete(h);throw e}));return VO.buf.get(h)}
+function stopVoice(){if(VO.src){try{VO.src.onended=null;VO.src.stop()}catch(e){}VO.src=null}}
 function say(list,done){
-  if(!TTS.ok||S.mute||S.noVoice||!list.length){done&&done();return}
-  try{speechSynthesis.cancel()}catch(e){}
-  const run=++SAY.run;let i=0;duck(true);
+  if(S.mute||S.noVoice||!list.length){done&&done();return}
+  stopVoice();try{TTS.ok&&speechSynthesis.cancel()}catch(e){}
+  const a=ac(),run=++SAY.run;let i=0;duck(true);
+  const loads=list.map(([t,k])=>{const h=vKey(t,k);return a&&VO.map[h]?vLoad(h):null});
+  loads.forEach(p=>p&&p.catch(()=>{}));
   const next=()=>{if(run!==SAY.run)return;if(i>=list.length){duck(false);done&&done();return}
-    const [t,k]=list[i++],v=VP[k]||VP.narr;
-    try{const u=new SpeechSynthesisUtterance(cleanTxt(t));u.lang='ja-JP';const vo=voiceFor(k);if(vo)u.voice=vo;const rr=v.r>1?1+(v.r-1)*.25:v.r;if(MOBILE){u.pitch=Math.min(1.5,Math.max(.7,.7+v.p*.4));u.rate=Math.min(1,Math.max(.85,rr))}else{u.pitch=v.p;u.rate=Math.min(1.1,rr)}
-      let fin=false;const end=()=>{if(fin)return;fin=true;setTimeout(next,220)};u.onend=end;u.onerror=end;speechSynthesis.speak(u);setTimeout(end,15000)}catch(e){done&&done()}};
+    const idx=i++,[t,k]=list[idx],v=VP[k]||VP.narr;
+    let fin=false;const end=()=>{if(fin)return;fin=true;setTimeout(next,220)};
+    const tts=()=>{if(!TTS.ok){end();return}
+      try{const u=new SpeechSynthesisUtterance(cleanTxt(t));u.lang='ja-JP';const vo=voiceFor(k);if(vo)u.voice=vo;const rr=v.r>1?1+(v.r-1)*.25:v.r;if(MOBILE){u.pitch=Math.min(1.5,Math.max(.7,.7+v.p*.4));u.rate=Math.min(1,Math.max(.85,rr))}else{u.pitch=v.p;u.rate=Math.min(1.1,rr)}
+        u.onend=end;u.onerror=end;speechSynthesis.speak(u);setTimeout(end,15000)}catch(e){end()}};
+    if(loads[idx])loads[idx].then(buf=>{if(run!==SAY.run||fin)return;const src=a.createBufferSource();src.buffer=buf;src.connect(a.destination);src.onended=end;VO.src=src;src.start();setTimeout(end,buf.duration*1000+3000)}).catch(()=>{if(run===SAY.run&&!fin)tts()});
+    else tts();
+  };
   next();
 }
 const narrate=(text,done,k)=>say([[text,k||'narr']],done);
