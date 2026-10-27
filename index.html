@@ -413,7 +413,7 @@ textarea{width:100%;min-height:96px;resize:vertical;background:#fbf6ec;color:#12
 
 <main id="app">
   <section class="screen" id="s-title">
-    <h1 class="logo"><span class="pre">行政書士試験</span>LEGAL BREAK<small>―法の拳―</small></h1>
+    <h1 class="logo"><span class="pre">行政書士独学応援</span>LEGAL BREAK<small>―法の拳―</small></h1>
     <div class="title-hero" id="titleHero"></div>
     <div class="tagline">独学で戦うお前に、<br>法の拳を教えてやる。</div>
     <div class="rankmini" id="titleRank" hidden></div>
@@ -466,7 +466,7 @@ textarea{width:100%;min-height:96px;resize:vertical;background:#fbf6ec;color:#12
   <div class="op-hero" id="opHero"></div>
   <div class="op-bar top"></div><div class="op-bar bot"></div>
   <div class="op-cap" id="opCap" aria-live="polite"></div>
-  <div class="op-title"><div class="logo"><span class="pre">行政書士試験</span>LEGAL BREAK<small>―法の拳―</small></div></div>
+  <div class="op-title"><div class="logo"><span class="pre">行政書士独学応援</span>LEGAL BREAK<small>―法の拳―</small></div></div>
   <button class="op-skip" id="opSkip" type="button">スキップ ▶▶</button>
 </div>
 
@@ -1226,7 +1226,7 @@ let OPDONE=null;
 function opEnd(){OPRUN++;OPT.forEach(clearTimeout);OPT=[];stopSay();const op=$('#op');op.hidden=true;op.classList.remove('village','titlecard');const f=OPDONE;OPDONE=null;f&&f()}
 function opening(ep,done){
   OPDONE=done;const run=++OPRUN;const LINES=ep.op,T=ep.opTitle;
-  $('#op .op-title').innerHTML=T?`<div class="logo"><span class="pre">${T.pre}</span>${T.main}${T.small?'<small>'+T.small+'</small>':''}</div>`:'<div class="logo"><span class="pre">行政書士試験</span>LEGAL BREAK<small>―法の拳―</small></div>';
+  $('#op .op-title').innerHTML=T?`<div class="logo"><span class="pre">${T.pre}</span>${T.main}${T.small?'<small>'+T.small+'</small>':''}</div>`:'<div class="logo"><span class="pre">行政書士独学応援</span>LEGAL BREAK<small>―法の拳―</small></div>';
   try{if(TTS.ok){speechSynthesis.cancel();const w=new SpeechSynthesisUtterance(' ');w.volume=0;speechSynthesis.speak(w)}}catch(e){}
   const op=$('#op');op.hidden=false;op.classList.remove('village','titlecard');$('#opHero').innerHTML=SIL.hero;const cap=$('#opCap');cap.innerHTML='';
   const hero=$('#opHero');hero.classList.remove('walk');void hero.offsetWidth;hero.classList.add('walk');
