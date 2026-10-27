@@ -305,9 +305,20 @@ textarea{width:100%;min-height:96px;resize:vertical;background:#fbf6ec;color:#12
 #koma .wb{flex:none}
 #koma .fig{height:calc(var(--k,.84) * min(100%,330px))}
 #koma .fig.boss{--k:1}#koma .fig.girl{--k:.66}#koma .fig.dogra{--k:.94}#koma .fig.inn{--k:.86}
-#koma .nar{font-size:15px;line-height:1.65;max-width:86%;padding:9px 12px}
-#koma .say{font-size:15px;max-width:64%;padding:9px 13px;bottom:min(calc(min(100%,330px) * .74),62%)}
-#koma .say.c{top:auto}
+#koma .kw{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px}
+#koma .cap{flex:none;background:var(--sil);color:var(--bone);border:2px solid var(--bone);border-left:6px solid var(--blood);padding:8px 12px;font-size:15px;line-height:1.65;animation:panelIn .45s ease-out both}
+#koma .panel.talk .fig{height:calc(var(--k,.84) * min(100% - 118px, 330px))}
+#koma .say{top:12px;bottom:auto;max-width:80%;font-size:15px;padding:9px 13px;transform:none}
+#koma .say.l{left:3%;right:auto}
+#koma .say.r{right:3%;left:auto}
+#koma .say.c{left:50%;right:auto;top:12px;transform:translateX(-50%)}
+#koma .say::before,#koma .say::after{content:"";position:absolute;width:0;height:0;border-style:solid}
+#koma .say::before{bottom:-15px;border-width:15px 9px 0;border-color:#120c0a transparent transparent}
+#koma .say::after{bottom:-10px;border-width:11px 6px 0;border-color:#fbf6ec transparent transparent}
+#koma .say.l::before{left:30px}#koma .say.l::after{left:33px}
+#koma .say.r::before{right:30px}#koma .say.r::after{right:33px}
+#koma .say.c::before{left:calc(50% - 9px)}#koma .say.c::after{left:calc(50% - 6px)}
+#koma .say.evil::before{border-top-color:var(--blood)}
 #koma .say .who{font-size:11px}
 #koma .ntag{font-size:12.5px}
 #koma .pno{display:none}
@@ -760,7 +771,7 @@ function panelHTML(p,i){
   const figs=p.figs.map(([t,pos])=>`<div class="fig ${pos} ${t}">${SIL[t]}<span class="ntag">${NAMES[t]||''}</span></div>`).join('');
   const sp=p.say?(p.figs.find(f=>f[1]===p.say.side)||p.figs[0])[0]:null;
   const say=p.say?`<div class="say ${p.say.side}${p.say.evil?' evil':''}"><b class="who">${NAMES[sp]||''}</b>${p.say.text}</div>`:'';
-  return `<div class="panel ${p.bg?'bg-'+p.bg:''}${p.lines?' lines':''}"><div class="tone"></div>${figs}<div class="nar">${p.nar}</div>${say}<span class="pno">${i+1}</span></div>`;
+  return `<div class="kw"><div class="cap">${p.nar}</div><div class="panel ${p.bg?'bg-'+p.bg:''}${p.lines?' lines':''}${p.say?' talk':''}"><div class="tone"></div>${figs}${say}<span class="pno">${i+1}</span></div></div>`;
 }
 /* ---------- 雑魚戦 ---------- */
 function startCase(){const c=EP;BGM.play(c.bgm);story(c.chapter,c.panels,()=>battle(c),c.wb)}
