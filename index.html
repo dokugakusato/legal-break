@@ -1006,7 +1006,7 @@ function accSheet(mode){
     const btn=$('#accForm button');btn.disabled=true;btn.textContent='送信中…';
     ACC.auth.sendSignInLinkToEmail(em,{url:location.origin+location.pathname,handleCodeInApp:true}).then(()=>{try{localStorage.setItem(EMAIL_KEY,em)}catch(e){}
       f.innerHTML=`<div class="verdict ok">メールを送った</div><p>${em} に届いたリンクを、このスマホで押してくれ。届かないときは迷惑メールのフォルダも見てくれ。</p><button class="btn" type="button" id="accClose">閉じる</button>`;$('#accClose').onclick=closeSheet})
-     .catch(()=>{btn.disabled=false;btn.textContent='ログイン用のリンクを送る';$('#accMsg').textContent='送れなかった。メールアドレスを確かめて、もう一度押してくれ。'})};
+     .catch(err=>{btn.disabled=false;btn.textContent='ログイン用のリンクを送る';$('#accMsg').textContent=(err&&err.code==='auth/quota-exceeded')?'今日の登録の受付は、もういっぱいだ。明日もう一度ためしてくれ。記録はこの端末には残っている。':'送れなかった。メールアドレスを確かめて、もう一度押してくれ。'})};
 }
 
 /* ---------- 1話を遊ぶ（1話＝事件3つ＋章ボス） ---------- */
