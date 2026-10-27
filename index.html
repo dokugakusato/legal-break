@@ -295,6 +295,11 @@ textarea{width:100%;min-height:96px;resize:vertical;background:#fbf6ec;color:#12
 .btn.danger{border-color:var(--steel);color:var(--steel)}
 .confirm{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 
+/* ---------- 閉じるボタン（左上） ---------- */
+.closebtn{position:fixed;z-index:30;top:calc(8px + env(safe-area-inset-top,0px));left:calc(8px + env(safe-area-inset-left,0px));width:30px;height:30px;padding:0;border-radius:50%;background:var(--panel);color:var(--bone);border:1.5px solid var(--dust);font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center}
+.closebtn:active{transform:scale(.92)}
+body.hasclose #s-story .chap,body.hasclose #s-select .chap,body.hasclose #s-clear .chap{padding-left:34px}
+body.hasclose #s-battle .hud{padding-left:38px}
 /* ---------- 表情 ---------- */
 .emo{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
 .emo>g{display:none}
@@ -427,6 +432,7 @@ textarea{width:100%;min-height:96px;resize:vertical;background:#fbf6ec;color:#12
 <div class="vig"></div>
 <div class="redflash" id="rf"></div>
 <div class="whiteout" id="wo"></div>
+<button class="closebtn" id="closeBtn" type="button" aria-label="ゲームを終えてタイトルに戻る" hidden>×</button>
 <button class="mute backbtn" id="backBtn" type="button" hidden>◀ 戻る</button>
 <button class="mute" id="mute" type="button">音：ON</button>
 <button class="mute voicebtn" id="voiceBtn" type="button">声：ON</button>
@@ -720,7 +726,7 @@ function frame(){
 addEventListener('resize',()=>{drawStatic();if(reduce)frame()});drawStatic();frame();
 
 /* ---------- 共通 ---------- */
-function show(id){document.querySelectorAll('.screen').forEach(s=>s.hidden=s.id!==id);$('#app').scrollTop=0;const bb=$('#backBtn');if(bb)bb.hidden=id==='s-title'}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.hidden=s.id!==id);$('#app').scrollTop=0;const bb=$('#backBtn');if(bb)bb.hidden=id==='s-title';const cb=$('#closeBtn');if(cb)cb.hidden=id==='s-title';document.body.classList.toggle('hasclose',id!=='s-title')}
 function rec(topic,ok){const s=S.stats[topic]||(S.stats[topic]={ok:0,n:0});s.n++;if(ok)s.ok++;if(S.run){S.run.n++;if(ok)S.run.ok++}}
 function bars(){document.querySelectorAll('#lives i').forEach((el,i)=>{const on=i<S.life;if(el.classList.contains('on')&&!on){el.classList.add('lost')}el.classList.toggle('on',on);if(on)el.classList.remove('lost')});$('#phpN').textContent=S.life+'/3';const ef=$('#stage .fig.r');if(ef){const lv=S.ehp>=100?0:S.ehp>66?1:S.ehp>33?2:3;ef.classList.toggle('ed1',lv>=1);ef.classList.toggle('ed2',lv>=2);ef.classList.toggle('ed3',lv>=3)}const hf=$('#stage .fig.l.hero');if(hf){hf.classList.toggle('hurt1',S.life===2);hf.classList.toggle('hurt2',S.life<=1)}$('#ehp').style.width=S.ehp+'%';$('#ehpN').textContent=S.ehp}
 function flashRed(){const f=$('#rf');f.classList.remove('on');void f.offsetWidth;f.classList.add('on');const st=$('#stage');st.classList.remove('shake');void st.offsetWidth;st.classList.add('shake')}
@@ -1135,6 +1141,15 @@ $('#resetBtn').onclick=()=>{$('#resetBox').innerHTML=`<div class="card confirm">
   $('#resetYes').onclick=()=>{P=Object.assign({eps:{},streak:0,best:0,ok:0,n:0,clears:0,badges:{}});saveP();$('#resetBox').innerHTML='';renderSelect()};
   $('#resetNo').onclick=()=>{$('#resetBox').innerHTML=''}};
 refreshTitle();accInit();
+/* ---------- ゲームを終える（左上の×） ---------- */
+function goTitle(){closeSheet();stopSay();const ov=$('#ov');ov.hidden=true;ov.innerHTML='';ov.className='';ov.style.cssText='';document.body.classList.remove('wasted');refreshTitle();show('s-title');BGM.play('title')}
+$('#closeBtn').onclick=()=>{
+  ac();const cur=[...document.querySelectorAll('.screen')].find(x=>!x.hidden);const id=cur&&cur.id;
+  if(id!=='s-story'&&id!=='s-battle'){goTitle();return}
+  const f=openSheet();
+  f.innerHTML=`<span class="qtag">ゲームを終える</span><p class="qtext">この話を途中でやめて、タイトルに戻る。ここまでの進み具合は記録されない。</p><button class="btn" type="button" id="endYes">やめてタイトルへ</button><button class="btn ghost" type="button" id="endNo">続ける</button>`;
+  $('#endNo').onclick=closeSheet;$('#endYes').onclick=goTitle;
+};
 /* ---------- 前の画面に戻る ---------- */
 $('#backBtn').onclick=()=>{
   ac();const cur=[...document.querySelectorAll('.screen')].find(x=>!x.hidden);const id=cur&&cur.id;
