@@ -295,6 +295,24 @@ textarea{width:100%;min-height:96px;resize:vertical;background:#fbf6ec;color:#12
 .btn.danger{border-color:var(--steel);color:var(--steel)}
 .confirm{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 
+/* ---------- 表情 ---------- */
+.emo{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.emo>g{display:none}
+.fig.emo-angry .e-angry,.fig.emo-sad .e-sad,.fig.emo-shock .e-shock,.fig.emo-happy .e-happy,.fig.emo-evil .e-evil{display:inline}
+.fig.emo-angry .e-angry>g{animation:veinP .5s ease-in-out infinite;transform-origin:70px 21px;transform-box:view-box}
+@keyframes veinP{50%{transform:scale(1.25)}}
+.fig.emo-angry>svg{animation:emoShake .38s 2}
+@keyframes emoShake{0%,100%{transform:none}25%{transform:translateX(-4px) rotate(-2deg)}75%{transform:translateX(4px) rotate(2deg)}}
+.fig.emo-sad>svg{transform:translateY(4px) rotate(-2deg);transform-origin:50% 100%;transition:transform .8s}
+.fig.emo-sad .e-sad path:first-child{animation:tear 1.6s ease-in infinite}
+@keyframes tear{0%{opacity:.3}50%{opacity:1}100%{opacity:.3}}
+.fig.emo-shock>svg{animation:emoJump .45s cubic-bezier(.2,1.6,.4,1)}
+@keyframes emoJump{0%{transform:none}40%{transform:translateY(-12px)}100%{transform:none}}
+.fig.emo-happy>svg{animation:emoBob 1s ease-in-out infinite}
+@keyframes emoBob{50%{transform:translateY(-4px)}}
+.fig.emo-evil>svg{animation:emoSway 2.4s ease-in-out infinite;transform-origin:50% 100%}
+@keyframes emoSway{50%{transform:rotate(2deg)}}
+@media (prefers-reduced-motion:reduce){.fig[class*="emo-"]>svg,.emo g{animation:none!important}}
 /* ---------- スマホ1画面に収める ---------- */
 .steps{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:6px;font-size:14.5px;line-height:1.6}
 .steps b,.qtext b.gold{color:var(--gold)}
@@ -708,6 +726,7 @@ function bars(){document.querySelectorAll('#lives i').forEach((el,i)=>{const on=
 function flashRed(){const f=$('#rf');f.classList.remove('on');void f.offsetWidth;f.classList.add('on');const st=$('#stage');st.classList.remove('shake');void st.offsetWidth;st.classList.add('shake')}
 function pow(text){const p=document.createElement('div');p.className='pow';p.textContent=text;$('#stage').appendChild(p);setTimeout(()=>p.remove(),800)}
 function damage(n,label){
+  flashEmo($('#stage .fig.r'),S.ehp-n<=0?'shock':(Math.random()<.5?'angry':'shock'));
   S.ehp=Math.max(0,S.ehp-n);const isBoss=!!$('#stage .fig.r.bigboss');punch(n>45?1.4:1);scream(isBoss?.6:1,n>45?.9:.65);
   const e=$('#stage .fig.r');e.classList.remove('hit');void e.offsetWidth;e.classList.add('hit');pow(label);
   const v=document.createElement('div');v.className='scream';v.textContent=isBoss?'グオオオッ…！':(n>45?'グアアアッ！！':'グアアッ！');$('#stage').appendChild(v);setTimeout(()=>v.remove(),1100);bars()}
@@ -756,10 +775,12 @@ const BOOK=`<svg viewBox="0 0 60 74"><rect x="4" y="4" width="50" height="66" rx
 const LEG=`<svg viewBox="0 0 96 34"><path d="M0 6h62v20H0z" fill="#0b0807"/><path d="M58 4h22c8 0 14 5 14 12v6c0 4-3 7-7 7H58z" fill="#2a2420" stroke="#0b0807" stroke-width="3"/><path d="M60 26h34" stroke="#d9a441" stroke-width="2"/></svg>`;
 const FIST=`<svg viewBox="0 0 70 40"><path d="M0 12h24v16H0z" fill="#0b0807"/><path d="M14 12h10v16H14z" fill="#e8dcc6"/><rect x="22" y="4" width="40" height="32" rx="10" fill="#d9a87a" stroke="#0b0807" stroke-width="3"/><path d="M52 6v28M42 6v12M32 6v12M30 26h14" stroke="#0b0807" stroke-width="2.4" stroke-linecap="round"/></svg>`;
 const BOOM=(()=>{let p='';for(let i=0;i<18;i++){const r=i%2?18:46,a=i/18*Math.PI*2;p+=(50+Math.cos(a)*r).toFixed(1)+','+(50+Math.sin(a)*r).toFixed(1)+' '}return `<svg viewBox="0 0 100 100"><polygon points="${p}" fill="#d9a441" stroke="#0b0807" stroke-width="3"/><circle cx="50" cy="50" r="14" fill="#fffbe8"/></svg>`})();
-function hurt(){if(S.run)S.run.lost++;S.life=Math.max(0,S.life-1);const hf=$('#stage .fig.l.hero');if(hf){hf.classList.remove('hurtnow');void hf.offsetWidth;hf.classList.add('hurtnow');setTimeout(()=>hf.classList.remove('hurtnow'),600)}S.hp=Math.round(S.life/3*100);miss();flashRed();bars()}
+function flashEmo(el,e,ms=1300){if(!el)return;['angry','sad','shock','happy','evil'].forEach(x=>el.classList.remove('emo-'+x));void el.offsetWidth;el.classList.add('emo-'+e);clearTimeout(el._emoT);el._emoT=setTimeout(()=>el.classList.remove('emo-'+e),ms)}
+function hurt(){flashEmo($('#stage .fig.l.hero'),'shock');if(S.run)S.run.lost++;S.life=Math.max(0,S.life-1);const hf=$('#stage .fig.l.hero');if(hf){hf.classList.remove('hurtnow');void hf.offsetWidth;hf.classList.add('hurtnow');setTimeout(()=>hf.classList.remove('hurtnow'),600)}S.hp=Math.round(S.life/3*100);miss();flashRed();bars()}
 /* scrollToCard は解説シート側で定義 */
 
 /* ---------- 4コマ ---------- */
+const EMOSVG='<svg class="emo" viewBox="0 0 100 160" aria-hidden="true"><g class="e-angry"><ellipse cx="50" cy="45" rx="13" ry="7" fill="#e0402a" opacity=".3"/><g stroke="#ff3b2e" stroke-width="2.8" fill="none" stroke-linecap="round"><path d="M65 13q5 3 3 8"/><path d="M76 13q-5 3-3 8"/><path d="M65 29q5-3 3-8"/><path d="M76 29q-5-3-3-8"/></g><path d="M26 30l-6-3M24 38h-7" stroke="#ff3b2e" stroke-width="2" stroke-linecap="round"/></g><g class="e-sad"><path d="M43 44c-1.5 5-1 10 .5 15M57 44c1.5 5 1 10-.5 15" stroke="#8fd0ff" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="44" cy="61" r="2.1" fill="#8fd0ff"/><circle cx="56.5" cy="61" r="2.1" fill="#8fd0ff"/><path d="M32 2v13M40 0v11M48 2v9M56 0v11M64 2v13" stroke="#7d8cd0" stroke-width="1.7" opacity=".8"/></g><g class="e-shock"><path d="M70 25c3 4 4.5 7.5 1.5 9.5c-3 1.5-5.5-2-3.5-5z" fill="#9fdcff" stroke="#0b0807" stroke-width=".8"/><path d="M27 19l-7-6M50 11V1M73 19l7-6" stroke="#fbf6ec" stroke-width="2.6" stroke-linecap="round"/></g><g class="e-happy"><path d="M23 20l2 5 5 2-5 2-2 5-2-5-5-2 5-2zM77 13l1.6 4 4 1.6-4 1.6-1.6 4-1.6-4-4-1.6 4-1.6z" fill="#ffe08a"/><ellipse cx="41" cy="47" rx="3.6" ry="2.1" fill="#ff8a7a" opacity=".6"/><ellipse cx="59" cy="47" rx="3.6" ry="2.1" fill="#ff8a7a" opacity=".6"/></g><g class="e-evil"><ellipse cx="50" cy="37" rx="18" ry="10" fill="#0b0807" opacity=".5"/><circle cx="44" cy="40" r="2" fill="#ff4a3a"/><circle cx="56" cy="40" r="2" fill="#ff4a3a"/><path d="M71 22l4-4M73 29h5" stroke="#c22d22" stroke-width="2" stroke-linecap="round"/></g></svg>';
 const NAMES={hero:'佐藤',old:'田中',thug:'坂東',mina:'佐々木',oldwoman:'鈴木',trick:'三浦',jin:'中村',farmer:'山本（父）',girl:'さや',dogra:'土倉',sou:'小林',haru:'高橋',inn:'伊藤',boss:'権田'};
 /* ---------- 下から出る解説シート ---------- */
 function openSheet(delay){clearTimeout(S.sheetT);const s=$('#sheet'),f=$('#fb');f.innerHTML='';const go=()=>{s.hidden=false;$('.sheet-in').scrollTop=0};if(delay){s.hidden=true;S.sheetT=setTimeout(go,delay)}else go();return f}
@@ -780,14 +801,15 @@ function story(ch,panels,done,wbd){
 }
 
 function panelHTML(p,i){
-  const figs=p.figs.map(([t,pos])=>`<div class="fig ${pos} ${t}">${SIL[t]}<span class="ntag">${NAMES[t]||''}</span></div>`).join('');
   const sp=p.say?(p.figs.find(f=>f[1]===p.say.side)||p.figs[0])[0]:null;
+  const emo=p.say?(p.say.emo||(p.say.evil?'evil':/！/.test(p.say.text)?'angry':/…/.test(p.say.text)?'sad':'')):'';
+  const figs=p.figs.map(([t,pos])=>{const e=t===sp?emo:(p.react||'');return `<div class="fig ${pos} ${t}${e?' emo-'+e:''}">${SIL[t]}${EMOSVG}<span class="ntag">${NAMES[t]||''}</span></div>`}).join('');
   const say=p.say?`<div class="say ${p.say.side}${p.say.evil?' evil':''}"><b class="who">${NAMES[sp]||''}</b>${p.say.text}</div>`:'';
   return `<div class="kw"><div class="cap">${p.nar}</div><div class="panel ${p.bg?'bg-'+p.bg:''}${p.lines?' lines':''}${p.say?' talk':''}"><div class="tone"></div>${figs}${say}<span class="pno">${i+1}</span></div></div>`;
 }
 /* ---------- 雑魚戦 ---------- */
 function startCase(){const c=EP;BGM.play(c.bgm);story(c.chapter,c.panels,()=>battle(c),c.wb)}
-function stageHTML(efig,name,big){return `<div class="tone"></div><div class="fig l hero">${SIL.hero}<span class="ntag">佐藤</span></div><div class="fig r ${efig}${big?' bigboss':''}">${SIL[efig]}<svg class="edmg" viewBox="0 0 100 160" aria-hidden="true"><g class="e1"><ellipse cx="57" cy="44" rx="5" ry="4" fill="#5a2a6a" opacity=".55"/><path d="M34 98l10 6M60 112l9-5M44 128l7 4" stroke="#efe3cf" stroke-width="1.6" fill="none" opacity=".9"/></g><g class="e2"><path d="M45 22c-1.5 7 1 10-1 17c-1 4 2.6 4.4 2.6.4c.5-6-.6-10-1.6-17.4z" fill="#c22d22"/><path d="M26 108l7-10 5 10 5-7 1 12zM60 96l9-4 2 10 6 2-7 8z" fill="#2a1a14" stroke="#efe3cf" stroke-width=".8"/><path d="M58 50q2 5 0 9" stroke="#c22d22" stroke-width="2" fill="none"/></g><g class="e3"><path d="M32 100l20 18M52 100l-20 18" stroke="#c22d22" stroke-width="3" stroke-linecap="round"/><circle cx="43" cy="40" r="4" fill="#3a1a2a" opacity=".8"/><path d="M64 120l6-8 4 8 5-6 2 11zM18 140l6-7 3 7 5-5 1 9z" fill="#2a1a14" stroke="#efe3cf" stroke-width=".8"/><path d="M50 56c2 6-1 9 1 14c1 3-2.4 3-2.2 0c0-4 .4-8 1.2-14z" fill="#c22d22"/></g></svg><span class="ntag">${NAMES[efig]||''}</span></div><div class="enemyname">${name}</div>`}
+function stageHTML(efig,name,big){return `<div class="tone"></div><div class="fig l hero">${SIL.hero}${EMOSVG}<span class="ntag">佐藤</span></div><div class="fig r ${efig}${big?' bigboss':''}">${SIL[efig]}${EMOSVG}<svg class="edmg" viewBox="0 0 100 160" aria-hidden="true"><g class="e1"><ellipse cx="57" cy="44" rx="5" ry="4" fill="#5a2a6a" opacity=".55"/><path d="M34 98l10 6M60 112l9-5M44 128l7 4" stroke="#efe3cf" stroke-width="1.6" fill="none" opacity=".9"/></g><g class="e2"><path d="M45 22c-1.5 7 1 10-1 17c-1 4 2.6 4.4 2.6.4c.5-6-.6-10-1.6-17.4z" fill="#c22d22"/><path d="M26 108l7-10 5 10 5-7 1 12zM60 96l9-4 2 10 6 2-7 8z" fill="#2a1a14" stroke="#efe3cf" stroke-width=".8"/><path d="M58 50q2 5 0 9" stroke="#c22d22" stroke-width="2" fill="none"/></g><g class="e3"><path d="M32 100l20 18M52 100l-20 18" stroke="#c22d22" stroke-width="3" stroke-linecap="round"/><circle cx="43" cy="40" r="4" fill="#3a1a2a" opacity=".8"/><path d="M64 120l6-8 4 8 5-6 2 11zM18 140l6-7 3 7 5-5 1 9z" fill="#2a1a14" stroke="#efe3cf" stroke-width=".8"/><path d="M50 56c2 6-1 9 1 14c1 3-2.4 3-2.2 0c0-4 .4-8 1.2-14z" fill="#c22d22"/></g></svg><span class="ntag">${NAMES[efig]||''}</span></div><div class="enemyname">${name}</div>`}
 function battle(c){show('s-battle');$('#s-battle').classList.remove('bossmode');BGM.play(c.bbgm);S.ehp=100;$('#eName').textContent=c.enemy;$('#stage').innerHTML=stageHTML(c.efig,c.enemy);bars();S.queue=['q','ox','ox2'];S.tried={};ask(c,'q')}
 const PART={q:50,ox:25,ox2:25};
 function ask(c,kind){
@@ -828,7 +850,7 @@ function death(retry){
   closeSheet();BGM.stop();stopSay();if(S.run)S.run.died=1;sadTheme(2.3);
   const h=$('#stage .fig.l');if(h)setTimeout(()=>h.classList.add('down'),200);
   const en=$('#stage .fig.r'),ek=en?[...en.classList].find(c=>VP[c]):null;
-  setTimeout(()=>{if(en){en.classList.remove('knock','knockkick','pinned','hit');en.classList.add('laughing')}
+  setTimeout(()=>{if(en){en.classList.remove('knock','knockkick','pinned','hit');en.classList.add('laughing','emo-evil')}
     const lt=document.createElement('div');lt.className='laugh';lt.textContent='ワッハッハッハッ！';$('#stage').appendChild(lt);
     say([['わっはっはっはっ、あっはっはっはっ！',ek||'boss']]);},700);
   document.body.classList.add('wasted');
