@@ -1,0 +1,17 @@
+{
+  "name": "LEGAL BREAK ―法の拳―",
+  "short_name": "法の拳",
+  "description": "行政書士試験を、荒野の事件を法の拳で解決しながら学ぶゲーム。毎日1話更新。",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#120c0a",
+  "theme_color": "#120c0a",
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

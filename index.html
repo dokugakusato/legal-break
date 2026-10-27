@@ -1,5 +1,13 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>LEGAL BREAK 法の拳</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#120c0a">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="法の拳">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Yuji+Boku&family=Yomogi&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap">
@@ -287,6 +295,8 @@ textarea{width:100%;min-height:96px;resize:vertical;background:#fbf6ec;color:#12
 .confirm{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 
 /* ---------- スマホ1画面に収める ---------- */
+.steps{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:6px;font-size:14.5px;line-height:1.6}
+.steps b{color:var(--gold)}
 #s-title{min-height:0!important;padding-top:4px!important}
 #s-title .logo{font-size:clamp(38px,11vw,56px)}
 #s-title .tagline{font-size:15px;padding:8px 12px}
@@ -410,6 +420,7 @@ textarea{width:100%;min-height:96px;resize:vertical;background:#fbf6ec;color:#12
     <button class="btn" id="startBtn" type="button">修行を始める</button>
     <button class="btn ghost" id="selectBtn" type="button">話を選ぶ</button>
     <div class="minirow"><button class="btn ghost mini" id="soundTest" type="button">音テスト</button><button class="btn ghost mini" id="voiceTest" type="button">声を聞く</button></div>
+    <button class="btn ghost" id="installBtn" type="button" hidden>ホーム画面に置いて、アプリにする</button>
     <div class="accbox" hidden></div>
     <p class="note">毎日1話ずつ更新中。1話は事件3つと章ボス。事件を法の拳で裁け。</p>
     <p class="note fine">※登場人物・事件はすべて架空です。<a href="privacy.html">プライバシーポリシー</a><br><span id="credit"></span></p>
@@ -1102,6 +1113,26 @@ $('#resetBtn').onclick=()=>{$('#resetBox').innerHTML=`<div class="card confirm">
   $('#resetYes').onclick=()=>{P=Object.assign({eps:{},streak:0,best:0,ok:0,n:0,clears:0,badges:{}});saveP();$('#resetBox').innerHTML='';renderSelect()};
   $('#resetNo').onclick=()=>{$('#resetBox').innerHTML=''}};
 refreshTitle();accInit();
+/* ---------- ホーム画面に置いてアプリにする ---------- */
+const STANDALONE=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+let INSTALL=null;
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+if(!STANDALONE)$('#installBtn').hidden=false;
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();INSTALL=e});
+addEventListener('appinstalled',()=>{$('#installBtn').hidden=true});
+$('#installBtn').onclick=()=>{
+  if(INSTALL){INSTALL.prompt();INSTALL.userChoice.finally(()=>{INSTALL=null});return}
+  const ios=/iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  const inApp=/Line\/|FBAN|FBAV|Instagram|Twitter|YouTube/i.test(navigator.userAgent);
+  const f=openSheet();
+  f.innerHTML=`<span class="qtag">ホーム画面に置く</span>
+  ${inApp?'<p class="qtext">今はアプリの中のブラウザで開いている。右上か右下のメニューから「ブラウザで開く」を選んで、'+(ios?'Safari':'Chrome')+'で開き直してから、次の手順で置いてくれ。</p>':''}
+  ${ios?`<ol class="steps"><li>Safari の画面下（または上）にある<b>共有ボタン</b>（四角から上向きの矢印）を押す</li><li>メニューを下へ進めて<b>「ホーム画面に追加」</b>を押す</li><li>右上の<b>「追加」</b>を押す</li></ol>`
+       :`<ol class="steps"><li>Chrome の右上の<b>︙（メニュー）</b>を押す</li><li><b>「ホーム画面に追加」</b>または<b>「アプリをインストール」</b>を押す</li><li><b>「インストール」</b>（または「追加」）を押す</li></ol>`}
+  <p class="note">ホーム画面の「法の拳」のアイコンから、URLを入れずにすぐ遊べる。</p>
+  <button class="btn" type="button" id="instClose">わかった</button>`;
+  $('#instClose').onclick=closeSheet;
+};
 if(window.LB_VOICE_CREDIT&&LB_VOICE_CREDIT.length)$('#credit').textContent='声：'+LB_VOICE_CREDIT.join('、');
 
 /* ---------- オープニング ---------- */
