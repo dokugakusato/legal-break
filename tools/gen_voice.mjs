@@ -18,6 +18,8 @@ const CAST={
  mayor:['ちび式じい','ノーマル',.95,.03,1],mori:['九州そら','ノーマル',1.02,0,1.1]};
 
 // ゲーム本体と同じ計算でファイル名を決める
+// 読み方の直し（画面の文字はそのまま、声だけ読み方を変える）
+const yomi=t=>t.replace(/取消(?!し)/g,'取り消し');
 const cleanTxt=t=>t.replace(/<br>/g,'').replace(/[「」―]/g,'').replace(/　/g,'');
 function vHash(s){let h=0x811c9dc5;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,0x01000193)}return (h>>>0).toString(16).padStart(8,'0')}
 const VPKEYS=new Set([...html.matchAll(/([a-zA-Z]+):\{p:/g)].map(m=>m[1]));
@@ -27,7 +29,6 @@ const norm=k=>VPKEYS.has(k)?k:'narr';
 const lines=[];const add=(t,k)=>{if(t)lines.push([t,norm(k)])};
 const vt=html.match(/const VOICE_TEST=(\[.*?\]\]);/);if(vt)vm.runInNewContext(vt[1]).forEach(([t,k])=>add(t,k));
 for(const m of html.matchAll(/\{name:'(独学[^']+)',need:/g))add(`お前は今日から「${m[1]}」だ。`,'hero');
-add('独学の君に、この拳を見せてやる。','hero');
 const ctx={window:{},LB:{eps:[],episode(e){this.eps.push(e)}}};vm.createContext(ctx);
 vm.runInContext(fs.readFileSync(ROOT+'episodes/list.js','utf8'),ctx);
 for(const m of ctx.window.LB_LIST)vm.runInContext(fs.readFileSync(ROOT+'episodes/'+m.file,'utf8'),ctx);
@@ -37,7 +38,7 @@ for(const ep of ctx.LB.eps){
   for(const p of ep.parts){
     for(const P of p.panels){add(P.nar,'narr');if(P.say){const sp=(P.figs.find(f=>f[1]===P.say.side)||P.figs[0])[0];add(P.say.text,sp)}}
     add(p.kime,'hero');add('わっはっはっはっ、あっはっはっはっ！',enemyKey(p.efig||'boss'));
-    if(p.type==='boss')add('甘いわ、小僧！',p.efig||'boss');
+    if(p.type==='boss'){add('甘いわ、小僧！',p.efig||'boss');if(p.lawName)add(p.lawName+'！','hero')}
   }
 }
 
@@ -47,15 +48,21 @@ function styleOf(k){const c=CAST[k]||CAST.narr;const sp=speakers.find(s=>s.name=
   const st=sp.styles.find(s=>s.name===c[1])||sp.styles[0];return {id:st.id,name:sp.name,speed:c[2],pitch:c[3],into:c[4]}}
 const outDir=ROOT+'audio/';fs.mkdirSync(outDir,{recursive:true});
 const need=new Map();for(const [t,k] of lines)need.set(vHash(k+'|'+cleanTxt(t)),[cleanTxt(t),k]);
+// 録音した時の声と読み方を覚えておき、変わったものだけ録り直す
+const MAN=outDir+'manifest.json';let man={};try{man=JSON.parse(fs.readFileSync(MAN,'utf8'))}catch(e){}
+const sig=(st,text)=>[st.name,st.id,st.speed,st.pitch,st.into,text].join('|');
 const used=new Set();let made=0;
 for(const [h,[text,k]] of need){
-  const st=styleOf(k);used.add(st.name);const mp3=outDir+h+'.mp3';if(fs.existsSync(mp3))continue;
-  const q=await (await fetch(`${ENGINE}/audio_query?speaker=${st.id}&text=${encodeURIComponent(text)}`,{method:'POST'})).json();
+  const st=styleOf(k);used.add(st.name);const mp3=outDir+h+'.mp3',say=yomi(text),now=sig(st,say);
+  if(!man[h]&&fs.existsSync(mp3))man[h]=sig(st,text);
+  if(fs.existsSync(mp3)&&man[h]===now)continue;
+  const q=await (await fetch(`${ENGINE}/audio_query?speaker=${st.id}&text=${encodeURIComponent(say)}`,{method:'POST'})).json();
   Object.assign(q,{speedScale:st.speed,pitchScale:st.pitch,intonationScale:st.into,prePhonemeLength:.08,postPhonemeLength:.12});
   const wav=Buffer.from(await (await fetch(`${ENGINE}/synthesis?speaker=${st.id}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(q)})).arrayBuffer());
   fs.writeFileSync('/tmp/v.wav',wav);execFileSync('ffmpeg',['-y','-loglevel','error','-i','/tmp/v.wav','-ac','1','-ar','24000','-b:a','64k',mp3]);made++;
-  console.log('録音',h,k,text.slice(0,24));
+  man[h]=now;console.log('録音',h,k,say.slice(0,24));
 }
+fs.writeFileSync(MAN,JSON.stringify(man,null,0));
 const map=Object.fromEntries([...need.keys()].filter(h=>fs.existsSync(outDir+h+'.mp3')).sort().map(h=>[h,1]));
 fs.writeFileSync(outDir+'index.js',`/* 自動録音の目次（tools/gen_voice.mjs が作る。手で直さない） */\nwindow.LB_AUDIO=${JSON.stringify(map)};\nwindow.LB_VOICE_CREDIT=${JSON.stringify([...used].sort().map(n=>'VOICEVOX:'+n))};\n`);
 console.log(`セリフ ${need.size} 行、新しく録音 ${made} 行`);
