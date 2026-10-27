@@ -750,8 +750,8 @@ function hurt(){if(S.run)S.run.lost++;S.life=Math.max(0,S.life-1);const hf=$('#s
 /* ---------- 4コマ ---------- */
 const NAMES={hero:'佐藤',old:'田中',thug:'坂東',mina:'佐々木',oldwoman:'鈴木',trick:'三浦',jin:'中村',farmer:'山本（父）',girl:'さや',dogra:'土倉',sou:'小林',haru:'高橋',inn:'伊藤',boss:'権田'};
 /* ---------- 下から出る解説シート ---------- */
-function openSheet(){const s=$('#sheet');s.hidden=false;const f=$('#fb');f.innerHTML='';$('.sheet-in').scrollTop=0;return f}
-function closeSheet(){const s=$('#sheet');if(s)s.hidden=true}
+function openSheet(delay){clearTimeout(S.sheetT);const s=$('#sheet'),f=$('#fb');f.innerHTML='';const go=()=>{s.hidden=false;$('.sheet-in').scrollTop=0};if(delay){s.hidden=true;S.sheetT=setTimeout(go,delay)}else go();return f}
+function closeSheet(){clearTimeout(S.sheetT);const s=$('#sheet');if(s)s.hidden=true}
 function scrollToCard(){const s=$('.sheet-in');if(s)s.scrollTop=0}
 function wbButton(d){const b=$('#wbBtn');if(!b)return;b.onclick=()=>{ac();const f=openSheet();f.innerHTML=wbBox(d,false);const x=document.createElement('button');x.className='btn';x.type='button';x.textContent='閉じる';x.onclick=closeSheet;f.appendChild(x)}}
 
@@ -790,7 +790,7 @@ function ask(c,kind){
     const i=+btn.dataset.i,ok=i===right;rec(c.topic,ok);
     $('#qcard').querySelectorAll('.opt').forEach(x=>{x.disabled=true;if(+x.dataset.i===right)x.classList.add('right')});
     if(!ok)btn.classList.add('wrong');
-    const fb=openSheet();
+    const fb=openSheet(ok?(S.ehp<=PART[kind]?2600:1500):950);
     const verdict=ok?'<div class="verdict ok">命中！</div>':`<div class="verdict ng">見切られた…（残りの命 ${Math.max(0,S.life-1)}）</div>`;
     fb.innerHTML=`${verdict}<span class="law">${q.law}</span><p>${q.exp}</p>${isOx?'':wbBox(c.wb,true)}${ok?'':'<p class="law">この問題は、あとでもう一度出る。</p>'}`;
     S.queue.shift();
@@ -802,12 +802,12 @@ function ask(c,kind){
     if(!ko){
       next.textContent=ok?'追撃する':'体勢を立て直す';
       next.onclick=()=>{ask(c,S.queue[0]);scrollToCard()};
-      if(ok&&kind==='q')setTimeout(()=>kime(c),1300);
+      if(ok&&kind==='q')setTimeout(()=>kime(c),1500);
     }else{
       setTimeout(()=>{const e=$('#stage .fig.r');e.classList.remove('knock','knockkick','pinned');e.classList.add('ko');BGM.stop();setTimeout(fanfare,500)},1300);
       const nxp=CH.parts[S.part+1];next.textContent=!nxp?'戦いの記録を見る':(nxp.type==='boss'?nxp.enemy+'のもとへ':'次の事件へ');
       next.onclick=()=>nextPart();
-      if(kind==='q')setTimeout(()=>kime(c),1300);
+      if(kind==='q')setTimeout(()=>kime(c),2600);
     }
     scrollToCard();
   });
