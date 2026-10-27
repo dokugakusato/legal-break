@@ -546,7 +546,10 @@ function wbArrow(x1,y1,x2,y2,col,dash){
   return `<path d="M${sx.toFixed(1)} ${sy.toFixed(1)} Q${((sx+ex)/2+uy*7).toFixed(1)} ${((sy+ey)/2-ux*7).toFixed(1)} ${ex.toFixed(1)} ${ey.toFixed(1)}" stroke="${MK[col]}" stroke-width="2.6" fill="none" stroke-linecap="round"${dash?' stroke-dasharray="7 6"':''} marker-end="url(#ah${col})"/>`;
 }
 // 関係図の顔（手描き風）：plain=普通 sad=困っている shout=訴える bad=悪い奴（傷のサングラス） side-r/side-l=口を開けた横顔
+const HAND=['yoko-ikari','yoko','odoroki','yoko-oogoe','warumono','josei','grasan','megane'];
 function wbFace(t,x,y){
+  const flip=/-l$/.test(t)&&HAND.includes(t.slice(0,-2)),key=flip?t.slice(0,-2):t;
+  if(HAND.includes(key)){const w=50;return `<image href="faces/${key}.png" x="${x-w/2}" y="${y-w/2}" width="${w}" height="${w}" preserveAspectRatio="xMidYMid meet"${flip?` transform="translate(${2*x} 0) scale(-1 1)"`:''}/>`}
   const K=MK.k,W='#fbfbf8',r=21,o=`stroke="${K}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"`;
   const ring=`<circle cx="${x+1.4}" cy="${y-1}" r="${r+.5}" fill="none" stroke="${K}" stroke-width="1" opacity=".3"/>`;
   if(t==='side-r'||t==='side-l'){const d=t==='side-r'?1:-1,a1=-8*Math.PI/180,a2=48*Math.PI/180;
