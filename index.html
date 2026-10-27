@@ -32,6 +32,7 @@ button:focus-visible,textarea:focus-visible{outline:3px solid var(--gold);outlin
 .btn{background:var(--blood);color:var(--bone);border:3px solid var(--bone);font-weight:900;font-size:17px;padding:12px 18px;letter-spacing:.08em;box-shadow:5px 5px 0 var(--sil);transition:transform .1s}
 .btn:active{transform:translate(3px,3px);box-shadow:2px 2px 0 var(--sil)}
 .btn.ghost{background:transparent;box-shadow:none;border-width:2px;font-size:14px}
+.mute.backbtn{right:auto;left:calc(10px + env(safe-area-inset-left,0px))}
 .mute.voicebtn{right:calc(82px + env(safe-area-inset-right,0px))}
 .mute{position:fixed;z-index:30;bottom:calc(10px + env(safe-area-inset-bottom,0px));right:calc(10px + env(safe-area-inset-right,0px));background:var(--panel);color:var(--bone);border:1px solid var(--dust);font-size:12px;padding:4px 10px}
 
@@ -408,6 +409,7 @@ textarea{width:100%;min-height:96px;resize:vertical;background:#fbf6ec;color:#12
 <div class="vig"></div>
 <div class="redflash" id="rf"></div>
 <div class="whiteout" id="wo"></div>
+<button class="mute backbtn" id="backBtn" type="button" hidden>◀ 戻る</button>
 <button class="mute" id="mute" type="button">音：ON</button>
 <button class="mute voicebtn" id="voiceBtn" type="button">声：ON</button>
 
@@ -419,7 +421,6 @@ textarea{width:100%;min-height:96px;resize:vertical;background:#fbf6ec;color:#12
     <div class="rankmini" id="titleRank" hidden></div>
     <button class="btn" id="startBtn" type="button">修行を始める</button>
     <button class="btn ghost" id="selectBtn" type="button">話を選ぶ</button>
-    <div class="minirow"><button class="btn ghost mini" id="soundTest" type="button">音テスト</button><button class="btn ghost mini" id="voiceTest" type="button">声を聞く</button></div>
     <button class="btn ghost" id="installBtn" type="button" hidden>ホーム画面に置いて、アプリにする</button>
     <div class="accbox" hidden></div>
     <p class="note">毎日1話ずつ更新中。1話は事件3つと章ボス。事件を法の拳で裁け。</p>
@@ -701,7 +702,7 @@ function frame(){
 addEventListener('resize',()=>{drawStatic();if(reduce)frame()});drawStatic();frame();
 
 /* ---------- 共通 ---------- */
-function show(id){document.querySelectorAll('.screen').forEach(s=>s.hidden=s.id!==id);$('#app').scrollTop=0}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.hidden=s.id!==id);$('#app').scrollTop=0;const bb=$('#backBtn');if(bb)bb.hidden=id==='s-title'}
 function rec(topic,ok){const s=S.stats[topic]||(S.stats[topic]={ok:0,n:0});s.n++;if(ok)s.ok++;if(S.run){S.run.n++;if(ok)S.run.ok++}}
 function bars(){document.querySelectorAll('#lives i').forEach((el,i)=>{const on=i<S.life;if(el.classList.contains('on')&&!on){el.classList.add('lost')}el.classList.toggle('on',on);if(on)el.classList.remove('lost')});$('#phpN').textContent=S.life+'/3';const ef=$('#stage .fig.r');if(ef){const lv=S.ehp>=100?0:S.ehp>66?1:S.ehp>33?2:3;ef.classList.toggle('ed1',lv>=1);ef.classList.toggle('ed2',lv>=2);ef.classList.toggle('ed3',lv>=3)}const hf=$('#stage .fig.l.hero');if(hf){hf.classList.toggle('hurt1',S.life===2);hf.classList.toggle('hurt2',S.life<=1)}$('#ehp').style.width=S.ehp+'%';$('#ehpN').textContent=S.ehp}
 function flashRed(){const f=$('#rf');f.classList.remove('on');void f.offsetWidth;f.classList.add('on');const st=$('#stage');st.classList.remove('shake');void st.offsetWidth;st.classList.add('shake')}
@@ -839,6 +840,7 @@ function death(retry){
   },2600);
 }
 function kime(c){
+  if($('#s-battle').hidden)return;
   const ov=$('#ov');ov.hidden=false;
   ov.innerHTML=`<div class="kime"><div class="face">${FACE}</div><div class="kime-line">${c.kime}</div><div class="stamp">${c.tech}</div><button class="btn ghost" type="button" id="kimeOk">解説を見る</button></div>`;
   $('#kimeOk').focus();say([[c.kime,'hero']]);$('#kimeOk').onclick=()=>{ov.hidden=true;ov.innerHTML='';scrollToCard()};
@@ -1103,8 +1105,6 @@ function sadStop(now){const a=AC;if(!SAD.g||!a)return;const g=SAD.g;SAD.g=null;g
 
 $('#titleHero').innerHTML=SIL.hero;
 const VOICE_TEST=[['時は、にせんにじゅうエックスねん。荒野に、法の拳が戻ってくる。','narr'],['独学で戦うお前に、法の拳を教えてやる。','hero'],['ワシが地上げ王、権田だ！','boss'],['押さなきゃ、どうなるか分かってんだろうな。','dogra'],['ヒャッハー！形だけだ、形だけな！','thug'],['婆さん、この井戸はじき毒で枯れるぜ。','trick'],['お父ちゃん、今年は芽が出たよ！','girl'],['私は何も知らずに買ったんです。','mina'],['そうかい、なら仕方ないねえ。','oldwoman'],['名義だけ変えておけば、取り立てられまい。','old'],['伊藤さん、代金は来月でいいよ。','haru'],['もう払えるものがない。','inn']];
-$('#voiceTest').onclick=()=>{if(S.mute){S.mute=false;$('#mute').textContent='音：ON'}ac();pickVoice();say(VOICE_TEST)};
-$('#soundTest').onclick=()=>{if(S.mute){S.mute=false;$('#mute').textContent='音：ON'}const a=ac();if(!a){$('#soundTest').textContent='この環境では音が使えません';return}kiai();setTimeout(()=>{punch(1.2);scream(1,.8)},420)};
 $('#startBtn').onclick=()=>{ac();const nn=nextNo();if(nn)playEp(nn);else openSelect()};
 $('#selectBtn').onclick=()=>{ac();openSelect()};
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
@@ -1113,6 +1113,16 @@ $('#resetBtn').onclick=()=>{$('#resetBox').innerHTML=`<div class="card confirm">
   $('#resetYes').onclick=()=>{P=Object.assign({eps:{},streak:0,best:0,ok:0,n:0,clears:0,badges:{}});saveP();$('#resetBox').innerHTML='';renderSelect()};
   $('#resetNo').onclick=()=>{$('#resetBox').innerHTML=''}};
 refreshTitle();accInit();
+/* ---------- 前の画面に戻る ---------- */
+$('#backBtn').onclick=()=>{
+  ac();const cur=[...document.querySelectorAll('.screen')].find(x=>!x.hidden);const id=cur&&cur.id;
+  if(id==='s-select'){refreshTitle();show('s-title');return}
+  if(id==='s-clear'){openSelect();return}
+  const f=openSheet();
+  f.innerHTML=`<span class="qtag">修行を中断する</span><p class="qtext">この話を途中でやめて、修行の書に戻る。ここまでの進み具合は記録されない。</p><button class="btn" type="button" id="quitYes">やめて戻る</button><button class="btn ghost" type="button" id="quitNo">続ける</button>`;
+  $('#quitNo').onclick=closeSheet;
+  $('#quitYes').onclick=()=>{closeSheet();stopSay();BGM.stop();const ov=$('#ov');ov.hidden=true;ov.innerHTML='';ov.className='';ov.style.cssText='';document.body.classList.remove('wasted');openSelect();BGM.play('title')};
+};
 /* ---------- ホーム画面に置いてアプリにする ---------- */
 // 開いている機種とブラウザを見分けて、合った置き方を出す
 function installGuide(){
