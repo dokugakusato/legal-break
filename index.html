@@ -545,6 +545,21 @@ function wbArrow(x1,y1,x2,y2,col,dash){
   const dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L,sx=x1+ux*25,sy=y1+uy*25,ex=x2-ux*27,ey=y2-uy*27;
   return `<path d="M${sx.toFixed(1)} ${sy.toFixed(1)} Q${((sx+ex)/2+uy*7).toFixed(1)} ${((sy+ey)/2-ux*7).toFixed(1)} ${ex.toFixed(1)} ${ey.toFixed(1)}" stroke="${MK[col]}" stroke-width="2.6" fill="none" stroke-linecap="round"${dash?' stroke-dasharray="7 6"':''} marker-end="url(#ah${col})"/>`;
 }
+// 関係図の顔（手描き風）：plain=普通 sad=困っている shout=訴える bad=悪い奴（傷のサングラス） side-r/side-l=口を開けた横顔
+function wbFace(t,x,y){
+  const K=MK.k,W='#fbfbf8',r=21,o=`stroke="${K}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"`;
+  const ring=`<circle cx="${x+1.4}" cy="${y-1}" r="${r+.5}" fill="none" stroke="${K}" stroke-width="1" opacity=".3"/>`;
+  if(t==='side-r'||t==='side-l'){const d=t==='side-r'?1:-1,a1=-8*Math.PI/180,a2=48*Math.PI/180;
+    const p1=[x+d*r*Math.cos(a1),y+r*Math.sin(a1)],p2=[x+d*r*Math.cos(a2),y+r*Math.sin(a2)],mx=x+d*5,my=y+5;
+    return `<path d="M${mx} ${my}L${p1[0].toFixed(1)} ${p1[1].toFixed(1)}A${r} ${r} 0 1 ${d>0?0:1} ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}Z" fill="${W}" ${o}/>${ring}<circle cx="${x+d*6}" cy="${y-8}" r="2.2" fill="${K}"/><path d="M${x+d*1} ${y-14}l${d*8} 2" ${o} stroke-width="2"/>`}
+  let f=`<circle cx="${x}" cy="${y}" r="${r}" fill="${W}" ${o}/>${ring}`;
+  const eyes=`<circle cx="${x-7}" cy="${y-4}" r="2.1" fill="${K}"/><circle cx="${x+7}" cy="${y-4}" r="2.1" fill="${K}"/>`;
+  if(t==='plain')return f+eyes+`<path d="M${x-6} ${y+7}q6 4 12 0" fill="none" ${o} stroke-width="2"/>`;
+  if(t==='sad')return f+eyes+`<path d="M${x-6} ${y+11}q6-5 12 0" fill="none" ${o} stroke-width="2"/><path d="M${x+8} ${y+1}q2 4 0 6q-2-2 0-6z" fill="#1d57c9"/>`;
+  if(t==='shout')return f+`<path d="M${x-12} ${y-9}l7 3M${x+12} ${y-9}l-7 3" fill="none" ${o} stroke-width="2.2"/><circle cx="${x-7}" cy="${y-2}" r="1.9" fill="${K}"/><circle cx="${x+7}" cy="${y-2}" r="1.9" fill="${K}"/><ellipse cx="${x}" cy="${y+9}" rx="5" ry="5.5" fill="${K}"/>`;
+  if(t==='bad')return f+`<ellipse cx="${x-8}" cy="${y-4}" rx="7" ry="5.5" fill="${K}"/><ellipse cx="${x+8}" cy="${y-4}" rx="7" ry="5.5" fill="${K}"/><path d="M${x-1} ${y-5}h2M${x-15} ${y-6}l-5-2M${x+15} ${y-6}l5-2" ${o} stroke-width="2"/><path d="M${x-5} ${y+11}q5 2 10-2" fill="none" ${o} stroke-width="2"/><path d="M${x+7} ${y+3}l6 8M${x+10} ${y+2}l6 8M${x+5} ${y+7}l11-1M${x+6} ${y+10}l11-1" stroke="${MK.r}" stroke-width="1.6" stroke-linecap="round"/>`;
+  return f+eyes;
+}
 function wb(d,rev){
   const P={A:[60,62],B:[235,62],C:[235,160]};
   let s=`<svg class="wbsvg" viewBox="0 0 340 222" role="img" aria-label="当事者A・B・Cの関係図"><defs>${Object.entries(MK).map(([k,c])=>`<marker id="ah${k}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1L9 5L1 9" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></marker>`).join('')}</defs>`;
@@ -563,7 +578,7 @@ function wb(d,rev){
   else s+=`<text x="${mx}" y="${my+9}" text-anchor="middle" font-size="26" fill="${MK.r}">？</text>`;
   for(const k of ['A','B','C']){
     const [x,y]=P[k],n=d.n[k];
-    s+=`<circle cx="${x}" cy="${y}" r="21" fill="#fbfbf8" stroke="${MK.k}" stroke-width="2.6"/><circle cx="${x+1.5}" cy="${y-1}" r="21.5" fill="none" stroke="${MK.k}" stroke-width="1" opacity=".35"/><text x="${x}" y="${y+9}" text-anchor="middle" font-size="25" fill="${MK.k}">${k}</text><text x="${x}" y="${y+40}" text-anchor="middle" font-size="13" fill="${MK.k}">${n.name}</text>`;
+    s+=wbFace(n.face||'plain',x,y)+`<circle cx="${x-19}" cy="${y+16}" r="8.5" fill="#fbfbf8" stroke="${MK.k}" stroke-width="1.8"/><text x="${x-19}" y="${y+20.5}" text-anchor="middle" font-size="13" font-weight="700" fill="${MK.k}">${k}</text><text x="${x}" y="${y+40}" text-anchor="middle" font-size="13" fill="${MK.k}">${n.name}</text>`;
     const tags=(rev&&n.tagR)||n.tag;
     if(tags){if(k==='A')s+=`<text x="${x}" y="${y-29}" text-anchor="middle" font-size="13" fill="${MK.r}">${tags[0]}</text>`;else tags.forEach((t,i)=>s+=`<text x="${x+28}" y="${y-4+i*16}" font-size="13" fill="${MK.r}">${t}</text>`)}
   }
