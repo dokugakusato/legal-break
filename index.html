@@ -296,7 +296,7 @@ textarea{width:100%;min-height:96px;resize:vertical;background:#fbf6ec;color:#12
 
 /* ---------- スマホ1画面に収める ---------- */
 .steps{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:6px;font-size:14.5px;line-height:1.6}
-.steps b{color:var(--gold)}
+.steps b,.qtext b.gold{color:var(--gold)}
 #s-title{min-height:0!important;padding-top:4px!important}
 #s-title .logo{font-size:clamp(38px,11vw,56px)}
 #s-title .tagline{font-size:15px;padding:8px 12px}
@@ -1114,6 +1114,27 @@ $('#resetBtn').onclick=()=>{$('#resetBox').innerHTML=`<div class="card confirm">
   $('#resetNo').onclick=()=>{$('#resetBox').innerHTML=''}};
 refreshTitle();accInit();
 /* ---------- ホーム画面に置いてアプリにする ---------- */
+// 開いている機種とブラウザを見分けて、合った置き方を出す
+function installGuide(){
+  const ua=navigator.userAgent,ios=/iPhone|iPad|iPod/i.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1),and=/Android/i.test(ua);
+  const dev=ios?'iPhone':(and?'Android':'パソコン');
+  const app=/Line\//i.test(ua)?'LINE':/Instagram/i.test(ua)?'Instagram':/FBAN|FBAV/i.test(ua)?'Facebook':/Twitter/i.test(ua)?'X':/YouTube/i.test(ua)?'YouTube':null;
+  const share='<b>共有ボタン</b>（四角から上向きの矢印）';
+  if(app)return {name:`${app}アプリの中のブラウザ`,note:`このままではホーム画面に置けない。画面の右上か右下のメニュー（︙ や …）から<b>「ブラウザで開く」</b>を選んで、${ios?'Safari':'Chrome'}で開き直してから、もう一度このボタンを押してくれ。`};
+  if(ios){
+    if(/CriOS/i.test(ua))return {name:`${dev} の Chrome`,steps:[`アドレスバーの右にある${share}を押す`,'<b>「ホーム画面に追加」</b>を押す','右上の<b>「追加」</b>を押す']};
+    if(/FxiOS/i.test(ua))return {name:`${dev} の Firefox`,steps:['画面右下の<b>≡（メニュー）</b>を押す','<b>「共有」</b>を押す','<b>「ホーム画面に追加」</b>を押して、右上の<b>「追加」</b>を押す']};
+    if(/EdgiOS/i.test(ua))return {name:`${dev} の Edge`,steps:['画面下の<b>…（メニュー）</b>を押して<b>「共有」</b>を押す','<b>「ホーム画面に追加」</b>を押す','右上の<b>「追加」</b>を押す']};
+    return {name:`${dev} の Safari`,steps:[`画面の下（または上）にある${share}を押す。見えないときは画面を少し下に動かすと出てくる`,'メニューを下へ進めて<b>「ホーム画面に追加」</b>を押す','右上の<b>「追加」</b>を押す']};
+  }
+  if(and){
+    if(/SamsungBrowser/i.test(ua))return {name:`${dev} の Samsung インターネット`,steps:['画面下の<b>≡（メニュー）</b>を押す','<b>「ページを追加」</b>を押す','<b>「ホーム画面」</b>を選ぶ']};
+    if(/Firefox/i.test(ua))return {name:`${dev} の Firefox`,steps:['右上（または右下）の<b>︙（メニュー）</b>を押す','<b>「インストール」</b>か<b>「ホーム画面に追加」</b>を押す','<b>「追加」</b>を押す']};
+    if(/EdgA/i.test(ua))return {name:`${dev} の Edge`,steps:['画面下の<b>…（メニュー）</b>を押す','<b>「電話に追加」</b>または<b>「ホーム画面に追加」</b>を押す','<b>「インストール」</b>を押す']};
+    return {name:`${dev} の Chrome`,steps:['右上の<b>︙（メニュー）</b>を押す','<b>「ホーム画面に追加」</b>または<b>「アプリをインストール」</b>を押す','<b>「インストール」</b>（または「追加」）を押す']};
+  }
+  return {name:'パソコンのブラウザ',note:'スマホで遊ぶなら、スマホでこのページを開いてから、このボタンを押してくれ。パソコンの Chrome や Edge なら、アドレスバーの右にあるインストールのマークから置ける。'};
+}
 const STANDALONE=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
 let INSTALL=null;
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
@@ -1122,13 +1143,11 @@ addEventListener('beforeinstallprompt',e=>{e.preventDefault();INSTALL=e});
 addEventListener('appinstalled',()=>{$('#installBtn').hidden=true});
 $('#installBtn').onclick=()=>{
   if(INSTALL){INSTALL.prompt();INSTALL.userChoice.finally(()=>{INSTALL=null});return}
-  const ios=/iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-  const inApp=/Line\/|FBAN|FBAV|Instagram|Twitter|YouTube/i.test(navigator.userAgent);
-  const f=openSheet();
+  const g=installGuide(),f=openSheet();
   f.innerHTML=`<span class="qtag">ホーム画面に置く</span>
-  ${inApp?'<p class="qtext">今はアプリの中のブラウザで開いている。右上か右下のメニューから「ブラウザで開く」を選んで、'+(ios?'Safari':'Chrome')+'で開き直してから、次の手順で置いてくれ。</p>':''}
-  ${ios?`<ol class="steps"><li>Safari の画面下（または上）にある<b>共有ボタン</b>（四角から上向きの矢印）を押す</li><li>メニューを下へ進めて<b>「ホーム画面に追加」</b>を押す</li><li>右上の<b>「追加」</b>を押す</li></ol>`
-       :`<ol class="steps"><li>Chrome の右上の<b>︙（メニュー）</b>を押す</li><li><b>「ホーム画面に追加」</b>または<b>「アプリをインストール」</b>を押す</li><li><b>「インストール」</b>（または「追加」）を押す</li></ol>`}
+  <p class="qtext">今開いているのは<b class="gold">${g.name}</b>だ。</p>
+  ${g.note?`<p class="qtext">${g.note}</p>`:''}
+  ${g.steps?`<ol class="steps">${g.steps.map(x=>`<li>${x}</li>`).join('')}</ol>`:''}
   <p class="note">ホーム画面の「法の拳」のアイコンから、URLを入れずにすぐ遊べる。</p>
   <button class="btn" type="button" id="instClose">わかった</button>`;
   $('#instClose').onclick=closeSheet;
