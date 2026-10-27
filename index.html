@@ -944,7 +944,7 @@ const LIST=(window.LB_LIST||[]).slice().sort((a,b)=>a.no-b.no);
 function loadEp(no){
   if(LB.eps[no])return Promise.resolve(LB.eps[no]);
   const m=LIST.find(x=>x.no===no);if(!m)return Promise.reject(new Error('目次にない話'));
-  return new Promise((res,rej)=>{const s=document.createElement('script');s.src='episodes/'+m.file;s.onload=()=>LB.eps[no]?res(LB.eps[no]):rej(new Error('話データの形が違う'));s.onerror=()=>rej(new Error('読み込み失敗'));document.head.appendChild(s)});
+  return new Promise((res,rej)=>{const s=document.createElement('script');s.src='episodes/'+m.file+'?t='+Date.now();s.onload=()=>LB.eps[no]?res(LB.eps[no]):rej(new Error('話データの形が違う'));s.onerror=()=>rej(new Error('読み込み失敗'));document.head.appendChild(s)});
 }
 
 /* ---------- 進み具合の記録（この端末のブラウザに保存） ---------- */
@@ -1202,7 +1202,7 @@ function installGuide(){
 }
 const STANDALONE=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
 let INSTALL=null;
-if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
 if(!STANDALONE)$('#installBtn').hidden=false;
 addEventListener('beforeinstallprompt',e=>{e.preventDefault();INSTALL=e});
 addEventListener('appinstalled',()=>{$('#installBtn').hidden=true});
