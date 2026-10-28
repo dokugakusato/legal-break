@@ -68,7 +68,7 @@ button:focus-visible,textarea:focus-visible{outline:3px solid var(--gold);outlin
 .fig{position:absolute;bottom:-4px;height:84%;aspect-ratio:100/160;z-index:2}
 .fig svg{width:100%;height:100%;display:block}
 .fig.l{left:5%}.fig.r{right:5%}.fig.c{left:50%;transform:translateX(-50%)}
-.fig.boss{height:100%}
+.fig.boss,.fig.kurosaki{height:100%}
 .fig.girl{height:66%}
 .fig.dogra{height:94%}
 .fig.inn{height:86%}
@@ -405,7 +405,7 @@ b.gold{color:var(--gold)}
 #koma .panel{flex:1;height:auto;min-height:220px}
 #koma .wb{flex:none}
 #koma .fig{height:calc(var(--k,.84) * min(100%,330px))}
-#koma .fig.boss{--k:1}#koma .fig.girl{--k:.66}#koma .fig.dogra{--k:.94}#koma .fig.inn{--k:.86}
+#koma .fig.boss{--k:1}#koma .fig.kurosaki{--k:1}#koma .fig.girl{--k:.66}#koma .fig.dogra{--k:.94}#koma .fig.inn{--k:.86}
 #koma .kw{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px}
 #koma .cap{flex:none;background:var(--sil);color:var(--bone);border:2px solid var(--bone);border-left:6px solid var(--blood);padding:8px 12px;font-size:15px;line-height:1.65;animation:panelIn .45s ease-out both}
 #koma .panel.talk .fig{height:calc(var(--k,.84) * min(100% - 118px, 330px))}
@@ -638,8 +638,8 @@ function wb(d,rev){
   let s=`<svg class="wbsvg" viewBox="0 0 340 222" role="img" aria-label="当事者A・B・Cの関係図"><defs>${Object.entries(MK).map(([k,c])=>`<marker id="ah${k}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1L9 5L1 9" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></marker>`).join('')}</defs>`;
   s+=(d.ab.rev?wbArrow(...P.B,...P.A,d.ab.c||'k'):wbArrow(...P.A,...P.B,d.ab.c||'k'))+`<text x="147" y="44" text-anchor="middle" font-size="14" fill="${MK[d.ab.c||'k']}">${d.ab.t}</text>`;
   if(d.ab.sub)s+=`<text x="147" y="86" text-anchor="middle" font-size="14" fill="${MK.r}">${d.ab.sub}</text><path d="M${147-d.ab.sub.length*7} 90h${d.ab.sub.length*14}" stroke="${MK.r}" stroke-width="1.6"/>`;
-  s+=(d.bc.rev?wbArrow(...P.C,...P.B,'k'):wbArrow(...P.B,...P.C,'k'))+(d.bc.left?`<text x="224" y="114" text-anchor="end" font-size="14" fill="${MK.k}">${d.bc.t}</text>`:`<text x="246" y="114" font-size="14" fill="${MK.k}">${d.bc.t}</text>`);
-  if(d.bc.t2)s+=`<text x="246" y="130" font-size="12" fill="${MK.k}">${d.bc.t2}</text>`;
+  s+=(d.bc.rev?wbArrow(...P.C,...P.B,'k'):wbArrow(...P.B,...P.C,'k'))+(d.bc.left?`<text x="224" y="124" text-anchor="end" font-size="14" fill="${MK.k}">${d.bc.t}</text>`:`<text x="246" y="124" font-size="14" fill="${MK.k}">${d.bc.t}</text>`);
+  if(d.bc.t2)s+=`<text x="246" y="140" font-size="12" fill="${MK.k}">${d.bc.t2}</text>`;
   let lx=96,ly=118,mx=175,my=127;
   if(d.cl.from){const [x1,y1]=P[d.cl.from],[x2,y2]=P[d.cl.to],cx=330,cy=(y1+y2)/2,u=(ax,ay,bx,by,r)=>{const L=Math.hypot(bx-ax,by-ay);return[ax+(bx-ax)/L*r,ay+(by-ay)/L*r]};const [sx,sy]=u(x1,y1,cx,cy,25),[ex,ey]=u(x2,y2,cx,cy,27);
     s+=`<path d="M${sx.toFixed(1)} ${sy.toFixed(1)} Q${cx} ${cy} ${ex.toFixed(1)} ${ey.toFixed(1)}" stroke="${MK.r}" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-dasharray="7 6" marker-end="url(#ahr)"/>`;lx=300;ly=136;mx=283;my=111}
@@ -918,13 +918,13 @@ function scrollToCard(){const s=$('.sheet-in');if(s)s.scrollTop=0}
 function wbButton(d){const b=$('#wbBtn');if(!b)return;b.onclick=()=>{ac();const f=openSheet();f.innerHTML=wbBox(d,false);const x=document.createElement('button');x.className='btn';x.type='button';x.textContent='閉じる';x.onclick=closeSheet;f.appendChild(x)}}
 
 /* ---------- 4コマ（1コマずつ紙芝居） ---------- */
-function story(ch,panels,done,wbd){
+function story(ch,panels,done,wbd,endLabel){
   closeSheet();show('s-story');$('#chapTitle').innerHTML=`<span>${ch[0]}</span>${ch[1]}`;const k=$('#koma');let i=0;const b=$('#komaBtn');const total=panels.length+(wbd?1:0);
   const add=()=>{
     k.innerHTML='';
     if(i<panels.length){const P=panels[i];k.insertAdjacentHTML('beforeend',panelHTML(P,i));const L=[[P.nar,'narr']];if(P.say){const sp=(P.figs.find(f=>f[1]===P.say.side)||P.figs[0])[0];L.push([P.say.text,sp])}say(L)}
     else{stopSay();k.insertAdjacentHTML('beforeend',wbBox(wbd,false));k.lastElementChild.classList.add('wb-in')}
-    i++;$('#komaN').textContent=`${i} / ${total}`;b.textContent=i<panels.length?'次のコマ ▶':(i<total?'関係図を見る ▶':'事件に挑む ▶');
+    i++;$('#komaN').textContent=`${i} / ${total}`;b.textContent=i<panels.length?'次のコマ ▶':(i<total?'関係図を見る ▶':(endLabel||'事件に挑む ▶'));
   };
   add();const go=()=>{ac();if(i<total)add();else{stopSay();done()}};b.onclick=go;k.onclick=go;
 }
@@ -1317,7 +1317,7 @@ function beginPart(){
   EP.chapter=[`第${CH.no}話 ${CH.title}｜${EP.type==='boss'?'章ボス戦':'事件 '+(S.part+1)+'/'+(n-1)}`,EP.title];
   if(EP.type==='boss')bossStart();else startCase();
 }
-function nextPart(){if(S.part<CH.parts.length-1){S.part++;beginPart()}else epClear()}
+function nextPart(){if(S.part<CH.parts.length-1){S.part++;beginPart()}else if(CH.epi){BGM.play(CH.epibgm);story([`第${CH.no}話 ${CH.title}｜エピローグ`,CH.epiTitle||'その後'],CH.epi,epClear,null,'記録を見る ▶')}else epClear()}
 
 /* ---------- 1話クリア ---------- */
 function epClear(){
@@ -1489,8 +1489,63 @@ const VP={narr:{p:0,r:.74,g:'m',i:0},
  old:{p:.45,r:.62,g:'m',i:3},farmer:{p:.7,r:.98,g:'m',i:2},sou:{p:.85,r:.85,g:'m',i:1},haru:{p:1.25,r:1.15,g:'m',i:3},inn:{p:1.05,r:.78,g:'m',i:2},
  oldwoman:{p:.9,r:.6,g:'f',i:1},mina:{p:1.5,r:1.08,g:'f',i:0},girl:{p:2,r:1.22,g:'f',i:2}};
 Object.assign(VP,VP2);
+/* ---------- 第五章（逮捕編）の登場人物・小道具・曲 ---------- */
+Object.assign(SIL,{
+sawa:mk(`<path d="${B.slim}" fill="#55555f"/>${SHD(B.slim)}<path d="M30 100v60M40 90v70M60 90v70M70 100v60" stroke="#7d7d8a" stroke-width="1" fill="none"/><path d="M40 70l10 22 10-22z" fill="#efe3cf"/><path d="M46 74h8l-4 6z" fill="#c22d22"/>${NECK(50,14)}<ellipse cx="50" cy="40" rx="13" ry="16" fill="${SK}"/><path d="M36 36C34 20 44 16 52 17C62 18 66 24 64 34C58 26 46 26 36 36Z" fill="#141112"/><path d="M41 37l7 2M59 37l-7 2" stroke-width="2.2" fill="none"/><path d="M42 42h5M53 42h5" stroke-width="1.8" fill="none"/><path d="M42 48q4-3 8 0q4-3 8 0" stroke-width="1.6" fill="none"/><path d="M45 53q6 3 11-1" fill="none"/><rect x="51" y="52.5" width="3" height="2.4" fill="#d9a441" stroke="none"/>`),
+nekota:mk(`<path d="${B.wide}" fill="#6b4a3a"/>${SHD(B.wide)}<path d="M28 160V96h44v64Z" fill="#c9a46a"/><path d="M28 112h44M28 128h44M28 144h44M42 96v64M58 96v64" stroke="#8a6a3a" stroke-width="1.3" fill="none"/><g transform="rotate(-10 77 111)"><rect x="66" y="96" width="22" height="30" rx="2" fill="#efe3cf"/><path d="M70 104h14M70 110h14M70 116h10" stroke-width="1.2"/></g>${NECK(50,14)}<ellipse cx="50" cy="40" rx="15" ry="16" fill="${SK}"/><path d="M33 30C33 16 42 12 50 12S67 16 67 30Z" fill="#1d1a1c"/><path d="M26 30h48" stroke="#1d1a1c" stroke-width="4"/><circle cx="44" cy="40" r="5" fill="none" stroke-width="1.6"/><circle cx="56" cy="40" r="5" fill="none" stroke-width="1.6"/><path d="M49 40h2" fill="none"/><circle cx="44" cy="40" r="1.4" fill="${O}" stroke="none"/><circle cx="56" cy="40" r="1.4" fill="${O}" stroke="none"/><path d="M42 49q4 4 8 0q4 4 8 0" fill="none" stroke-width="1.6"/><path d="M34 46l-8-1M34 49l-8 2M66 46l8-1M66 49l8 2" stroke-width="1" fill="none"/>`),
+kurosaki:mk(`<path d="${B.boss}" fill="#e8e2d6"/>${SHD(B.boss)}<path d="M36 64L50 120L64 64Z" fill="#1d1a1c"/><path d="M36 64L50 100L30 160M64 64L50 100L70 160" stroke="#a8a092" stroke-width="2" fill="none"/><path d="M38 78q12 14 24 0" stroke="#d9a441" stroke-width="3" fill="none"/><circle cx="50" cy="86" r="3.4" fill="#d9a441"/>${NECK(46,14)}<ellipse cx="50" cy="36" rx="16" ry="18" fill="${SK}"/><path d="M33 26C33 12 42 8 50 8S67 12 67 26Z" fill="#e8e2d6"/><path d="M33 21h34v5H33z" fill="#1d1a1c"/><path d="M18 28Q50 17 82 28Q50 34 18 28Z" fill="#e8e2d6"/><path d="M38 33l9 3M62 33l-9 3" stroke-width="2.8" fill="none"/><circle cx="44" cy="38" r="2.1" fill="#e0402a" stroke="none"/><circle cx="56" cy="38" r="2.1" fill="#e0402a" stroke="none"/><path d="M59 31l6 14" stroke="#c22d22" stroke-width="2" fill="none"/><path d="M41 47q9 6 18 0" fill="#fff"/><rect x="47" y="47" width="3" height="3" fill="#d9a441" stroke="none"/><rect x="51" y="47" width="3" height="3" fill="#d9a441" stroke="none"/>`),
+keiji:mk(`<path d="${B.coat}" fill="#8a7a5a"/>${SHD(B.coat)}<path d="M50 64v96M36 66l14 34 14-34" stroke="#5a4a32" stroke-width="2" fill="none"/><path d="M20 112h60" stroke="#5a4a32" stroke-width="4" fill="none"/><rect x="60" y="90" width="18" height="24" rx="2" fill="#1d1a1c"/><circle cx="69" cy="100" r="4.5" fill="#d9a441"/>${NECK(48,14)}<ellipse cx="50" cy="38" rx="15" ry="17" fill="${SK}"/><path d="M34 28C34 14 42 10 50 10S66 14 66 28Z" fill="#3a3330"/><path d="M22 28Q50 20 78 28Q50 33 22 28Z" fill="#3a3330"/><path d="M34 25h32" stroke="#1d1a1c" stroke-width="3" fill="none"/><path d="M39 35l8 2M61 35l-8 2" stroke-width="2.6" fill="none"/><circle cx="44" cy="39" r="1.8" fill="${O}" stroke="none"/><circle cx="56" cy="39" r="1.8" fill="${O}" stroke="none"/><path d="M44 48h12" fill="none"/><path d="M38 46q12 14 24 0" stroke="#6b5a4a" stroke-width="1.2" stroke-dasharray="1 2.5" fill="none"/>`)
+});
+Object.assign(NAMES,{sawa:'沢村',nekota:'猫田',kurosaki:'黒崎',keiji:'鬼塚'});
+Object.assign(VP,{sawa:{p:1.2,r:1.15,g:'m',i:1},nekota:{p:1.4,r:1.25,g:'m',i:3},kurosaki:{p:.1,r:.62,g:'m',i:0},keiji:{p:.5,r:.8,g:'m',i:2}});
+Object.assign(PROPS,{
+ cuffs:{vb:[120,70],s:.2,svg:PROP_S(`<path d="M50 40h20" stroke="#8a929a" stroke-width="5" stroke-dasharray="4 3"/><circle cx="30" cy="38" r="20" fill="none" stroke="#c8d0d8" stroke-width="8"/><circle cx="90" cy="38" r="20" fill="none" stroke="#c8d0d8" stroke-width="8"/><circle cx="30" cy="38" r="24" fill="none" stroke-width="1.4"/><circle cx="90" cy="38" r="24" fill="none" stroke-width="1.4"/>`)},
+ kanban:{vb:[120,104],s:.42,svg:PROP_S(`<path d="M50 60v42M70 60v42" stroke="#4a3220" stroke-width="5"/><rect x="6" y="6" width="108" height="56" rx="3" fill="#efe3cf"/><text x="60" y="32" text-anchor="middle" font-size="20" font-weight="900" fill="${O}" stroke="none" font-family="sans-serif">書類代行</text><text x="60" y="54" text-anchor="middle" font-size="13" font-weight="900" fill="#c22d22" stroke="none" font-family="sans-serif">手数料お安く</text>`)}
+});
+Object.assign(I,{
+ hat(a,o,t,v=.04){const s=a.createBufferSource();s.buffer=nbuf(a,.05);const f=a.createBiquadFilter();f.type='highpass';f.frequency.value=7000;const g=a.createGain();g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+.045);s.connect(f).connect(g).connect(o);s.start(t)},
+ kick(a,o,t,v=.6){const x=a.createOscillator();x.frequency.setValueAtTime(150,t);x.frequency.exponentialRampToValueAtTime(42,t+.12);const g=a.createGain();g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+.3);x.connect(g).connect(o);x.start(t);x.stop(t+.32)},
+ tick(a,o,t,f=2100,v=.05){const x=a.createOscillator();x.type='triangle';x.frequency.value=f;const g=a.createGain();g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+.03);x.connect(g).connect(o);x.start(t);x.stop(t+.04)},
+ vib(a,o,n,t,v=.03,dec=1.6){[[1,1],[4,.25]].forEach(([r,k])=>{const x=a.createOscillator();x.frequency.value=NF(n)*r;const g=a.createGain();g.gain.setValueAtTime(v*k,t);g.gain.exponentialRampToValueAtTime(.0001,t+dec/r);const tr=a.createOscillator(),tg=a.createGain();tr.frequency.value=5;tg.gain.value=v*k*.35;tr.connect(tg).connect(g.gain);x.connect(g).connect(o);x.start(t);tr.start(t);x.stop(t+dec);tr.stop(t+dec)})},
+ organ(a,o,ns,t,dur,v=.03){const g=a.createGain();g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.05);g.gain.setValueAtTime(v,t+dur*.85);g.gain.exponentialRampToValueAtTime(.0001,t+dur);const f=a.createBiquadFilter();f.type='lowpass';f.frequency.value=2200;f.connect(g).connect(o);ns.forEach(n=>[[1,'square',.5],[2,'sine',.6],[.5,'sine',.8]].forEach(([r,ty,k])=>{const x=a.createOscillator();x.type=ty;x.frequency.value=NF(n)*r;const gg=a.createGain();gg.gain.value=k;x.connect(gg).connect(f);x.start(t);x.stop(t+dur+.05)}))},
+ piano(a,o,n,t,v=.06){[[1,1,'triangle'],[2,.35,'sine'],[3,.12,'sine']].forEach(([r,k,ty])=>{const x=a.createOscillator();x.type=ty;x.frequency.value=NF(n)*r;const g=a.createGain();g.gain.setValueAtTime(v*k,t);g.gain.exponentialRampToValueAtTime(.0001,t+2.2/r);x.connect(g).connect(o);x.start(t);x.stop(t+2.3)})},
+ siren(a,o,t,dur,v=.03){const x=a.createOscillator();x.type='triangle';x.frequency.value=820;const l=a.createOscillator(),lg=a.createGain();l.type='square';l.frequency.value=1.4;lg.gain.value=160;l.connect(lg).connect(x.frequency);const g=a.createGain();g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.4);g.gain.setValueAtTime(v,t+dur*.7);g.gain.exponentialRampToValueAtTime(.0001,t+dur);x.connect(g).connect(o);x.start(t);l.start(t);x.stop(t+dur+.05);l.stop(t+dur+.05)}
+});
+Object.assign(TR,{
+ // 第五章：佐藤の事務所。夜の探偵もの風（ウォーキング・ベース、ブラシ、ヴィブラフォン、くぐもったトランペット）
+ k5office:{bpm:96,f(a,o,s,t,d){const bar=s>>3,ch=[[50,53,57,60],[50,53,57,60],[55,58,62,65],[52,55,58,62]][bar],wk=[[38,41,45,48],[38,45,43,41],[43,46,50,47],[40,43,46,45]][bar];
+  if(s%2===0)I.bass(a,o,wk[(s%8)>>1],t,d*1.8,.17);if(s%2===1)I.hat(a,o,t,.03);if(s%4===2)I.snare(a,o,t,.05);if(s%8===0){ch.forEach(n=>I.vib(a,o,n+12,t,.022))}
+  const m={0:[74,3],3:[72,1],4:[69,4],8:[70,2],10:[69,2],12:[65,4],16:[67,3],19:[70,1],20:[74,4],24:[73,2],26:[70,2],28:[69,4]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d*.95,.045)}},
+ // 罠に気づいたバトル：サーフ・ギター風の追跡リフ
+ k5chase:{bpm:162,f(a,o,s,t,d){const r=[[40,40,43,40,46,45,43,42],[40,40,43,40,47,46,45,43]][(s>>3)%2];I.twang(a,o,r[s%8]+12,t,.06);I.bass(a,o,r[s%8],t,d*.8,.13,1);
+  I.kick(a,o,t,s%4===0?.55:0.0001);if(s%4===2)I.snare(a,o,t,.22);I.hat(a,o,t,.025);if(s%16===0)I.organ(a,o,[52,55,59],t,4*d,.02);if(s%16===8)I.organ(a,o,[51,55,58],t,4*d,.02);if(s===31)I.whip(a,o,t,.3)}},
+ // 役所の廊下：時計の針と、お役所の行進
+ k5office2:{bpm:84,f(a,o,s,t,d){I.tick(a,o,t,s%2?1600:2100,.035);const bl=[36,0,43,0,39,0,43,0,41,0,44,0,43,0,38,0][s%16];if(bl)I.pluck(a,o,bl,t,.13);
+  if(s%16===0)I.pad(a,o,[48,51,55],t,16*d,.02,700);if(s===8||s===24)I.bell(a,o,84,t,.025,2);
+  const m={0:[72,2],2:[75,2],4:[74,4],8:[72,2],10:[70,2],12:[67,4],16:[68,2],18:[67,2],20:[65,2],22:[63,2],24:[62,6]}[s];if(m)I.breath(a,o,m[0],t,m[1]*d,.065)}},
+ // 偽コンサルとのバトル：小太鼓とブラスの行進
+ k5march:{bpm:132,f(a,o,s,t,d){const b=[41,41,48,41,44,41,43,40][s%8];I.bass(a,o,b,t,d*.85,.14,1);I.snare(a,o,t,s%8===0?.25:s%2?.07:.12);if(s%4===0)I.kick(a,o,t,.5);
+  const st={0:[65,68,72],6:[65,68,72],8:[63,67,70],14:[63,67,70],16:[61,65,68],22:[61,65,68],24:[60,64,67],28:[60,64,67]}[s];if(st)st.forEach(n=>I.brass(a,o,n,t,d*1.2,.04));if(s===31)I.whip(a,o,t,.3)}},
+ // 裏路地の情報屋：心音のようなキック、水滴、不気味な口笛
+ k5alley:{bpm:70,f(a,o,s,t,d){if(s%8===0)I.kick(a,o,t,.45);if(s%8===1)I.kick(a,o,t,.25);if(s%16===0)I.pad(a,o,[46,52],t,16*d,.03,500);
+  if([3,11,18,27].includes(s)){const x=a.createOscillator();x.frequency.setValueAtTime(900,t);x.frequency.exponentialRampToValueAtTime(2300,t+.05);const g=a.createGain();g.gain.setValueAtTime(.08,t);g.gain.exponentialRampToValueAtTime(.0001,t+.12);x.connect(g).connect(o);x.start(t);x.stop(t+.13)}
+  const m={0:[70,6],8:[76,4],12:[75,4],16:[70,6],24:[69,8]}[s];if(m)I.whistle(a,o,m[0],t,m[1]*d,.05);if(s===20)I.bell(a,o,82,t,.03,3)}},
+ // 情報屋とのバトル：電子的に刻むアルペジオ
+ k5pulse:{bpm:140,f(a,o,s,t,d){const ch=[[57,60,64,69],[57,60,64,69],[53,57,60,65],[55,59,62,67]][s>>3];I.pluck(a,o,ch[s%4]+12,t,.06);if(s%2===0)I.bass(a,o,ch[0]-12,t,d*.9,.19,1);
+  if(s%2===0)I.kick(a,o,t,s%4===0?.55:.3);if(s%4===2)I.snare(a,o,t,.2);if(s%2===1)I.hat(a,o,t,.04);if(s%8===0)I.pad(a,o,ch.map(n=>n+12),t,8*d,.015,1600);if(s===31)I.whip(a,o,t,.3)}},
+ // 黒幕登場：オルガンの三全音と合唱
+ k5bossin:{bpm:56,f(a,o,s,t,d){if(s===0)I.organ(a,o,[37,43,49],t,16*d,.035);if(s===16)I.organ(a,o,[38,44,50],t,16*d,.035);if(s%8===0)I.taiko(a,o,t,.55);if(s===8)I.choir(a,o,[61,67],t,8*d,.03);if(s===24)I.choir(a,o,[62,68],t,8*d,.03);if(s===12||s===28)I.bell(a,o,49,t,.06,4)}},
+ // 黒崎とのボス戦：重いリフとブラス
+ k5boss:{bpm:150,f(a,o,s,t,d){const bar=s>>3,r=[37,37,33,35][bar],rf=[r,r,r+12,r,r+3,r,r+6,r+5][s%8];I.bass(a,o,rf,t,d*.9,.17,1);I.twang(a,o,rf+12,t,.04);
+  if(s%4===0)I.kick(a,o,t,.65);if(s%4===2){I.snare(a,o,t,.28);I.taiko(a,o,t,.3)}I.hat(a,o,t,.03);if(s%8===0)I.choir(a,o,[[61,64,68],[61,64,68],[57,61,64],[59,63,66]][bar],t,8*d,.028);
+  const m={0:[73,3],3:[76,1],4:[75,4],8:[73,2],10:[71,2],12:[68,4],16:[69,3],19:[71,1],20:[73,4],24:[75,3],27:[76,1],28:[78,4]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d,.07);if(s===31)I.whip(a,o,t,.35)}},
+ // 逮捕：遠くのサイレンと、ひとりのピアノ
+ k5arrest:{bpm:60,f(a,o,s,t,d){if(s===0||s===16)I.siren(a,o,t,10*d,.022);if(s%8===0)I.pad(a,o,[[38,45,50],[34,41,46],[36,43,48],[33,40,45]][s>>3],t,8*d,.025,600);
+  const m={0:69,2:65,4:62,6:65,8:70,10:65,12:62,14:58,16:67,18:64,20:60,22:64,24:69,26:68,28:64,30:61}[s];if(m)I.piano(a,o,m,t,.09);if(s%8===4)I.piano(a,o,[50,46,48,45][s>>3],t,.07)}}
+});
+
 const voiceFor=k=>{const v=VP[k]||VP.narr,arr=(v.g==='f'?TTS.fem:TTS.male)||[];return arr.length?arr[v.i%arr.length]:TTS.any};
-const yomi=t=>t.replace(/取消(?!し)/g,'取り消し');
+const yomi=t=>t.replace(/取消(?!し)/g,'取り消し').replace(/荒野/g,'こうや');
 const cleanTxt=t=>t.replace(/<br>/g,'').replace(/[「」―]/g,'').replace(/　/g,'');
 function fanfare(){const a=ac();if(!a)return;const t=a.currentTime;[[62,0],[66,.18],[69,.36],[74,.54]].forEach(([n,dt])=>I.brass(a,a.destination,n,t+dt,dt===.54?1.2:.16,.09));I.taiko(a,a.destination,t+.54,.7);I.whip(a,a.destination,t+.5,.3)}
 const MOBILE=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);

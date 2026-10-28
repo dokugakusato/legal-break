@@ -15,11 +15,12 @@ const CAST={
  rancher:['麒ヶ島宗麟','ノーマル',.98,.03,1],nephew:['白上虎太郎','わーい',1.1,.02,1.3],trader:['雀松朱司','ノーマル',1.02,.05,1.1],
  okami:['四国めたん','ノーマル',.98,-.03,1],clerk:['剣崎雌雄','ノーマル',1.05,.08,1.1],lumber:['青山龍星','熱血',1,.02,1.1],
  fisher:['玄野武宏','ノーマル',.95,-.06,1],shimizu:['白上虎太郎','おこ',1.12,.06,1.4],shipwright:['剣崎雌雄','ノーマル',.98,-.02,1],
- mayor:['ちび式じい','ノーマル',.95,.03,1],mori:['九州そら','ノーマル',1.02,0,1.1]};
+ mayor:['ちび式じい','ノーマル',.95,.03,1],mori:['九州そら','ノーマル',1.02,0,1.1],
+ sawa:['雀松朱司','ノーマル',1.05,.04,1.3],nekota:['白上虎太郎','ふつう',1.12,.08,1.4],kurosaki:['麒ヶ島宗麟','ノーマル',.86,-.08,1.25],keiji:['青山龍星','熱血',1,-.04,1.15]};
 
 // ゲーム本体と同じ計算でファイル名を決める
 // 読み方の直し（画面の文字はそのまま、声だけ読み方を変える）
-const yomi=t=>t.replace(/取消(?!し)/g,'取り消し');
+const yomi=t=>t.replace(/取消(?!し)/g,'取り消し').replace(/荒野/g,'こうや');
 const cleanTxt=t=>t.replace(/<br>/g,'').replace(/[「」―]/g,'').replace(/　/g,'');
 function vHash(s){let h=0x811c9dc5;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,0x01000193)}return (h>>>0).toString(16).padStart(8,'0')}
 const VPKEYS=new Set([...html.matchAll(/([a-zA-Z]+):\{p:/g)].map(m=>m[1]));
@@ -37,6 +38,7 @@ for(const m of ctx.window.LB_LIST)vm.runInContext(fs.readFileSync(ROOT+'episodes
 const enemyKey=f=>VPKEYS.has(f)?f:'boss';
 for(const ep of ctx.LB.eps){
   (ep.op||[]).forEach(L=>add(L.v||L.t,L.c==='say'?'hero':'narr'));
+  for(const P of (ep.epi||[])){add(P.nar,'narr');if(P.say){const sp=(P.figs.find(f=>f[1]===P.say.side)||P.figs[0])[0];add(P.say.text,sp)}}
   for(const p of ep.parts){
     for(const P of p.panels){add(P.nar,'narr');if(P.say){const sp=(P.figs.find(f=>f[1]===P.say.side)||P.figs[0])[0];add(P.say.text,sp)}}
     add(p.kime,'hero');add('わっはっはっはっ、あっはっはっはっ！',enemyKey(p.efig||'boss'));
