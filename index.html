@@ -377,6 +377,12 @@ b.gold{color:var(--gold)}
 .slash{position:absolute;z-index:7;height:5px;margin-top:-2px;border-radius:3px;background:linear-gradient(90deg,transparent,#fff 18%,#e8f6ff 82%,transparent);box-shadow:0 0 14px #bfe6ff,0 0 4px #fff;pointer-events:none;animation:slashA .5s ease-out forwards}
 @keyframes slashA{0%{clip-path:inset(0 100% 0 0);opacity:1}40%{clip-path:inset(0 0 0 0);opacity:1}100%{clip-path:inset(0 0 0 0);opacity:0}}
 .feather{position:absolute;z-index:7;width:9px;height:20px;margin:-10px 0 0 -4px;border-radius:50%/80% 80% 20% 20%;background:linear-gradient(90deg,#fbf6ec 48%,#d8d2c4 52%);pointer-events:none}
+.chair{position:absolute;left:0;top:0;z-index:6;width:60px;height:80px;pointer-events:none;transform-origin:50% 30%}
+.chair svg{width:100%;height:100%;display:block}
+.fig.r.cobra{animation:cobraA 1s ease-in-out;transform-origin:50% 90%}
+@keyframes cobraA{0%{transform:none}30%{transform:rotate(-12deg) skewX(-8deg) scaleY(.94)}60%{transform:rotate(14deg) skewX(10deg) scaleY(.9)}100%{transform:rotate(-6deg) skewX(-5deg) scaleY(.95)}}
+.fig.r.piled{animation:pileA 1.1s cubic-bezier(.5,0,.6,1);transform-origin:50% 50%}
+@keyframes pileA{0%{transform:none}30%{transform:translate(-24px,-62%) rotate(180deg)}68%{transform:translate(-24px,-62%) rotate(180deg)}86%{transform:translate(-24px,6%) rotate(180deg) scaleY(.9)}100%{transform:none}}
 /* ---------- 逮捕のアニメーション ---------- */
 .arrest{position:relative}
 .siren{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:0}
@@ -901,9 +907,13 @@ function damage(n,label){
   const e=$('#stage .fig.r');e.classList.remove('hit');void e.offsetWidth;e.classList.add('hit');pow(label);
   const v=document.createElement('div');v.className='scream';v.textContent=isBoss?'グオオオッ…！':(n>45?'グアアアッ！！':'グアアッ！');$('#stage').appendChild(v);setTimeout(()=>v.remove(),1100);bars()}
 // 技の種類：punch=拳、kick=蹴り、grab=寝技
-const MOVES={punch:{kiai:'アチョーッ！',k:1,hit:'ドゴォッ！'},kick:{kiai:'アタタタタタッ！',rapid:6,hit:'バキィッ！'},grab:{kiai:'ふんッ！',k:.72,hit:'ボキィッ！'},weapon:{kiai:'喰らえ、六法ッ！',k:.9,hit:'ゴシャァッ！'},elbow:{kiai:'ハァァッ！',k:1.15,hit:'ゴキィッ！'}};
+const MOVES={punch:{kiai:'アチョーッ！',k:1,hit:'ドゴォッ！'},kick:{kiai:'アタタタタタッ！',rapid:6,hit:'バキィッ！'},grab:{kiai:'ふんッ！',k:.72,hit:'ボキィッ！'},weapon:{kiai:'喰らえ、六法ッ！',k:.9,hit:'ゴシャァッ！'},elbow:{kiai:'ハァァッ！',k:1.15,hit:'ゴキィッ！'},
+ shou:{kiai:'ショウッ！',k:1.2,hit:'ザシュッ！'},chair:{kiai:'オラァッ！',k:1.1,hit:'ガッシャーン！'},cobra:{kiai:'コブラツイスト！',k:.8,hit:'ギブアップか！？'},pile:{kiai:'パイルドライバー！',k:1,hit:'ズドォォン！'}};
+// 技が出る話：エルボーは第3話から、斬撃・椅子・プロレス技は第6話から
+const MOVE6=['shou','chair','cobra','pile'];
+const moveOK=k=>k==='elbow'?hokuto():MOVE6.includes(k)?!!(CH&&CH.no>=6):true;
 let LASTMOVE='';
-function randMove(){const ks=Object.keys(MOVES).filter(k=>k!==LASTMOVE&&(k!=='elbow'||hokuto()));LASTMOVE=ks[Math.floor(Math.random()*ks.length)];return LASTMOVE}
+function randMove(){const ks=Object.keys(MOVES).filter(k=>k!==LASTMOVE&&moveOK(k));LASTMOVE=ks[Math.floor(Math.random()*ks.length)];return LASTMOVE}
 function attack(then,style='punch'){
   const M=MOVES[style]||MOVES.punch;if(M.rapid)rapidKiai(M.rapid);else kiai(M.k,M.L||0);
   const h=$('#stage .fig.l'),st=$('#stage'),e=$('#stage .fig.r');
@@ -912,6 +922,15 @@ function attack(then,style='punch'){
   const impact=(x,y,cls)=>{const b=document.createElement('div');b.className='boom';b.style.left=x+'px';b.style.top=y+'px';b.innerHTML=BOOM+`<span>${M.hit}</span>`;st.appendChild(b);setTimeout(()=>b.remove(),700);
     e.classList.remove('knock','knockkick','pinned','hit');void e.offsetWidth;if(cls)e.classList.add(cls);
     st.classList.remove('shake','impact');void st.offsetWidth;st.classList.add('shake','impact');if(cls)setTimeout(()=>e.classList.remove(cls),1100);then()};
+  if(style==='cobra'||style==='pile'){
+    const g=geo();h.style.setProperty('--gx',g.gx+'px');h.classList.remove('grabbing');void h.offsetWidth;h.classList.add('grabbing');
+    setTimeout(()=>{e.classList.remove('knock','knockkick','hit','cobra','piled');void e.offsetWidth;e.classList.add(style==='cobra'?'cobra':'piled');
+      if(style==='cobra'){const t=document.createElement('div');t.className='squeeze';t.textContent='ギリギリギリ…';st.appendChild(t);setTimeout(()=>t.remove(),900)}
+      const a=ac();if(a&&style==='pile')I.whip(a,a.destination,a.currentTime+.05,.3)},260);
+    setTimeout(()=>{const g2=geo();if(style==='pile'){const a=ac();if(a){I.taiko(a,a.destination,a.currentTime,1);I.kick(a,a.destination,a.currentTime,.9)}punch(2)}
+      impact(g2.fx,style==='pile'?g2.ey+20:g2.fy+10,null);setTimeout(()=>{e.classList.remove('cobra','piled');h.classList.remove('grabbing')},500)},style==='pile'?1080:1000);
+    return;
+  }
   if(style==='grab'){
     const g=geo();h.style.setProperty('--gx',g.gx+'px');h.classList.remove('grabbing');void h.offsetWidth;h.classList.add('grabbing');
     setTimeout(()=>{e.classList.remove('knock','knockkick','hit');e.classList.add('pinned');
@@ -934,6 +953,16 @@ function attack(then,style='punch'){
         l.animate([{transform:`translate(${g.sx-50}px,${g.sy+10+jy}px) rotate(${30-i*8}deg)`},{transform:`translate(${g.fx-84+jx}px,${g.fy+jy}px) rotate(${-6+i*4}deg)`}],{duration:reduce?1:70,easing:'ease-out',fill:'forwards'});
         setTimeout(()=>{const m=document.createElement('div');m.className='boom mini';m.style.left=(g.fx+jx)+'px';m.style.top=(g.fy+jy+10)+'px';m.innerHTML=BOOM;st.appendChild(m);setTimeout(()=>m.remove(),400);punch(.5);e.classList.remove('hit');void e.offsetWidth;e.classList.add('hit')},70)},i*95);
       setTimeout(()=>{impact(g.fx,g.fy,'knockkick');setTimeout(()=>l.remove(),240)},5*95+60);
+    }else if(style==='chair'){
+      const c=document.createElement('div');c.className='chair';c.innerHTML=CHAIR;st.appendChild(c);
+      c.animate([{transform:`translate(${g.sx-40}px,${g.sy-110}px) rotate(-150deg) scale(.9)`},{transform:`translate(${g.sx}px,${g.sy-140}px) rotate(-180deg) scale(1)`,offset:.4},{transform:`translate(${g.fx-36}px,${g.fy-50}px) rotate(-20deg) scale(1.2)`}],{duration:reduce?1:300,easing:'cubic-bezier(.5,0,.3,1)',fill:'forwards'});
+      setTimeout(()=>{const a=ac();if(a){I.clank(a,a.destination,a.currentTime,.45);I.door(a,a.destination,a.currentTime,.12)}impact(g.fx,g.fy,'knock');
+        c.animate([{transform:`translate(${g.fx-36}px,${g.fy-50}px) rotate(-20deg) scale(1.2)`},{transform:`translate(${g.fx+60}px,${g.fy+40}px) rotate(160deg) scale(1)`,opacity:0}],{duration:reduce?1:600,easing:'ease-in',fill:'forwards'});setTimeout(()=>c.remove(),650)},310);
+    }else if(style==='shou'){
+      const er=e.getBoundingClientRect(),sr=st.getBoundingClientRect();
+      [[-26,.3],[24,.5]].forEach(([ang,y],i)=>setTimeout(()=>{const sl=document.createElement('div');sl.className='slash';sl.style.left=(er.left-sr.left-er.width*.2)+'px';sl.style.width=(er.width*1.4)+'px';sl.style.top=(er.top-sr.top+er.height*y)+'px';sl.style.transform=`rotate(${ang}deg)`;st.appendChild(sl);setTimeout(()=>sl.remove(),600);
+        const a=ac();if(a)I.whip(a,a.destination,a.currentTime,.45);e.classList.remove('hit');void e.offsetWidth;e.classList.add('hit')},i*140));
+      setTimeout(()=>{feathers(st,er,sr);impact(g.fx,g.fy,'knock')},300);
     }else if(style==='elbow'){
       const el=document.createElement('div');el.className='elbow';el.innerHTML=ELBOW;st.appendChild(el);
       el.animate([{transform:`translate(${g.sx-40}px,${g.sy-50}px) rotate(-70deg) scale(.8)`},{transform:`translate(${g.sx+10}px,${g.sy-80}px) rotate(-40deg) scale(1)`,offset:.45},{transform:`translate(${g.fx-66}px,${g.fy-22}px) rotate(12deg) scale(1.25)`}],{duration:reduce?1:220,easing:'cubic-bezier(.5,0,.3,1)',fill:'forwards'});
@@ -948,6 +977,7 @@ function attack(then,style='punch'){
 const BOOK=`<svg viewBox="0 0 60 74"><rect x="4" y="4" width="50" height="66" rx="3" fill="#7a1a14" stroke="#0b0807" stroke-width="3"/><rect x="50" y="8" width="7" height="58" fill="#efe6d6" stroke="#0b0807" stroke-width="2"/><rect x="12" y="14" width="32" height="18" fill="#d9a441"/><text x="28" y="28" text-anchor="middle" font-size="12" font-weight="900" fill="#3a0c08" font-family="sans-serif">六法</text><path d="M12 46h32M12 54h32" stroke="#d9a441" stroke-width="2"/></svg>`;
 const LEG=`<svg viewBox="0 0 96 34"><path d="M0 6h62v20H0z" fill="#0b0807"/><path d="M58 4h22c8 0 14 5 14 12v6c0 4-3 7-7 7H58z" fill="#2a2420" stroke="#0b0807" stroke-width="3"/><path d="M60 26h34" stroke="#d9a441" stroke-width="2"/></svg>`;
 const ELBOW=`<svg viewBox="0 0 84 52"><path d="M46 20L20 4l-8 10 30 16z" fill="#0b0807"/><circle cx="15" cy="8" r="8" fill="#d9a87a" stroke="#0b0807" stroke-width="2.6"/><path d="M0 16h52l22 12-22 12H0z" fill="#0b0807" stroke="#3a2e28" stroke-width="1.5"/><path d="M74 28l8-6M74 28l9 2M74 28l7 7" stroke="#fbf6ec" stroke-width="2.4" stroke-linecap="round"/></svg>`;
+const CHAIR=`<svg viewBox="0 0 60 80"><path d="M10 4h36v30H10z" fill="#9aa3ab" stroke="#0b0807" stroke-width="3"/><path d="M15 11h26M15 19h26M15 27h26" stroke="#6b7178" stroke-width="2"/><path d="M6 38h44l-4 7H10z" fill="#b8c0c8" stroke="#0b0807" stroke-width="3"/><path d="M12 34L6 78M44 34l8 44M12 46l36 28M48 46L12 74" stroke="#0b0807" stroke-width="4"/></svg>`;
 const FIST=`<svg viewBox="0 0 70 40"><path d="M0 12h24v16H0z" fill="#0b0807"/><path d="M14 12h10v16H14z" fill="#e8dcc6"/><rect x="22" y="4" width="40" height="32" rx="10" fill="#d9a87a" stroke="#0b0807" stroke-width="3"/><path d="M52 6v28M42 6v12M32 6v12M30 26h14" stroke="#0b0807" stroke-width="2.4" stroke-linecap="round"/></svg>`;
 const BOOM=(()=>{let p='';for(let i=0;i<18;i++){const r=i%2?18:46,a=i/18*Math.PI*2;p+=(50+Math.cos(a)*r).toFixed(1)+','+(50+Math.sin(a)*r).toFixed(1)+' '}return `<svg viewBox="0 0 100 100"><polygon points="${p}" fill="#d9a441" stroke="#0b0807" stroke-width="3"/><circle cx="50" cy="50" r="14" fill="#fffbe8"/></svg>`})();
 function flashEmo(el,e,ms=1300){if(!el)return;['angry','sad','shock','happy','evil'].forEach(x=>el.classList.remove('emo-'+x));void el.offsetWidth;el.classList.add('emo-'+e);clearTimeout(el._emoT);el._emoT=setTimeout(()=>el.classList.remove('emo-'+e),ms)}
