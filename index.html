@@ -761,7 +761,17 @@ const TR={
  opening:{bpm:84,init(a,bus){const d=a.createDelay(1);d.delayTime.value=.42;const fb=a.createGain();fb.gain.value=.38;const lp=a.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2200;const inp=a.createGain();inp.connect(bus);inp.connect(d);d.connect(lp).connect(fb).connect(d);lp.connect(bus);return{echo:inp}},
   f(a,o,s,t,d,c){const root=[38,38,36,38][s>>3];if([0,3,6].includes(s%8))I.jaw(a,o,root,t,.34,.2);if(s%16===0)I.pad(a,o,[root+12,root+19],t,16*d,.025,500);if(s%16===0)I.taiko(a,o,t,.3);if(s===0)I.bell(a,c.echo,50,t,.06,5);if(s===12||s===28)I.bell(a,c.echo,86,t,.03,3);if(s===31)I.whip(a,c.echo,t,.3);
   const m={0:[74,3],3:[77,3],6:[76,2],8:[74,7],16:[81,3],19:[79,3],22:[77,2],24:[76,5],29:[74,3]}[s];if(m)I.whistle(a,c.echo,m[0]+12,t,m[1]*d,.085)}},
- title:{bpm:76,f(a,o,s,t,d){const ch=[[50,53,57],[50,53,57],[48,52,55],[45,49,52]][s>>3],r=[38,38,36,33][s>>3];
+ // タイトル：荒野の夕暮れ。長く聴いていても疲れないよう、ゆっくり・やわらかく、4つの場面（約1分）で少しずつ変化する
+ title:{bpm:66,init(){return{k:-1}},f(a,o,s,t,d,c){if(s===0)c.k++;const sec=c.k%4,bar=s>>3,P2=sec===3||sec===2&&c.k%8>=4;
+  const ch=(P2?[[50,53,57],[55,58,62],[53,58,62],[52,57,61]]:[[50,53,57],[50,53,58],[48,53,57],[48,52,55]])[bar],rt=(P2?[38,43,46,45]:[38,34,41,36])[bar];
+  if(s%8===0){I.pad(a,o,ch,t,8*d,.026,650);I.bass(a,o,rt,t,7*d,.13)}
+  const ar=[0,1,2,1,0,2,1,2][s%8],up=s%8===3||s%8===7?12:0;if(sec!==1||s%2===0)I.vib(a,o,ch[ar]+12+up,t,sec===0?.024:.03,2.4);
+  if(s===0&&sec===0)I.taiko(a,o,t,.2);if(s===0&&sec===2)I.bell(a,o,74,t,.025,4);
+  const mB={0:[69,4],4:[67,2],6:[65,2],8:[65,4],12:[62,4],16:[60,3],19:[62,1],20:[65,4],24:[64,6]},
+   mC={0:[74,3],3:[72,1],4:[70,4],8:[70,2],10:[69,2],12:[67,4],16:[65,4],20:[67,2],22:[69,2],24:[69,7]};
+  if(sec===1){const m=mB[s];if(m)I.whistle(a,o,m[0]+12,t,m[1]*d*.95,.058)}
+  if(sec===3){const m=mC[s];if(m)I.breath(a,o,m[0],t,m[1]*d*.95,.065)}}},
+ titleOld:{bpm:76,f(a,o,s,t,d){const ch=[[50,53,57],[50,53,57],[48,52,55],[45,49,52]][s>>3],r=[38,38,36,33][s>>3];
   if(s%8===0)I.pad(a,o,ch,t,8*d,.035);if(s%4===0)I.twang(a,o,s%8?r+19:r+12,t,.12);if(s%8===0)I.taiko(a,o,t,.45);if(s===14||s===30)I.whip(a,o,t);if(s===0)I.bell(a,o,50,t,.06,4);
   const m={0:[62,4],4:[69,4],8:[67,2],10:[65,2],12:[64,4],16:[62,4],20:[57,3],23:[60,1],24:[59,2],26:[57,2],28:[62,4]}[s];if(m)I.whistle(a,o,m[0]+12,t,m[1]*d,.08)}},
  case0:{bpm:70,f(a,o,s,t,d){if(s%16===0)I.pad(a,o,[38,50,51],t,16*d,.04,600);const p=[62,0,65,0,68,0,63,0,62,0,0,65,70,0,68,0][s%16];if(p)I.twang(a,o,p-12,t,.07);if(s%16===0)I.taiko(a,o,t,.5);if(s%16===10)I.taiko(a,o,t,.25);if(s===12)I.bell(a,o,80,t,.04,3);if(s===28)I.bell(a,o,74,t,.04,3);if(s===24)I.whip(a,o,t,.2);
