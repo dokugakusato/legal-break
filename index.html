@@ -1044,7 +1044,7 @@ function accInit(){
   const base='https://www.gstatic.com/firebasejs/10.12.2/';
   const load=f=>new Promise((res,rej)=>{const s=document.createElement('script');s.src=base+f;s.onload=res;s.onerror=rej;document.head.appendChild(s)});
   load('firebase-app-compat.js').then(()=>Promise.all([load('firebase-auth-compat.js'),load('firebase-firestore-compat.js')])).then(()=>{
-    firebase.initializeApp(cfg);ACC.auth=firebase.auth();ACC.db=firebase.firestore();ACC.on=true;
+    firebase.initializeApp(cfg);ACC.auth=firebase.auth();ACC.auth.languageCode='ja';ACC.db=firebase.firestore();ACC.on=true;
     ACC.auth.onAuthStateChanged(u=>{ACC.user=u;if(u)pullCloud();accRender()});
     if(ACC.auth.isSignInWithEmailLink(location.href)){let em='';try{em=localStorage.getItem(EMAIL_KEY)||''}catch(e){}if(em)finishLink(em);else accSheet('confirm')}
     accRender();
@@ -1075,7 +1075,7 @@ function accSheet(mode){
     if(mode==='confirm'){finishLink(em);return}
     const btn=$('#accForm button');btn.disabled=true;btn.textContent='送信中…';
     ACC.auth.sendSignInLinkToEmail(em,{url:location.origin+location.pathname,handleCodeInApp:true}).then(()=>{try{localStorage.setItem(EMAIL_KEY,em)}catch(e){}
-      f.innerHTML=`<div class="verdict ok">メールを送った</div><p>${em} に届いたリンクを、このスマホで押してくれ。届かないときは迷惑メールのフォルダも見てくれ。</p><button class="btn" type="button" id="accClose">閉じる</button>`;$('#accClose').onclick=closeSheet})
+      f.innerHTML=`<div class="verdict ok">メールを送った</div><p>${em} に「LEGAL BREAK 法の拳 にログイン」というメールが届く。中のリンクを、このスマホで押してくれ。</p><p class="note">見当たらないときは<b>迷惑メール</b>のフォルダを見てくれ。迷惑メールに入っているとリンクが押せないので、先に<b>「迷惑メールではない」</b>を押してから、受信トレイに移ったメールのリンクを押すこと。</p><button class="btn" type="button" id="accClose">閉じる</button>`;$('#accClose').onclick=closeSheet})
      .catch(err=>{btn.disabled=false;btn.textContent='ログイン用のリンクを送る';$('#accMsg').textContent=(err&&err.code==='auth/quota-exceeded')?'今日の登録の受付は、もういっぱいだ。明日もう一度ためしてくれ。記録はこの端末には残っている。':'送れなかった。メールアドレスを確かめて、もう一度押してくれ。'})};
 }
 
