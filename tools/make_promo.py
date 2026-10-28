@@ -21,6 +21,8 @@ PROMO_CSS = """
 #promoCap.hide{opacity:0}
 #promoCap.bottom{top:auto;bottom:0;padding:16px 14px calc(150px + env(safe-area-inset-bottom,0px));background:linear-gradient(0deg,rgba(0,0,0,.95),rgba(0,0,0,.8) 70%,rgba(0,0,0,0))}
 #flash{position:fixed;inset:0;background:#fff;z-index:999}
+.shake,.stage.shake,#stage.shake{animation:none!important}
+.fig[class*="emo-"]>svg,.fig.hero.hurt2 svg,.fig.r.ed3,.fig.r.laughing,.key.miss{animation:none!important}
 #endCard{position:fixed;inset:0;z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;
  background:radial-gradient(ellipse at 50% 40%,#5a1209,#120c0a 70%);font-family:"Noto Sans CJK JP",sans-serif;color:#efe3cf;padding:20px}
 #endCard .pre{background:#c22d22;border:2px solid #efe3cf;font-weight:900;font-size:16px;letter-spacing:.4em;padding:3px 6px 3px 14px}
@@ -50,13 +52,13 @@ def main():
         # 録音の準備（ゲームの音を全部ひろう）
         J("""(()=>{S.mute=false;S.noVoice=false;const a=ac();window.__tapCtx=a;window.__tap=a.createMediaStreamDestination();
           window.__chunks=[];const r=new MediaRecorder(window.__tap.stream,{mimeType:'audio/webm;codecs=opus'});r.ondataavailable=e=>e.data.size&&window.__chunks.push(e.data);
-          window.__rec=r;r.start(250);
+          window.__rec=r;r.start(250);const ko=a.createConstantSource();const kg=a.createGain();kg.gain.value=0.0003;ko.connect(kg);kg.connect(a.destination);ko.start();
           const st=document.createElement('style');st.textContent=%s;document.head.appendChild(st);
           const cap=document.createElement('div');cap.id='promoCap';cap.className='hide';document.body.appendChild(cap);
           window.cap=(t,sm,pos)=>{cap.innerHTML=(sm?`<small>${sm}</small>`:'')+t;cap.classList.toggle('bottom',pos==='bottom');cap.classList.remove('hide')};window.capHide=()=>cap.classList.add('hide');
           // ゲームのセリフは流さない（あとで渋い声のナレーションを重ねる）。奥義の叫びの時刻だけ記録
           window.__t0=performance.now();window.__marks=[];window.mark=n=>window.__marks.push([n,(performance.now()-window.__t0)/1000]);
-          window.say=say=function(list,done){for(const x of list)if(String(x[0]).includes('取消権'))mark('shout');done&&setTimeout(done,10)};
+          BGM.play=function(){};BGM.stop();window.say=say=function(list,done){for(const x of list)if(String(x[0]).includes('取消権'))mark('shout');done&&setTimeout(done,10)};
           return a.state})()""" % json.dumps(PROMO_CSS))
         # 同期合図（白いフラッシュ＋ピッ）
         J("""(()=>{const f=document.createElement('div');f.id='flash';document.body.appendChild(f);
@@ -64,7 +66,7 @@ def main():
           setTimeout(()=>f.remove(),400)})()""")
         W(900)
         # 1. タイトル
-        J("BGM.play('title')")
+        pass
         J("cap('行政書士試験の独学を、<br>ゲームにした。','LEGAL BREAK ―法の拳―','bottom');mark('l1')")
         W(3900)
         # 2. 4コマ（坂東のたくらみ → 田中の叫び）
