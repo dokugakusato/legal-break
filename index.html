@@ -783,6 +783,18 @@ const TR={
   if(m&&sec===2)I.whistle(a,o,m[0]+12,t,m[1]*d*.95,.06);
   if(m&&sec===3){I.brass(a,o,m[0],t,m[1]*d*.95,.075);I.brass(a,o,m[0]-12,t,m[1]*d*.95,.04)}
   if(sec===1&&[2,10,18,26].includes(s))I.vib(a,o,ch[2]+24,t,.02,2)}},
+ // タイトル候補：機械の荒野風。金床を打つような金属音を7拍子（2+2+3）で刻み、暗いシンセと悲壮な旋律がのる（オリジナル）
+ titleSteel:{bpm:96,init(){return{n:-1}},f(a,o,s,t,d,c){c.n++;const n=c.n,sec=Math.floor(n/28)%4,st=n%28,bar=Math.floor(st/7),b7=n%7;
+  const ch=[[53,56,60],[49,53,56],[51,55,58],[48,51,55]][bar],rt=[29,25,27,24][bar];
+  if(b7===0){I.kick(a,o,t,.6);I.clank(a,o,t,.16);I.bass(a,o,rt+12,t,6.5*d,.16,1)}
+  if(b7===2)I.clank(a,o,t,.11);if(b7===4){I.clank(a,o,t,.13);I.kick(a,o,t,.35)}
+  if(b7===4&&sec>=1)I.snare(a,o,t,.12);if(sec>=2&&b7%2===1)I.hat(a,o,t,.03);
+  if(b7===0)I.pad(a,o,ch,t,7*d,sec===0?.022:.032,sec>=2?1300:800);
+  if(sec===0&&st===0)I.taiko(a,o,t,.7);
+  const m={0:[72,5],5:[75,2],7:[73,7],14:[70,4],18:[72,3],21:[67,7]}[st];
+  if(m&&sec===1)I.whistle(a,o,m[0],t,m[1]*d*.95,.05);
+  if(m&&sec>=2){I.brass(a,o,m[0],t,m[1]*d*.95,sec===3?.08:.06);if(sec===3)I.brass(a,o,m[0]-12,t,m[1]*d*.95,.04)}
+  if(sec===3&&b7===0)I.choir(a,o,ch.map(x=>x+12),t,7*d,.035)}},
  case0:{bpm:70,f(a,o,s,t,d){if(s%16===0)I.pad(a,o,[38,50,51],t,16*d,.04,600);const p=[62,0,65,0,68,0,63,0,62,0,0,65,70,0,68,0][s%16];if(p)I.twang(a,o,p-12,t,.07);if(s%16===0)I.taiko(a,o,t,.5);if(s%16===10)I.taiko(a,o,t,.25);if(s===12)I.bell(a,o,80,t,.04,3);if(s===28)I.bell(a,o,74,t,.04,3);if(s===24)I.whip(a,o,t,.2);
   const m={0:[74,6],8:[75,4],12:[72,4],16:[74,6],24:[69,8]}[s];if(m&&s<16)I.whistle(a,o,m[0],t,m[1]*d,.05)}},
  case1:{bpm:100,f(a,o,s,t,d){
