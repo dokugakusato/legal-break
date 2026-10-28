@@ -367,6 +367,11 @@ b.gold{color:var(--gold)}
 .ougi-stamp small{font-size:.45em;letter-spacing:.4em;color:var(--gold)}
 .ougi-stamp.on{animation:stampIn .45s cubic-bezier(.2,1.6,.4,1) forwards}
 @keyframes stampIn{0%{opacity:0;transform:rotate(-6deg) scale(2.4)}100%{opacity:1;transform:rotate(-6deg) scale(1)}}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:10px;background:#fbf6ec;color:#120c0a;border-color:#120c0a}
+.gbtn .g{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#fff;color:#4285f4;font-weight:900;font-family:Arial,sans-serif;border:1px solid #ccc}
+.accor{display:flex;align-items:center;gap:8px;margin:12px 0 4px;font-size:12px;color:var(--gold)}
+.accor::before,.accor::after{content:"";flex:1;height:1px;background:rgba(239,227,207,.3)}
+.accform .minirow{display:flex;gap:8px}.accform .minirow .btn{flex:1}
 /* ---------- 逮捕のアニメーション ---------- */
 .arrest{position:relative}
 .siren{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:0}
@@ -1286,7 +1291,7 @@ function finishLink(em){
    .catch(()=>{history.replaceState(null,'',location.pathname);accSheet('fail')});
 }
 function accRender(){
-  const t=ACC.on?(ACC.user&&!ACC.user.isAnonymous?`<p class="accline">ログイン中：${escH(ACC.user.email)}<br>記録はネットに保存されている。</p><div class="minirow"><button class="btn ghost mini" type="button" id="accOut">ログアウト</button><button class="btn ghost mini" type="button" id="accDel">登録を消す</button></div>`:`<button class="btn ghost" type="button" id="accIn">記録をネットに保存する（メールで登録）</button>`):'';
+  const t=ACC.on?(ACC.user&&!ACC.user.isAnonymous?`<p class="accline">ログイン中：${escH(ACC.user.email||'Googleアカウント')}<br>記録はネットに保存されている。</p><div class="minirow"><button class="btn ghost mini" type="button" id="accOut">ログアウト</button><button class="btn ghost mini" type="button" id="accDel">登録を消す</button></div>`:`<button class="btn ghost" type="button" id="accIn">記録をネットに保存する（ログイン）</button>`):'';
   document.querySelectorAll('.accbox').forEach(b=>{b.innerHTML=t;b.hidden=!t});
   document.querySelectorAll('#accIn').forEach(b=>b.onclick=()=>accSheet('form'));
   document.querySelectorAll('#accOut').forEach(b=>b.onclick=()=>ACC.auth.signOut().then(()=>ACC.auth.signInAnonymously()).catch(()=>{}));
@@ -1302,25 +1307,66 @@ function accDeleteSheet(){
     Promise.all([ACC.db.collection('progress').doc(u.uid).delete(),ACC.db.collection('ranking').doc(u.uid).delete()]).then(()=>u.delete()).then(()=>{
       f.innerHTML=`<div class="verdict ok">消した</div><p>ネットの記録と登録したメールアドレスを消した。この端末の記録はそのまま残っている。</p><button class="btn" type="button" id="accClose">閉じる</button>`;$('#accClose').onclick=closeSheet})
      .catch(err=>{btn.disabled=false;btn.textContent='消す';
-      $('#accMsg').textContent=(err&&err.code==='auth/requires-recent-login')?'安全のため、いったんログアウトして、もう一度メールでログインしてから消してくれ。':'消せなかった。電波のいい所でもう一度押してくれ。'})};
+      $('#accMsg').textContent=(err&&err.code==='auth/requires-recent-login')?'安全のため、いったんログアウトして、もう一度ログインしてから消してくれ。':'消せなかった。電波のいい所でもう一度押してくれ。'})};
 }
+function accGoogle(){
+  const pv=new firebase.auth.GoogleAuthProvider();pv.setCustomParameters({prompt:'select_account'});
+  const cur=ACC.auth.currentUser,m=$('#accMsg');
+  const go=cur&&cur.isAnonymous?cur.linkWithPopup(pv).catch(err=>{if(err&&err.code==='auth/credential-already-in-use'&&err.credential)return ACC.auth.signInWithCredential(err.credential);throw err}):ACC.auth.signInWithPopup(pv);
+  go.then(()=>accSheet('done')).catch(err=>{const c=err&&err.code;if(c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request')return;
+    if(m)m.textContent=(c==='auth/popup-blocked'||c==='auth/operation-not-supported-in-this-environment'||c==='auth/web-storage-unsupported')?'このブラウザではGoogleの画面を開けなかった。下の「メールとパスワード」で登録してくれ。':'Googleでログインできなかった。下の「メールとパスワード」でも登録できる。'});
+}
+const PW_ERR={'auth/email-already-in-use':'そのメールアドレスは登録済みだ。「ログイン」を押してくれ。','auth/weak-password':'パスワードは6文字以上にしてくれ。','auth/invalid-email':'メールアドレスの形が正しくない。',
+ 'auth/invalid-credential':'メールアドレスかパスワードが違う。','auth/wrong-password':'メールアドレスかパスワードが違う。','auth/user-not-found':'メールアドレスかパスワードが違う。','auth/too-many-requests':'何度も失敗したので、しばらく待ってからためしてくれ。','auth/quota-exceeded':'今日の受付はいっぱいだ。明日もう一度ためしてくれ。記録はこの端末には残っている。'};
 function accSheet(mode){
   const f=openSheet();
-  const msg={form:'メールアドレスを入れると、ログイン用のリンクが届く。押せばログイン完了。パスワードは要らない。',
+  if(mode==='done'){f.innerHTML=`<div class="verdict ok">ログインした</div><p>これで記録はネットに保存される。スマホを変えても、同じ方法でログインすれば続きから遊べる。</p><button class="btn" type="button" id="accClose">修行に戻る</button>`;$('#accClose').onclick=closeSheet;return}
+  if(mode==='link'||mode==='confirm'||mode==='fail')return accLinkSheet(f,mode);
+  if(mode==='reset'){
+    f.innerHTML=`<span class="qtag">パスワードを忘れた</span><p class="qtext">登録したメールアドレスに、パスワードを決め直すメールを送る。</p>
+    <form id="accForm" class="accform"><label for="accEmail" class="law">メールアドレス</label><input id="accEmail" type="email" required autocomplete="email" inputmode="email" placeholder="example@mail.com"><button class="btn" type="submit">メールを送る</button></form>
+    <p class="note" id="accMsg"></p><button class="btn ghost" type="button" id="accBack">戻る</button>`;
+    $('#accBack').onclick=()=>accSheet('form');
+    $('#accForm').onsubmit=e=>{e.preventDefault();const em=$('#accEmail').value.trim();if(!em)return;const btn=$('#accForm button');btn.disabled=true;
+      ACC.auth.sendPasswordResetEmail(em,{url:location.origin+location.pathname}).then(()=>{f.innerHTML=`<div class="verdict ok">メールを送った</div><p>登録されているアドレスなら、パスワードを決め直すメールが届く。見当たらないときは迷惑メールのフォルダも見てくれ。</p><button class="btn" type="button" id="accBack">ログインに戻る</button>`;$('#accBack').onclick=()=>accSheet('form')})
+       .catch(err=>{btn.disabled=false;$('#accMsg').textContent=PW_ERR[err&&err.code]||'送れなかった。もう一度押してくれ。'})};
+    return}
+  f.innerHTML=`<span class="qtag">記録をネットに保存</span><p class="qtext">ログインすると、記録がネットに保存される。スマホを変えても続きから遊べる。</p>
+  <button class="btn gbtn" type="button" id="accG"><span class="g" aria-hidden="true">G</span>Googleでログイン</button>
+  <div class="accor"><span>または メールとパスワード</span></div>
+  <form id="accForm" class="accform"><label for="accEmail" class="law">メールアドレス</label><input id="accEmail" type="email" required autocomplete="email" inputmode="email" placeholder="example@mail.com">
+  <label for="accPw" class="law">パスワード（6文字以上）</label><input id="accPw" type="password" required minlength="6" autocomplete="current-password" placeholder="••••••">
+  <div class="minirow"><button class="btn" type="submit" id="accNew">はじめて登録</button><button class="btn ghost" type="button" id="accLogin">ログイン</button></div></form>
+  <p class="note" id="accMsg"></p>
+  <p class="note"><a href="#" id="accForgot">パスワードを忘れた</a>／<a href="#" id="accLinkMode">メールのリンクで</a>／<a href="privacy.html">プライバシー</a></p>
+  <button class="btn ghost" type="button" id="accClose">閉じる</button>`;
+  $('#accClose').onclick=closeSheet;$('#accG').onclick=accGoogle;
+  $('#accForgot').onclick=e=>{e.preventDefault();accSheet('reset')};$('#accLinkMode').onclick=e=>{e.preventDefault();accSheet('link')};
+  const val=()=>{const em=$('#accEmail').value.trim(),pw=$('#accPw').value;if(!em||pw.length<6){$('#accMsg').textContent='メールアドレスと、6文字以上のパスワードを入れてくれ。';return null}return [em,pw]};
+  const busy=on=>f.querySelectorAll('#accForm button,#accG').forEach(b=>b.disabled=on);
+  const fail=err=>{busy(false);$('#accMsg').textContent=PW_ERR[err&&err.code]||'うまくいかなかった。電波のいい所でもう一度押してくれ。'};
+  $('#accForm').onsubmit=e=>{e.preventDefault();const v=val();if(!v)return;busy(true);
+    const cur=ACC.auth.currentUser,cred=firebase.auth.EmailAuthProvider.credential(v[0],v[1]);
+    (cur&&cur.isAnonymous?cur.linkWithCredential(cred):ACC.auth.createUserWithEmailAndPassword(v[0],v[1])).then(()=>accSheet('done')).catch(fail)};
+  $('#accLogin').onclick=()=>{const v=val();if(!v)return;busy(true);
+    ACC.auth.signInWithEmailAndPassword(v[0],v[1]).then(()=>accSheet('done')).catch(fail)};
+}
+// 以前からの「パスワードなし・メールのリンクでログイン」（1日の送信数に上限がある）
+function accLinkSheet(f,mode){
+  const msg={link:'メールアドレスを入れると、ログイン用のリンクが届く。押せばログイン完了。パスワードは要らない。',
    confirm:'ログインを仕上げる。リンクを頼んだときのメールアドレスを、もう一度入れてくれ。',
    fail:'ログインできなかった。リンクの期限が切れたか、一度使ったリンクかもしれない。もう一度送ってくれ。'}[mode];
-  if(mode==='done'){f.innerHTML=`<div class="verdict ok">ログインした</div><p>これで記録はネットに保存される。スマホを変えても、同じメールアドレスでログインすれば続きから遊べる。</p><button class="btn" type="button" id="accClose">修行に戻る</button>`;$('#accClose').onclick=closeSheet;return}
-  f.innerHTML=`<span class="qtag">記録をネットに保存</span><p class="qtext">${msg}</p>
+  f.innerHTML=`<span class="qtag">メールのリンクでログイン</span><p class="qtext">${msg}</p>
   <form id="accForm" class="accform"><label for="accEmail" class="law">メールアドレス</label><input id="accEmail" type="email" required autocomplete="email" inputmode="email" placeholder="example@mail.com"><button class="btn" type="submit">${mode==='confirm'?'ログインする':'ログイン用のリンクを送る'}</button></form>
   <p class="note" id="accMsg">届くのはログイン用のメールだけ。宣伝メールは送らない。<a href="privacy.html">プライバシーポリシー</a></p>
-  <button class="btn ghost" type="button" id="accClose">閉じる</button>`;
-  $('#accClose').onclick=closeSheet;
+  <button class="btn ghost" type="button" id="accBack">ほかの方法でログイン</button>`;
+  $('#accBack').onclick=()=>accSheet('form');
   $('#accForm').onsubmit=e=>{e.preventDefault();const em=$('#accEmail').value.trim();if(!em)return;
     if(mode==='confirm'){finishLink(em);return}
     const btn=$('#accForm button');btn.disabled=true;btn.textContent='送信中…';
     ACC.auth.sendSignInLinkToEmail(em,{url:location.origin+location.pathname,handleCodeInApp:true}).then(()=>{try{localStorage.setItem(EMAIL_KEY,em)}catch(e){}
       f.innerHTML=`<div class="verdict ok">メールを送った</div><p>${escH(em)} に「LEGAL BREAK 法の拳 にログイン」というメールが届く。中のリンクを、このスマホで押してくれ。</p><p class="note">見当たらないときは<b>迷惑メール</b>のフォルダを見てくれ。迷惑メールに入っているとリンクが押せないので、先に<b>「迷惑メールではない」</b>を押してから、受信トレイに移ったメールのリンクを押すこと。</p><button class="btn" type="button" id="accClose">閉じる</button>`;$('#accClose').onclick=closeSheet})
-     .catch(err=>{btn.disabled=false;btn.textContent='ログイン用のリンクを送る';$('#accMsg').textContent=(err&&err.code==='auth/quota-exceeded')?'今日の登録の受付は、もういっぱいだ。明日もう一度ためしてくれ。記録はこの端末には残っている。':'送れなかった。メールアドレスを確かめて、もう一度押してくれ。'})};
+     .catch(err=>{btn.disabled=false;btn.textContent='ログイン用のリンクを送る';$('#accMsg').textContent=(err&&err.code==='auth/quota-exceeded')?'今日のメール送信はいっぱいだ。「ほかの方法でログイン」から、Googleかパスワードで登録してくれ。':'送れなかった。メールアドレスを確かめて、もう一度押してくれ。'})};
 }
 
 /* ---------- 1話を遊ぶ（1話＝事件3つ＋章ボス） ---------- */
@@ -1600,6 +1646,11 @@ function stopSay(){SAY.run++;stopVoice();try{TTS.ok&&speechSynthesis.cancel()}ca
 const VO={map:window.LB_AUDIO||{},buf:new Map(),src:null};
 function vHash(s){let h=0x811c9dc5;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,0x01000193)}return (h>>>0).toString(16).padStart(8,'0')}
 const vKey=(t,k)=>vHash((VP[k]?k:'narr')+'|'+cleanTxt(t));
+// アプリを裏に回したら（ホームに戻る・画面を消す・別のアプリへ）、BGMも声も止める。戻ったら再開
+function bgPause(hide){try{if(hide){if(AC&&AC.state==='running')AC.suspend();speechSynthesis.cancel()}else if(AC&&!S.mute&&AC.state!=='running')AC.resume()}catch(e){}}
+document.addEventListener('visibilitychange',()=>bgPause(document.hidden));
+addEventListener('pagehide',()=>bgPause(true));addEventListener('pageshow',()=>bgPause(document.hidden));
+addEventListener('blur',()=>{if(document.hidden)bgPause(true)});
 function vLoad(h){if(!VO.buf.has(h))VO.buf.set(h,fetch('audio/'+h+'.mp3').then(r=>{if(!r.ok)throw new Error('no audio');return r.arrayBuffer()}).then(b=>AC.decodeAudioData(b)).catch(e=>{VO.buf.delete(h);throw e}));return VO.buf.get(h)}
 function stopVoice(){if(VO.src){try{VO.src.onended=null;VO.src.stop()}catch(e){}VO.src=null}}
 function say(list,done){
