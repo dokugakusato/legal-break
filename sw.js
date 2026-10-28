@@ -1,7 +1,7 @@
 /* LEGAL BREAK：アプリとして動かすための仕組み（電波が弱くても前に遊んだ話は開ける）
    毎日の更新が届くよう、ゲーム本体と話のデータは「まずネットから取り、だめなら保存分」を使う。
    声のファイルは中身が変わらないので「保存分を優先」する。 */
-const CACHE='legalbreak-v2';
+const CACHE='legalbreak-v3';
 self.addEventListener('install',()=>self.skipWaiting());
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',e=>{
