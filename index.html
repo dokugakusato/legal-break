@@ -1003,7 +1003,7 @@ function bossStart(){BGM.play(EP.bgm);story(EP.chapter,EP.panels,bossBattle,EP.w
 function bossBattle(){
   closeSheet();S.bossFails=0;show('s-battle');$('#s-battle').classList.add('bossmode');BGM.play(EP.bbgm);S.ehp=100;$('#eName').textContent=EP.enemy;$('#stage').innerHTML=stageHTML(EP.efig||'boss',EP.enemy,1,EP.efigName);bars();
   const keys=EP.keys,good=keys.filter(k=>k.ok),order=keys.map((_,i)=>i).sort(()=>Math.random()-.5);let got=0;
-  $('#qcard').innerHTML=`<div class="qhead"><span class="qtag">章ボス戦 ― 記述のキーワードを撃て</span>${EP.wb?'<button class="btn ghost mini" type="button" id="wbBtn">関係図</button>':''}</div>
+  $('#qcard').innerHTML=`<div class="qhead"><span class="qtag">${EP.jobun?'章ボス戦 ― 条文のキーワードを撃て（択一対策）':'章ボス戦 ― 記述のキーワードを撃て'}</span>${EP.wb?'<button class="btn ghost mini" type="button" id="wbBtn">関係図</button>':''}</div>
   <p class="qtext">${EP.q}</p>
   <div class="gauge">${good.map((_,i)=>`<div class="orb" id="orb${i}">${i+1}</div>`).join('')}</div>
   <p class="why" id="why" aria-live="polite">正解は ${good.length} つ。ひっかけを撃つと反撃される。</p>
@@ -1037,7 +1037,7 @@ function finisherClassic(){
     chars.forEach((ch,i)=>setTimeout(()=>{const sp=document.createElement('span');sp.textContent=ch;f.appendChild(sp);hit(i===chars.length-1?2:.8)},i*190));
     setTimeout(()=>$('#fudeSub').classList.add('on'),chars.length*190+200);
     setTimeout(()=>{const w=$('#wo');w.classList.remove('on');void w.offsetWidth;w.classList.add('on');punch(2.4);scream(.55,1.5);ov.classList.remove('black');
-      ov.innerHTML=`<div class="finisher"><div class="doka">ドカーン！！</div><div class="stage" style="width:100%">${stageHTML(EP.efig||'boss',EP.enemy,1)}</div><p class="tagline" style="text-align:left">${EP.result}</p><div class="card"><span class="law">模範解答（${EP.lawRef||''}）</span><div class="model">${EP.model}</div>${wbBox(EP.wb,true)}<p style="margin:0;font-size:13px">${EP.exp}</p></div><button class="btn" type="button" id="toClear">戦いの記録を見る</button></div>`;
+      ov.innerHTML=`<div class="finisher"><div class="doka">ドカーン！！</div><div class="stage" style="width:100%">${stageHTML(EP.efig||'boss',EP.enemy,1)}</div><p class="tagline" style="text-align:left">${EP.result}</p><div class="card"><span class="law">${EP.jobun?'条文のポイント':'模範解答'}（${EP.lawRef||''}）</span><div class="model">${EP.model}</div>${wbBox(EP.wb,true)}<p style="margin:0;font-size:13px">${EP.exp}</p></div><button class="btn" type="button" id="toClear">戦いの記録を見る</button></div>`;
       ov.style.overflowY='auto';ov.style.alignItems='flex-start';
       setTimeout(()=>{const b=ov.querySelector('.fig.r');if(b){b.classList.add('ed1','ed2','ed3','ko')}},300);
       $('#toClear').onclick=()=>{ov.hidden=true;ov.innerHTML='';ov.style.cssText='';nextPart()};
@@ -1078,7 +1078,7 @@ function finisherHokuto(){
     // 6. 奥義〇〇拳で決める
     $('#ougiStamp').classList.add('on');punch(2.2);await Promise.all([sayP('奥義、'+(EP.ougi||name+'拳')+'！','hero'),wait(1800)]);
     const w=$('#wo');w.classList.remove('on');void w.offsetWidth;w.classList.add('on');punch(2.4);ov.classList.remove('black');
-    ov.innerHTML=`<div class="finisher"><div class="doka">${EP.ougi||'ドカーン！！'}</div><p class="tagline" style="text-align:left">${EP.result}</p><div class="card"><span class="law">模範解答（${EP.lawRef||''}）</span><div class="model">${EP.model}</div>${wbBox(EP.wb,true)}<p style="margin:0;font-size:13px">${EP.exp}</p></div><button class="btn" type="button" id="toClear">戦いの記録を見る</button></div>`;
+    ov.innerHTML=`<div class="finisher"><div class="doka">${EP.ougi||'ドカーン！！'}</div><p class="tagline" style="text-align:left">${EP.result}</p><div class="card"><span class="law">${EP.jobun?'条文のポイント':'模範解答'}（${EP.lawRef||''}）</span><div class="model">${EP.model}</div>${wbBox(EP.wb,true)}<p style="margin:0;font-size:13px">${EP.exp}</p></div><button class="btn" type="button" id="toClear">戦いの記録を見る</button></div>`;
     ov.style.overflowY='auto';ov.style.alignItems='flex-start';
     $('#toClear').onclick=()=>{ov.hidden=true;ov.innerHTML='';ov.style.cssText='';nextPart()};
   })();
