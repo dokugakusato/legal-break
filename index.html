@@ -1449,9 +1449,9 @@ function accInit(){
     let redirWait=false;try{redirWait=sessionStorage.getItem('lbRedir')==='1'}catch(e){}
     ACC.auth.onAuthStateChanged(u=>{ACC.user=u;if(u){pullCloud()}else if(!redirWait&&!ACC.auth.isSignInWithEmailLink(location.href)){ACC.auth.signInAnonymously().catch(()=>{})}accRender()});
     // Googleの画面から戻ってきたときの結果を受け取る
-    ACC.auth.getRedirectResult().then(r=>{if(r&&r.user&&redirWait)accSheet('done')}).catch(err=>{
+    ACC.auth.getRedirectResult().then(r=>{if(!redirWait)return;if(r&&r.user)accSheet('done');else{accSheet();const m=$('#accMsg');if(m)m.textContent='Googleから戻ったが、ログインの結果を受け取れなかった。（R0）'}}).catch(err=>{
       if(err&&err.code==='auth/credential-already-in-use'&&err.credential)return ACC.auth.signInWithCredential(err.credential).then(()=>accSheet('done'));
-      if(redirWait){accSheet();const m=$('#accMsg');if(m)m.textContent='Googleでログインできなかった。もう一度押すか、下の「メールとパスワード」で登録してくれ。'}
+      if(redirWait){accSheet();const m=$('#accMsg');if(m)m.textContent='Googleでログインできなかった。もう一度押すか、下の「メールとパスワード」で登録してくれ。（'+((err&&err.code)||'R1')+'）'}
     }).finally(()=>{try{sessionStorage.removeItem('lbRedir')}catch(e){}if(redirWait){redirWait=false;if(!ACC.auth.currentUser)ACC.auth.signInAnonymously().catch(()=>{})}});
     if(ACC.auth.isSignInWithEmailLink(location.href)){let em='';try{em=localStorage.getItem(EMAIL_KEY)||''}catch(e){}if(em)finishLink(em);else accSheet('confirm')}
     accRender();
@@ -1490,7 +1490,7 @@ function accGoogle(){
     (cur&&cur.isAnonymous?cur.linkWithRedirect(pv):ACC.auth.signInWithRedirect(pv)).catch(err=>{try{sessionStorage.removeItem('lbRedir')}catch(e){}if(m)m.textContent='Googleでログインできなかった。下の「メールとパスワード」でも登録できる。'});return}
   const go=cur&&cur.isAnonymous?cur.linkWithPopup(pv).catch(err=>{if(err&&err.code==='auth/credential-already-in-use'&&err.credential)return ACC.auth.signInWithCredential(err.credential);throw err}):ACC.auth.signInWithPopup(pv);
   go.then(()=>accSheet('done')).catch(err=>{const c=err&&err.code;if(c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request')return;
-    if(m)m.textContent=(c==='auth/popup-blocked'||c==='auth/operation-not-supported-in-this-environment'||c==='auth/web-storage-unsupported')?'このブラウザではGoogleの画面を開けなかった。下の「メールとパスワード」で登録してくれ。':'Googleでログインできなかった。下の「メールとパスワード」でも登録できる。'});
+    if(m)m.textContent=(c==='auth/popup-blocked'||c==='auth/operation-not-supported-in-this-environment'||c==='auth/web-storage-unsupported')?'このブラウザではGoogleの画面を開けなかった。下の「メールとパスワード」で登録してくれ。':'Googleでログインできなかった。下の「メールとパスワード」でも登録できる。（'+(c||'P1')+'）'});
 }
 const PW_ERR={'auth/email-already-in-use':'そのメールアドレスは登録済みだ。「ログイン」を押してくれ。','auth/weak-password':'パスワードは6文字以上にしてくれ。','auth/invalid-email':'メールアドレスの形が正しくない。',
  'auth/invalid-credential':'メールアドレスかパスワードが違う。','auth/wrong-password':'メールアドレスかパスワードが違う。','auth/user-not-found':'メールアドレスかパスワードが違う。','auth/too-many-requests':'何度も失敗したので、しばらく待ってからためしてくれ。','auth/quota-exceeded':'今日の受付はいっぱいだ。明日もう一度ためしてくれ。記録はこの端末には残っている。'};
