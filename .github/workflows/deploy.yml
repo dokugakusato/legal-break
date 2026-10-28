@@ -1,0 +1,31 @@
+# ゲームを Firebase Hosting（https://legal-break.5ukaku.com）に自動で載せる
+# 必要なもの：リポジトリの Secrets に FIREBASE_SERVICE_ACCOUNT（Firebaseのサービスアカウントの鍵）
+name: 公開（5ukaku.com）
+on:
+  push:
+    branches: [main]
+  workflow_run:
+    workflows: ['声を録音']
+    types: [completed]
+  workflow_dispatch:
+concurrency: deploy
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 鍵があるか確かめる
+        id: key
+        env:
+          SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: if [ -n "$SA" ]; then echo "ok=1" >> "$GITHUB_OUTPUT"; else echo "鍵（FIREBASE_SERVICE_ACCOUNT）がまだ無いので公開をとばします"; fi
+      - uses: actions/checkout@v4
+        if: steps.key.outputs.ok == '1'
+        with:
+          ref: main
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        if: steps.key.outputs.ok == '1'
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: legal-break-6882d
+          channelId: live
