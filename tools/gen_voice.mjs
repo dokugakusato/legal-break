@@ -40,7 +40,8 @@ for(const ep of ctx.LB.eps){
   for(const p of ep.parts){
     for(const P of p.panels){add(P.nar,'narr');if(P.say){const sp=(P.figs.find(f=>f[1]===P.say.side)||P.figs[0])[0];add(P.say.text,sp)}}
     add(p.kime,'hero');add('わっはっはっはっ、あっはっはっはっ！',enemyKey(p.efig||'boss'));
-    if(p.type==='boss'){add('甘いわ、小僧！',p.efig||'boss');if(p.lawName)add(p.lawName+'！','hero')}
+    if(p.type==='boss'){const bk=p.efig||'boss';add('甘いわ、小僧！',bk);if(p.lawName)add(p.lawName+'！','hero');
+      add('ん？なんともねえぞ？',bk);add('ひでぶっ！',bk);add('お前の主張は、もう死んでいる。','hero');add('奥義、'+(p.ougi||p.lawName+'拳')+'！','hero')}
   }
 }
 

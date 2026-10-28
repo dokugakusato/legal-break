@@ -208,6 +208,7 @@ LB.episode({
       enemy:"地上げ王・権田",
       lawName:"詐害行為取消権",
       lawRef:"民法424条",
+      ougi:"詐害行為取消拳",
       bgm:"bossintro",
       bbgm:"boss",
       result:"伊藤から権田への贈与は取り消された。<br>土地は伊藤のもとへ戻り、高橋の債権は守られた。",
