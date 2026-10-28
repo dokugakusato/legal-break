@@ -61,6 +61,7 @@ button:focus-visible,textarea:focus-visible{outline:3px solid var(--gold);outlin
 .koma{display:flex;flex-direction:column;gap:10px}
 .panel{position:relative;height:190px;border:3px solid var(--bone);overflow:hidden;background:linear-gradient(180deg,#3a140c 0%,#8f3e1a 55%,#d58a3a 78%,#4a2414 79%,#1d0e09 100%);box-shadow:5px 5px 0 var(--sil);animation:panelIn .45s ease-out both}
 .panel.bg-dark{background:linear-gradient(180deg,#0e0807 0%,#2a120c 70%,#3d1c10 78%,#140906 79%)}
+.panel.bg-cell{background:repeating-linear-gradient(90deg,transparent 0 30px,rgba(20,20,26,.85) 30px 36px),linear-gradient(180deg,#2a2a30 0%,#4a4a52 62%,#3a3530 78%,#1d1a18 100%)}
 .panel.bg-red{background:linear-gradient(180deg,#4a0705 0%,#a01d12 60%,#e0602a 78%,#3a1209 79%,#140906 100%)}
 @keyframes panelIn{from{opacity:.2;transform:translateY(10px)}to{opacity:1;transform:none}}
 .tone{position:absolute;inset:0;background-image:radial-gradient(rgba(0,0,0,.35) 1.1px,transparent 1.3px);background-size:6px 6px;mix-blend-mode:multiply}
@@ -68,7 +69,7 @@ button:focus-visible,textarea:focus-visible{outline:3px solid var(--gold);outlin
 .fig{position:absolute;bottom:-4px;height:84%;aspect-ratio:100/160;z-index:2}
 .fig svg{width:100%;height:100%;display:block}
 .fig.l{left:5%}.fig.r{right:5%}.fig.c{left:50%;transform:translateX(-50%)}
-.fig.boss,.fig.kurosaki{height:100%}
+.fig.boss,.fig.kurosaki,.fig.ronanushi{height:100%}
 .fig.girl{height:66%}
 .fig.dogra{height:94%}
 .fig.inn{height:86%}
@@ -372,6 +373,10 @@ b.gold{color:var(--gold)}
 .accor{display:flex;align-items:center;gap:8px;margin:12px 0 4px;font-size:12px;color:var(--gold)}
 .accor::before,.accor::after{content:"";flex:1;height:1px;background:rgba(239,227,207,.3)}
 .accform .minirow{display:flex;gap:8px}.accform .minirow .btn{flex:1}
+.fig.l.leap{transform:translateX(62%) translateY(-16%);transition:transform .28s cubic-bezier(.2,.9,.3,1)}
+.slash{position:absolute;z-index:7;height:5px;margin-top:-2px;border-radius:3px;background:linear-gradient(90deg,transparent,#fff 18%,#e8f6ff 82%,transparent);box-shadow:0 0 14px #bfe6ff,0 0 4px #fff;pointer-events:none;animation:slashA .5s ease-out forwards}
+@keyframes slashA{0%{clip-path:inset(0 100% 0 0);opacity:1}40%{clip-path:inset(0 0 0 0);opacity:1}100%{clip-path:inset(0 0 0 0);opacity:0}}
+.feather{position:absolute;z-index:7;width:9px;height:20px;margin:-10px 0 0 -4px;border-radius:50%/80% 80% 20% 20%;background:linear-gradient(90deg,#fbf6ec 48%,#d8d2c4 52%);pointer-events:none}
 /* ---------- 逮捕のアニメーション ---------- */
 .arrest{position:relative}
 .siren{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:0}
@@ -427,7 +432,7 @@ b.gold{color:var(--gold)}
 #koma .panel{flex:1;height:auto;min-height:220px}
 #koma .wb{flex:none}
 #koma .fig{height:calc(var(--k,.84) * min(100%,330px))}
-#koma .fig.boss{--k:1}#koma .fig.kurosaki{--k:1}#koma .fig.girl{--k:.66}#koma .fig.dogra{--k:.94}#koma .fig.inn{--k:.86}
+#koma .fig.boss{--k:1}#koma .fig.ronanushi{--k:1}#koma .fig.kurosaki{--k:1}#koma .fig.girl{--k:.66}#koma .fig.dogra{--k:.94}#koma .fig.inn{--k:.86}
 #koma .kw{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px}
 #koma .cap{flex:none;background:var(--sil);color:var(--bone);border:2px solid var(--bone);border-left:6px solid var(--blood);padding:8px 12px;font-size:15px;line-height:1.65;animation:panelIn .45s ease-out both}
 #koma .panel.talk .fig{height:calc(var(--k,.84) * min(100% - 118px, 330px))}
@@ -1058,7 +1063,7 @@ function bossStart(){BGM.play(EP.bgm);story(EP.chapter,EP.panels,bossBattle,EP.w
 function bossBattle(){
   closeSheet();S.bossFails=0;show('s-battle');$('#s-battle').classList.add('bossmode');BGM.play(EP.bbgm);S.ehp=100;$('#eName').textContent=EP.enemy;$('#stage').innerHTML=stageHTML(EP.efig||'boss',EP.enemy,1,EP.efigName);bars();
   const keys=EP.keys,good=keys.filter(k=>k.ok),order=keys.map((_,i)=>i).sort(()=>Math.random()-.5);let got=0;
-  $('#qcard').innerHTML=`<div class="qhead"><span class="qtag">${EP.jobun?'章ボス戦 ― 条文のキーワードを撃て（択一対策）':'章ボス戦 ― 記述のキーワードを撃て'}</span>${EP.wb?'<button class="btn ghost mini" type="button" id="wbBtn">関係図</button>':''}</div>
+  $('#qcard').innerHTML=`<div class="qhead"><span class="qtag">${EP.tashi?'章ボス戦 ― 判例のキーワードを撃て（多肢選択対策）':EP.jobun?'章ボス戦 ― 条文のキーワードを撃て（択一対策）':'章ボス戦 ― 記述のキーワードを撃て'}</span>${EP.wb?'<button class="btn ghost mini" type="button" id="wbBtn">関係図</button>':''}</div>
   <p class="qtext">${EP.q}</p>
   <div class="gauge">${good.map((_,i)=>`<div class="orb" id="orb${i}">${i+1}</div>`).join('')}</div>
   <p class="why" id="why" aria-live="polite">正解は ${good.length} つ。ひっかけを撃つと反撃される。</p>
@@ -1081,7 +1086,8 @@ function bossBattle(){
 }
 // 北斗風の決め・エルボーは第3話から（第1・2話は元の演出のまま）。話データで hokuto:true/false を指定すれば上書き
 const hokuto=()=>!!CH&&(CH.hokuto??CH.no>=3);
-function finisher(){if(!hokuto())return finisherClassic();return finisherHokuto()}
+const finStyle=()=>!CH?'hokuto':CH.fin||(CH.no>=6?'slash':'hokuto');
+function finisher(){if(!hokuto())return finisherClassic();return finStyle()==='slash'?finisherSlash():finisherHokuto()}
 function finisherClassic(){
   BGM.stop();closeSheet();stopSay();
   const name=EP.lawName||EP.ougi,ov=$('#ov');ov.hidden=false;ov.classList.add('black');
@@ -1092,7 +1098,7 @@ function finisherClassic(){
     chars.forEach((ch,i)=>setTimeout(()=>{const sp=document.createElement('span');sp.textContent=ch;f.appendChild(sp);hit(i===chars.length-1?2:.8)},i*190));
     setTimeout(()=>$('#fudeSub').classList.add('on'),chars.length*190+200);
     setTimeout(()=>{const w=$('#wo');w.classList.remove('on');void w.offsetWidth;w.classList.add('on');punch(2.4);scream(.55,1.5);ov.classList.remove('black');
-      ov.innerHTML=`<div class="finisher"><div class="doka">ドカーン！！</div><div class="stage" style="width:100%">${stageHTML(EP.efig||'boss',EP.enemy,1)}</div><p class="tagline" style="text-align:left">${EP.result}</p><div class="card"><span class="law">${EP.jobun?'条文のポイント':'模範解答'}（${EP.lawRef||''}）</span><div class="model">${EP.model}</div>${wbBox(EP.wb,true)}<p style="margin:0;font-size:13px">${EP.exp}</p></div><button class="btn" type="button" id="toClear">戦いの記録を見る</button></div>`;
+      ov.innerHTML=`<div class="finisher"><div class="doka">ドカーン！！</div><div class="stage" style="width:100%">${stageHTML(EP.efig||'boss',EP.enemy,1)}</div><p class="tagline" style="text-align:left">${EP.result}</p><div class="card"><span class="law">${EP.tashi?'判例のポイント':EP.jobun?'条文のポイント':'模範解答'}（${EP.lawRef||''}）</span><div class="model">${EP.model}</div>${wbBox(EP.wb,true)}<p style="margin:0;font-size:13px">${EP.exp}</p></div><button class="btn" type="button" id="toClear">戦いの記録を見る</button></div>`;
       ov.style.overflowY='auto';ov.style.alignItems='flex-start';
       setTimeout(()=>{const b=ov.querySelector('.fig.r');if(b){b.classList.add('ed1','ed2','ed3','ko')}},300);
       $('#toClear').onclick=()=>{ov.hidden=true;ov.innerHTML='';ov.style.cssText='';nextPart()};
@@ -1133,11 +1139,67 @@ function finisherHokuto(){
     // 6. 奥義〇〇拳で決める
     $('#ougiStamp').classList.add('on');punch(2.2);await Promise.all([sayP('奥義、'+(EP.ougi||name+'拳')+'！','hero'),wait(1800)]);
     const w=$('#wo');w.classList.remove('on');void w.offsetWidth;w.classList.add('on');punch(2.4);ov.classList.remove('black');
-    ov.innerHTML=`<div class="finisher"><div class="doka">${EP.ougi||'ドカーン！！'}</div><p class="tagline" style="text-align:left">${EP.result}</p><div class="card"><span class="law">${EP.jobun?'条文のポイント':'模範解答'}（${EP.lawRef||''}）</span><div class="model">${EP.model}</div>${wbBox(EP.wb,true)}<p style="margin:0;font-size:13px">${EP.exp}</p></div><button class="btn" type="button" id="toClear">戦いの記録を見る</button></div>`;
+    ov.innerHTML=`<div class="finisher"><div class="doka">${EP.ougi||'ドカーン！！'}</div><p class="tagline" style="text-align:left">${EP.result}</p><div class="card"><span class="law">${EP.tashi?'判例のポイント':EP.jobun?'条文のポイント':'模範解答'}（${EP.lawRef||''}）</span><div class="model">${EP.model}</div>${wbBox(EP.wb,true)}<p style="margin:0;font-size:13px">${EP.exp}</p></div><button class="btn" type="button" id="toClear">戦いの記録を見る</button></div>`;
     ov.style.overflowY='auto';ov.style.alignItems='flex-start';
     $('#toClear').onclick=()=>{ov.hidden=true;ov.innerHTML='';ov.style.cssText='';nextPart()};
   })();
 }
+function finisherSlash(){
+  BGM.stop();closeSheet();stopSay();
+  const name=EP.lawName||EP.ougi,ov=$('#ov'),bk=VP[EP.efig]?EP.efig:'boss';ov.hidden=false;ov.classList.add('black');
+  const wait=ms=>new Promise(r=>setTimeout(r,ms)),sayP=(t,k)=>new Promise(r=>say([[t,k]],r));
+  const line=(t,who,cls='')=>{const l=$('#fline');if(l)l.innerHTML=`<div class="fl ${cls}"><b>${who}</b>${t}</div>`};
+  ov.innerHTML=`<div class="finisher hk"><div class="stage fstage" id="fstage">${stageHTML(EP.efig||'boss',EP.enemy,1,EP.efigName)}</div><div class="fline" id="fline"></div></div>`;
+  const st=$('#fstage'),boss=st.querySelector('.fig.r'),hero=st.querySelector('.fig.l');boss.classList.add('ed1','ed2');
+  (async()=>{
+    // 1. 跳びあがって「ショウッ！」
+    await wait(400);hero.classList.add('leap');
+    const v=document.createElement('div');v.className='kiai';v.textContent='ショウッ！';st.appendChild(v);say([['しょうっ！','hero']]);
+    await wait(420);
+    // 2. 白い斬撃で、何度も切り裂く
+    const r=boss.getBoundingClientRect(),sr=st.getBoundingClientRect(),cuts=[[-28,.32],[22,.52],[-16,.72]];
+    for(const [ang,y] of [...cuts,[38,.45]]){const sl=document.createElement('div');sl.className='slash';sl.style.left=(r.left-sr.left-r.width*.25)+'px';sl.style.width=(r.width*1.5)+'px';sl.style.top=(r.top-sr.top+r.height*y)+'px';sl.style.transform=`rotate(${ang}deg)`;st.appendChild(sl);
+      const a=ac();if(a)I.whip(a,a.destination,a.currentTime,.5);boss.classList.remove('hit');void boss.offsetWidth;boss.classList.add('hit');hit(.7);await wait(220)}
+    feathers(st,r,sr);v.remove();await wait(350);hero.classList.remove('leap');await wait(450);
+    // 3. 敵「な……何をしやがった……？」
+    boss.classList.remove('hit');
+    line('な……何をしやがった……？',EP.efigName||EP.enemy);await Promise.all([sayP('な、何をしやがった？',bk),wait(1700)]);
+    // 4. 佐藤「お前の主張は、すでに切り裂かれている。」
+    line('お前の主張は、すでに切り裂かれている。','佐藤','hero');await Promise.all([sayP('お前の主張は、すでに切り裂かれている。','hero'),wait(2300)]);
+    // 5. 斬られた線にそって、ずれて崩れ落ちる
+    line('ぐわあああっ！！',EP.efigName||EP.enemy,'big');say([['ぐわあああっ！',bk]]);await wait(350);
+    sliceApart(boss,st,cuts);$('#fline').innerHTML='';await wait(1700);
+    // 5. 暗転して、権利の名前を筆文字で
+    ov.innerHTML=`<div class="finisher"><div class="fude" id="fude" aria-label="${name}"></div><div class="fude-sub" id="fudeSub">${EP.lawRef||''}</div><div class="ougi-stamp" id="ougiStamp"><small>奥義</small>${EP.ougi||name+'拳'}</div></div>`;
+    const a=ac();if(a)I.taiko(a,a.destination,a.currentTime+.05,1);await wait(800);
+    say([[name+'！','hero']]);const f=$('#fude'),chars=[...name];
+    f.style.fontSize=Math.min(78,Math.floor((f.parentElement.clientWidth||320)*.92/chars.length))+'px';f.style.flexWrap='nowrap';
+    for(let i=0;i<chars.length;i++){const sp=document.createElement('span');sp.textContent=chars[i];f.appendChild(sp);hit(i===chars.length-1?2:.8);await wait(190)}
+    $('#fudeSub').classList.add('on');await wait(1200);
+    // 6. 奥義〇〇拳で決める
+    $('#ougiStamp').classList.add('on');punch(2.2);await Promise.all([sayP('奥義、'+(EP.ougi||name+'拳')+'！','hero'),wait(1800)]);
+    const w=$('#wo');w.classList.remove('on');void w.offsetWidth;w.classList.add('on');punch(2.4);ov.classList.remove('black');
+    ov.innerHTML=`<div class="finisher"><div class="doka">${EP.ougi||'ドカーン！！'}</div><p class="tagline" style="text-align:left">${EP.result}</p><div class="card"><span class="law">${EP.tashi?'判例のポイント':EP.jobun?'条文のポイント':'模範解答'}（${EP.lawRef||''}）</span><div class="model">${EP.model}</div>${wbBox(EP.wb,true)}<p style="margin:0;font-size:13px">${EP.exp}</p></div><button class="btn" type="button" id="toClear">戦いの記録を見る</button></div>`;
+    ov.style.overflowY='auto';ov.style.alignItems='flex-start';
+    $('#toClear').onclick=()=>{ov.hidden=true;ov.innerHTML='';ov.style.cssText='';nextPart()};
+  })();
+}
+// 斬った線にそって、ボスを帯に切り分け、互い違いにずらして崩す
+function sliceApart(fig,st,cuts){
+  const r=fig.getBoundingClientRect(),sr=st.getBoundingClientRect(),html=fig.querySelector('svg').outerHTML;fig.style.visibility='hidden';
+  const w=document.createElement('div');w.className='whiteout-mini';st.appendChild(w);setTimeout(()=>w.remove(),400);punch(2.2);scream(.45,1.1);
+  const L=cuts.map(([ang,y])=>{const k=Math.tan(ang*Math.PI/180)*r.width/r.height;return x=>(y+k*(x-.5))*100});
+  const lines=[x=>-60,...L,x=>160];
+  for(let i=0;i<lines.length-1;i++){const A=lines[i],B=lines[i+1];
+    const d=document.createElement('div');d.className='shard';d.style.cssText=`left:${r.left-sr.left}px;top:${r.top-sr.top}px;width:${r.width}px;height:${r.height}px;clip-path:polygon(0% ${A(0)}%,100% ${A(1)}%,100% ${B(1)}%,0% ${B(0)}%)`;d.innerHTML=html;st.appendChild(d);
+    const dir=i%2?1:-1,ang=i<cuts.length?cuts[i][0]:cuts[cuts.length-1][0],rad=ang*Math.PI/180,dist=50+i*14;
+    d.animate([{transform:'none',opacity:1},{transform:`translate(${Math.cos(rad)*dist*dir*.3}px,${Math.sin(rad)*dist*dir*.3}px)`,opacity:1,offset:.35},{transform:`translate(${Math.cos(rad)*dist*dir}px,${Math.sin(rad)*dist*dir+140}px) rotate(${dir*14}deg)`,opacity:0}],{duration:reduce?1:1500,easing:'cubic-bezier(.5,0,.7,1)',fill:'forwards'})}
+  for(const [ang,y] of cuts)for(let i=0;i<5;i++){const b=document.createElement('div');b.className='blood';b.style.left=(r.left-sr.left+r.width*(.2+i*.15))+'px';b.style.top=(r.top-sr.top+r.height*y)+'px';st.appendChild(b);
+    b.animate([{transform:'translate(-50%,-50%) scale(.3)',opacity:1},{transform:`translate(calc(-50% + ${(Math.random()-.5)*40}px),calc(-50% - ${30+Math.random()*50}px)) scale(.9)`,opacity:0}],{duration:reduce?1:800,easing:'ease-out',fill:'forwards'})}
+}
+// 白い羽が舞う
+function feathers(st,r,sr){for(let i=0;i<12;i++){const f=document.createElement('div');f.className='feather';f.style.left=(r.left-sr.left+r.width*Math.random())+'px';f.style.top=(r.top-sr.top+r.height*(.1+Math.random()*.5))+'px';st.appendChild(f);
+  const dx=(Math.random()-.5)*120,rot=(Math.random()-.5)*720;f.animate([{transform:'rotate(0) scale(.6)',opacity:0},{opacity:1,offset:.15},{transform:`translate(${dx}px,${110+Math.random()*80}px) rotate(${rot}deg) scale(1)`,opacity:0}],{duration:reduce?1:2600,easing:'ease-out',fill:'forwards'});setTimeout(()=>f.remove(),2700)}}
 // ボスを、切り絵のようにバラバラにする
 function explode(fig,st){
   const r=fig.getBoundingClientRect(),sr=st.getBoundingClientRect(),html=fig.querySelector('svg').outerHTML;fig.style.visibility='hidden';
@@ -1611,6 +1673,52 @@ function arrestScene(done){
     const b=$('#toRec');b.hidden=false;b.onclick=()=>{ov.hidden=true;ov.innerHTML='';ov.className='';ov.style.cssText='';done()};
   })();
 }
+
+/* ---------- 第六章（獄中編）の登場人物・小道具・曲 ---------- */
+Object.assign(SIL,{
+kanshu:mk(`<path d="${B.slim}" fill="#2a3448"/>${SHD(B.slim)}<path d="M50 70v90" stroke="#1a2232" fill="none"/><circle cx="50" cy="96" r="2.4" fill="#d9a441"/><circle cx="50" cy="114" r="2.4" fill="#d9a441"/><circle cx="50" cy="132" r="2.4" fill="#d9a441"/><path d="M30 118h40" stroke="#141a26" stroke-width="5" fill="none"/><path d="M64 120q10 6 6 16" stroke="#c9b48a" stroke-width="2" fill="none"/><rect x="66" y="134" width="8" height="5" rx="1" fill="#c9b48a"/>${NECK(50,14)}<ellipse cx="50" cy="40" rx="14" ry="16" fill="${SK}"/><path d="M34 30h32l-2-10H36z" fill="#2a3448"/><path d="M30 31h40" stroke="#141a26" stroke-width="5" fill="none"/><circle cx="50" cy="24" r="3" fill="#d9a441"/><path d="M40 37l7 2M60 37l-7 2" stroke-width="2.4" fill="none"/><circle cx="44" cy="41" r="1.8" fill="${O}" stroke="none"/><circle cx="56" cy="41" r="1.8" fill="${O}" stroke="none"/><path d="M44 50q6-3 12 0" fill="none"/>`),
+ronanushi:mk(`<path d="${B.boss}" fill="#d8d4c8"/>${SHD(B.boss)}<path d="M8 104h84M4 122h92M2 140h96M14 86h72" stroke="#5a5a62" stroke-width="7" fill="none"/><rect x="36" y="94" width="28" height="16" fill="#efe3cf"/><text x="50" y="107" text-anchor="middle" font-size="12" font-weight="900" fill="${O}" stroke="none" font-family="sans-serif">壱</text>${NECK(46,16)}<ellipse cx="50" cy="36" rx="17" ry="19" fill="#c48c64"/><path d="M34 30q16-16 32 0" fill="#a8744e" stroke="none"/><path d="M38 32l9 4M62 32l-9 4" stroke-width="3" fill="none"/><circle cx="44" cy="37" r="2.1" fill="#e0402a" stroke="none"/><circle cx="56" cy="37" r="2.1" fill="#e0402a" stroke="none"/><path d="M36 24l10 8M58 46l8-4" stroke="#7a2a1a" stroke-width="2" fill="none"/><path d="M40 48q10 7 20 0" fill="#2b1a12"/><path d="M42 48h3v3h-3zM55 48h3v3h-3z" fill="#e8e2d6" stroke="none"/>`)
+});
+Object.assign(NAMES,{kanshu:'蛭田',ronanushi:'鬼瓦'});
+Object.assign(VP,{kanshu:{p:1.3,r:1.1,g:'m',i:3},ronanushi:{p:0,r:.6,g:'m',i:2}});
+Object.assign(PROPS,{
+ news:{vb:[110,80],s:.32,svg:PROP_S(`<path d="M6 8h98v66H6z" fill="#efe8d8"/><text x="55" y="24" text-anchor="middle" font-size="13" font-weight="900" fill="${O}" stroke="none" font-family="sans-serif">荒野新聞</text><path d="M14 32h82M14 40h40M14 48h40M14 56h40M14 64h40" stroke-width="1.4"/><rect x="60" y="34" width="36" height="34" fill="#141112" stroke="none"/>`)},
+ bars:{vb:[100,160],s:1,svg:PROP_S(`<path d="M8 0v160M28 0v160M48 0v160M68 0v160M88 0v160" stroke="#3a3a42" stroke-width="7"/><path d="M0 40h100M0 120h100" stroke="#3a3a42" stroke-width="6"/>`)}
+});
+Object.assign(I,{
+ cello(a,o,n,t,dur,v=.05){const f=a.createBiquadFilter();f.type='lowpass';f.frequency.value=1100;f.Q.value=1.5;const g=a.createGain();g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+Math.min(.25,dur*.3));g.gain.setValueAtTime(v,t+dur*.8);g.gain.exponentialRampToValueAtTime(.0001,t+dur);f.connect(g).connect(o);
+  [-5,5].forEach(dt=>{const x=a.createOscillator();x.type='sawtooth';x.frequency.value=NF(n);x.detune.value=dt;const l=a.createOscillator(),lg=a.createGain();l.frequency.value=5.2;lg.gain.setValueAtTime(0,t);lg.gain.linearRampToValueAtTime(NF(n)*.006,t+dur*.5);l.connect(lg).connect(x.frequency);x.connect(f);x.start(t);l.start(t);x.stop(t+dur+.05);l.stop(t+dur+.05)})},
+ door(a,o,t,v=.12){I.clank(a,o,t,v);const s=a.createBufferSource();s.buffer=nbuf(a,.6);const f=a.createBiquadFilter();f.type='lowpass';f.frequency.setValueAtTime(900,t);f.frequency.exponentialRampToValueAtTime(120,t+.6);const g=a.createGain();g.gain.setValueAtTime(v*1.4,t);g.gain.exponentialRampToValueAtTime(.0001,t+.6);s.connect(f).connect(g).connect(o);s.start(t);I.kick(a,o,t,v*3)}
+});
+Object.assign(TR,{
+ // 牢獄：水滴、遠くで閉まる鉄の扉、低いうなり、チェロとピアノの重い旋律
+ k6cell:{bpm:60,f(a,o,s,t,d){if(s%16===0)I.pad(a,o,[38,45,50],t,16*d,.03,420);
+  if([5,13,23,29].includes(s)){const x=a.createOscillator();x.frequency.setValueAtTime(1100,t);x.frequency.exponentialRampToValueAtTime(2400,t+.04);const g=a.createGain();g.gain.setValueAtTime(.07,t);g.gain.exponentialRampToValueAtTime(.0001,t+.1);x.connect(g).connect(o);x.start(t);x.stop(t+.11)}
+  if(s===10||s===26)I.door(a,o,t,.05);const m={0:[50,4],4:[53,2],6:[52,2],8:[50,6],16:[48,3],19:[50,1],20:[45,6],28:[46,4]}[s];if(m)I.cello(a,o,m[0],t,m[1]*d*.95,.06);if(s%8===4)I.piano(a,o,[62,58,57,58][s>>3],t,.04)}},
+ // 雑居房の乱闘：鉄のコップを打ち鳴らす音と足踏み
+ k6riot:{bpm:124,f(a,o,s,t,d){if(s%4===0||s%8===3)I.kick(a,o,t,.6);if(s%4===2){I.clank(a,o,t,.12);I.snare(a,o,t,.18)}if(s%2===1)I.clank(a,o,t,.04);
+  const b=[40,40,43,40,45,43,41,38][s%8];I.bass(a,o,b,t,d*.8,.15,1);if(s%16===0)I.organ(a,o,[52,55,59],t,8*d,.018);if(s%16===8)I.organ(a,o,[50,53,57],t,8*d,.018);if(s===31)I.whip(a,o,t,.3)}},
+ // 取調べ室：時計の針、ひとつ灯る電球のうなり、張りつめた低音
+ k6interro:{bpm:72,f(a,o,s,t,d){I.tick(a,o,t,s%2?1700:2200,.03);if(s%8===0)I.bass(a,o,s%16?37:36,t,7*d,.12);if(s%16===0)I.pad(a,o,[48,54],t,16*d,.025,600);
+  if(s===12||s===28)I.vib(a,o,s===12?66:67,t,.02,3);if(s===30)I.bell(a,o,60,t,.03,2.5)}},
+ // 取調べのバトル：追いつめる弦のスタッカート
+ k6press:{bpm:146,f(a,o,s,t,d){const ch=[[48,51,55],[48,51,55],[44,48,51],[46,50,53]][s>>3];I.pluck(a,o,ch[s%3]+12,t,.06);if(s%2===0)I.bass(a,o,ch[0]-12,t,d*.9,.16,1);
+  if(s%4===0)I.kick(a,o,t,.55);if(s%4===2)I.snare(a,o,t,.2);I.hat(a,o,t,.025);if(s%8===0)I.brass(a,o,ch[0]+12,t,d*1.5,.04);if(s===31)I.whip(a,o,t,.3)}},
+ // 面会室：オルゴールのワルツ（3拍子）。切ない手紙と、黒く塗られた新聞
+ k6visit:{bpm:90,f(a,o,s,t,d){const b=s%6;const ch=[[57,60,64],[53,57,60],[55,59,62],[52,56,59]][Math.floor(s/8)];if(b===0)I.bass(a,o,ch[0]-12,t,3*d,.09);if(b===2||b===4)ch.forEach(n=>I.vib(a,o,n+12,t,.012,1.2));
+  const m={0:76,3:77,4:76,6:72,9:74,10:72,12:71,16:72,19:74,20:76,22:79,24:77,26:76,28:74}[s];if(m){I.bell(a,o,m+12,t,.028,1.4);I.bell(a,o,m+12.12,t,.016,1.2)}}},
+ // 看守とのバトル：鉄扉の音と行進
+ k6guard:{bpm:130,f(a,o,s,t,d){I.snare(a,o,t,s%4===0?.22:.07);if(s%4===0)I.kick(a,o,t,.55);const b=[43,43,50,43,46,43,45,42][s%8];I.bass(a,o,b,t,d*.85,.14,1);
+  if(s===0||s===16)I.door(a,o,t,.08);
+  const st={4:[67,70,74],12:[65,69,72],20:[63,67,70],28:[62,66,69]}[s];if(st)st.forEach(n=>I.brass(a,o,n,t,d*1.6,.035))}},
+ // 牢名主の登場：重い足音と低い合唱
+ k6bossin:{bpm:54,f(a,o,s,t,d){if(s%4===0)I.taiko(a,o,t,s%8?.4:.75);if(s%8===0)I.clank(a,o,t,.06);if(s===0)I.choir(a,o,[38,45],t,16*d,.04);if(s===16)I.choir(a,o,[39,46],t,16*d,.04);if(s===0||s===16)I.pad(a,o,[26,33],t,16*d,.04,250)}},
+ // 牢名主とのボス戦：鎖のきしみと、ひずんだ低音のロック
+ k6boss:{bpm:146,f(a,o,s,t,d){const bar=s>>3,r=[38,38,36,37][bar],rf=[r,r+12,r,r+10,r,r+7,r+8,r+7][s%8];I.bass(a,o,rf,t,d*.9,.18,1);
+  if(s%4===0)I.kick(a,o,t,.65);if(s%4===2){I.snare(a,o,t,.3);I.clank(a,o,t,.08)}if(s%2===1){const n=a.createBufferSource();n.buffer=nbuf(a,.12);const f=a.createBiquadFilter();f.type='bandpass';f.frequency.value=3800;f.Q.value=4;const g=a.createGain();g.gain.setValueAtTime(.06,t);g.gain.exponentialRampToValueAtTime(.0001,t+.11);n.connect(f).connect(g).connect(o);n.start(t)}
+  if(s%8===0)I.choir(a,o,[[62,65,69],[62,65,69],[60,64,67],[61,65,68]][bar],t,8*d,.03);
+  const m={0:[74,3],3:[77,1],4:[76,4],8:[74,2],10:[72,2],12:[69,4],16:[70,3],19:[72,1],20:[74,4],24:[73,6],30:[69,2]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d,.075);if(s===31)I.whip(a,o,t,.35)}}
+});
 
 /* ---------- 第五章（逮捕編）の登場人物・小道具・曲 ---------- */
 Object.assign(SIL,{
