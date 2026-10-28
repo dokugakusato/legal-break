@@ -1545,7 +1545,7 @@ Object.assign(TR,{
 });
 
 const voiceFor=k=>{const v=VP[k]||VP.narr,arr=(v.g==='f'?TTS.fem:TTS.male)||[];return arr.length?arr[v.i%arr.length]:TTS.any};
-const yomi=t=>t.replace(/取消(?!し)/g,'取り消し').replace(/荒野/g,'こうや');
+const yomi=t=>t.replace(/取消(?!し)/g,'取り消し').replace(/荒野/g,'こうや').replace(/(?<![一-龯々])金(?![一-龯々])/g,'カネ');
 const cleanTxt=t=>t.replace(/<br>/g,'').replace(/[「」―]/g,'').replace(/　/g,'');
 function fanfare(){const a=ac();if(!a)return;const t=a.currentTime;[[62,0],[66,.18],[69,.36],[74,.54]].forEach(([n,dt])=>I.brass(a,a.destination,n,t+dt,dt===.54?1.2:.16,.09));I.taiko(a,a.destination,t+.54,.7);I.whip(a,a.destination,t+.5,.3)}
 const MOBILE=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);

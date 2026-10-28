@@ -20,7 +20,7 @@ const CAST={
 
 // ゲーム本体と同じ計算でファイル名を決める
 // 読み方の直し（画面の文字はそのまま、声だけ読み方を変える）
-const yomi=t=>t.replace(/取消(?!し)/g,'取り消し').replace(/荒野/g,'こうや');
+const yomi=t=>t.replace(/取消(?!し)/g,'取り消し').replace(/荒野/g,'こうや').replace(/(?<![一-龯々])金(?![一-龯々])/g,'カネ');
 const cleanTxt=t=>t.replace(/<br>/g,'').replace(/[「」―]/g,'').replace(/　/g,'');
 function vHash(s){let h=0x811c9dc5;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,0x01000193)}return (h>>>0).toString(16).padStart(8,'0')}
 const VPKEYS=new Set([...html.matchAll(/([a-zA-Z]+):\{p:/g)].map(m=>m[1]));
