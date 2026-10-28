@@ -54,8 +54,9 @@ def main():
           const st=document.createElement('style');st.textContent=%s;document.head.appendChild(st);
           const cap=document.createElement('div');cap.id='promoCap';cap.className='hide';document.body.appendChild(cap);
           window.cap=(t,sm,pos)=>{cap.innerHTML=(sm?`<small>${sm}</small>`:'')+t;cap.classList.toggle('bottom',pos==='bottom');cap.classList.remove('hide')};window.capHide=()=>cap.classList.add('hide');
-          // ナレーションは読まず、セリフだけ流す
-          const _say=say;window.say=say=function(list,done){return _say(list.filter(x=>x[1]!=='narr'),done)};
+          // ゲームのセリフは流さない（あとで渋い声のナレーションを重ねる）。奥義の叫びの時刻だけ記録
+          window.__t0=performance.now();window.__marks=[];window.mark=n=>window.__marks.push([n,(performance.now()-window.__t0)/1000]);
+          window.say=say=function(list,done){for(const x of list)if(String(x[0]).includes('取消権'))mark('shout');done&&setTimeout(done,10)};
           return a.state})()""" % json.dumps(PROMO_CSS))
         # 同期合図（白いフラッシュ＋ピッ）
         J("""(()=>{const f=document.createElement('div');f.id='flash';document.body.appendChild(f);
@@ -64,23 +65,24 @@ def main():
         W(900)
         # 1. タイトル
         J("BGM.play('title')")
-        J("cap('行政書士の独学、<br>ゲームでやってみた','毎日1話・無料','bottom')")
-        W(2600)
+        J("cap('行政書士試験の独学を、<br>ゲームにした。','LEGAL BREAK ―法の拳―','bottom');mark('l1')")
+        W(3900)
         # 2. 4コマ（坂東のたくらみ → 田中の叫び）
         J("capHide()")
         J("playEp(1).then(()=>setTimeout(()=>{if(!document.querySelector('#op').hidden)opEnd()},50))")
         W(700)
-        J("cap('荒野の事件を、法律で裁け')")
+        J("cap('荒野の事件を、<br>法律の知識で裁く');mark('l2')")
         J("$('#komaBtn').click()")  # 2コマ目へ（坂東）
-        W(3300)
+        W(4100)
         J("$('#komaBtn').click()"); W(300); J("$('#komaBtn').click()")  # 4コマ目（田中の叫び）
-        W(3400)
+        J("cap('土地は、誰のものか？');mark('l3')")
+        W(5900)
         # 3. バトル：正解して殴る
         J("capHide()")
         J("while(!document.querySelector('#s-battle').offsetParent){$('#komaBtn').click()}")
         W(400)
-        J("cap('正しい答えで、敵を殴る！')")
-        W(1700)
+        J("cap('正しい答えを選べば、<br>拳が決まる！');mark('l4')")
+        W(2600)
         J("document.querySelector(`#qcard .opt[data-i=\"${EP.q.ans}\"]`).click()")
         W(2700)
         J("capHide()")
@@ -89,8 +91,8 @@ def main():
         # 4. 章ボス：記述のキーワードを撃つ
         J("S.part=3;S.life=2;EP=CH.parts[3];EP.chapter=['第1話 意思表示編｜章ボス戦',EP.title];bossBattle()")
         W(500)
-        J("cap('ボスは記述式。<br>キーワードを撃ち抜け！')")
-        W(1500)
+        J("cap('ボスは記述式。<br>キーワードを撃ち抜け！');mark('l5')")
+        W(1900)
         keys = J("EP.keys.map((k,i)=>k.ok?i:-1).filter(i=>i>=0)")
         for i in keys:
             J(f"document.querySelector('.key[data-i=\"{i}\"]').click()")
@@ -98,11 +100,12 @@ def main():
         J("capHide()")
         W(5200)   # 暗転→筆文字「詐害行為取消権！」→ドカーン
         # 5. 締め
-        J("""(()=>{const h=SIL.hero;const e=document.createElement('div');e.id='endCard';e.innerHTML=`<div class="pre">行政書士独学応援</div><div class="t">LEGAL<br>BREAK</div><div class="s">―法の拳―</div><div class="hero">${h}</div><div class="big">毎日1話、更新中</div><div class="free">無料・登録なしで遊べる</div><div class="url">プロフィールのリンクから</div>`;document.body.appendChild(e);fanfare()})()""")
-        W(3600)
+        J("""(()=>{const h=SIL.hero;const e=document.createElement('div');e.id='endCard';e.innerHTML=`<div class="pre">行政書士独学応援</div><div class="t">LEGAL<br>BREAK</div><div class="s">―法の拳―</div><div class="hero">${h}</div><div class="big">毎日1話、更新中</div><div class="free">無料・登録なしで遊べる</div><div class="url">プロフィールのリンクから</div>`;document.body.appendChild(e);fanfare();mark('l6')})()""")
+        W(8200)
         # 録音を止めて取り出す
         audio_b64 = pg.evaluate("""new Promise(res=>{const r=window.__rec;r.onstop=()=>{const b=new Blob(window.__chunks,{type:'audio/webm'});const fr=new FileReader();fr.onload=()=>res(fr.result.split(',')[1]);fr.readAsDataURL(b)};r.stop()})""")
         open(f'{OUT}/audio.webm', 'wb').write(base64.b64decode(audio_b64))
+        json.dump(pg.evaluate("window.__marks"), open(f'{OUT}/marks.json','w'))
         vpath = pg.video.path()
         pg.close(); ctx.close(); b.close()
         os.replace(vpath, f'{OUT}/raw.webm')
