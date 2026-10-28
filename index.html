@@ -433,8 +433,8 @@ b.gold{color:var(--gold)}
 .why.ng{color:#e8b2a6}.why.ng b{color:var(--blood);margin-right:4px}
 /* 最後の奥義：筆文字 */
 #ov.black{background:#000}
-.fude{display:flex;flex-wrap:wrap;justify-content:center;min-height:1.2em}
-.fude span{font-family:"Yuji Boku","Dela Gothic One",serif;font-size:clamp(46px,13vw,78px);line-height:1.15;color:#f6eedf;text-shadow:0 0 22px rgba(255,90,30,.9),4px 4px 0 var(--blood);animation:fudeIn .34s cubic-bezier(.2,1.6,.4,1) both}
+.fude{display:flex;flex-wrap:wrap;justify-content:center;min-height:1.2em;font-size:clamp(46px,13vw,78px)}
+.fude span{font-family:"Yuji Boku","Dela Gothic One",serif;font-size:1em;line-height:1.15;color:#f6eedf;text-shadow:0 0 22px rgba(255,90,30,.9),4px 4px 0 var(--blood);animation:fudeIn .34s cubic-bezier(.2,1.6,.4,1) both}
 @keyframes fudeIn{0%{transform:scale(2.8) rotate(-8deg);opacity:0;filter:blur(8px)}100%{transform:none;opacity:1;filter:none}}
 .fude-sub{color:var(--gold);font-weight:900;letter-spacing:.35em;font-size:15px;opacity:0;transition:opacity .5s}
 .fude-sub.on{opacity:1}
@@ -983,7 +983,7 @@ function finisher(){
   ov.innerHTML=`<div class="finisher"><div class="fude" id="fude" aria-label="${name}"></div><div class="fude-sub" id="fudeSub">${EP.lawRef||''}</div></div>`;
   const a=ac();if(a){I.taiko(a,a.destination,a.currentTime+.05,1)}
   setTimeout(()=>{
-    say([[name+'！','hero']]);const f=$('#fude');const chars=[...name];
+    say([[name+'！','hero']]);const f=$('#fude');const chars=[...name];f.style.fontSize=Math.min(78,Math.floor((f.parentElement.clientWidth||320)*.92/chars.length))+'px';f.style.flexWrap='nowrap';
     chars.forEach((ch,i)=>setTimeout(()=>{const sp=document.createElement('span');sp.textContent=ch;f.appendChild(sp);hit(i===chars.length-1?2:.8)},i*190));
     setTimeout(()=>$('#fudeSub').classList.add('on'),chars.length*190+200);
     setTimeout(()=>{const w=$('#wo');w.classList.remove('on');void w.offsetWidth;w.classList.add('on');punch(2.4);scream(.55,1.5);ov.classList.remove('black');
