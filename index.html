@@ -1029,6 +1029,7 @@ function refreshTitle(){
 
 /* ---------- メールでログインして記録をネットに保存（Firebase） ---------- */
 // config.js の LB_FIREBASE に設定が入っているときだけ動く。入っていなければ、記録はこの端末だけに保存。
+const escH=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ACC={on:false,user:null,db:null,auth:null,timer:null};
 const EMAIL_KEY='legalbreak.email';
 function mergeP(a,b){
@@ -1055,10 +1056,23 @@ function finishLink(em){
    .catch(()=>{history.replaceState(null,'',location.pathname);accSheet('fail')});
 }
 function accRender(){
-  const t=ACC.on?(ACC.user?`<p class="accline">ログイン中：${ACC.user.email}<br>記録はネットに保存されている。</p><button class="btn ghost mini" type="button" id="accOut">ログアウト</button>`:`<button class="btn ghost" type="button" id="accIn">記録をネットに保存する（メールで登録）</button>`):'';
+  const t=ACC.on?(ACC.user?`<p class="accline">ログイン中：${escH(ACC.user.email)}<br>記録はネットに保存されている。</p><div class="minirow"><button class="btn ghost mini" type="button" id="accOut">ログアウト</button><button class="btn ghost mini" type="button" id="accDel">登録を消す</button></div>`:`<button class="btn ghost" type="button" id="accIn">記録をネットに保存する（メールで登録）</button>`):'';
   document.querySelectorAll('.accbox').forEach(b=>{b.innerHTML=t;b.hidden=!t});
   document.querySelectorAll('#accIn').forEach(b=>b.onclick=()=>accSheet('form'));
   document.querySelectorAll('#accOut').forEach(b=>b.onclick=()=>ACC.auth.signOut());
+  document.querySelectorAll('#accDel').forEach(b=>b.onclick=accDeleteSheet);
+}
+// 登録の削除：ネットの記録とメールアドレスを消す（この端末の記録は残る）
+function accDeleteSheet(){
+  const f=openSheet();
+  f.innerHTML=`<span class="qtag">登録を消す</span><p class="qtext">ネットに保存した記録と、登録したメールアドレスを消す。この端末の記録は残るので、続けて遊べる。</p>
+  <button class="btn" type="button" id="accDelGo">消す</button><button class="btn ghost" type="button" id="accClose">やめる</button><p class="note" id="accMsg"></p>`;
+  $('#accClose').onclick=closeSheet;
+  $('#accDelGo').onclick=()=>{const u=ACC.user;if(!u)return closeSheet();const btn=$('#accDelGo');btn.disabled=true;btn.textContent='消している…';clearTimeout(ACC.timer);
+    ACC.db.collection('progress').doc(u.uid).delete().then(()=>u.delete()).then(()=>{
+      f.innerHTML=`<div class="verdict ok">消した</div><p>ネットの記録と登録したメールアドレスを消した。この端末の記録はそのまま残っている。</p><button class="btn" type="button" id="accClose">閉じる</button>`;$('#accClose').onclick=closeSheet})
+     .catch(err=>{btn.disabled=false;btn.textContent='消す';
+      $('#accMsg').textContent=(err&&err.code==='auth/requires-recent-login')?'安全のため、いったんログアウトして、もう一度メールでログインしてから消してくれ。':'消せなかった。電波のいい所でもう一度押してくれ。'})};
 }
 function accSheet(mode){
   const f=openSheet();
@@ -1075,7 +1089,7 @@ function accSheet(mode){
     if(mode==='confirm'){finishLink(em);return}
     const btn=$('#accForm button');btn.disabled=true;btn.textContent='送信中…';
     ACC.auth.sendSignInLinkToEmail(em,{url:location.origin+location.pathname,handleCodeInApp:true}).then(()=>{try{localStorage.setItem(EMAIL_KEY,em)}catch(e){}
-      f.innerHTML=`<div class="verdict ok">メールを送った</div><p>${em} に「LEGAL BREAK 法の拳 にログイン」というメールが届く。中のリンクを、このスマホで押してくれ。</p><p class="note">見当たらないときは<b>迷惑メール</b>のフォルダを見てくれ。迷惑メールに入っているとリンクが押せないので、先に<b>「迷惑メールではない」</b>を押してから、受信トレイに移ったメールのリンクを押すこと。</p><button class="btn" type="button" id="accClose">閉じる</button>`;$('#accClose').onclick=closeSheet})
+      f.innerHTML=`<div class="verdict ok">メールを送った</div><p>${escH(em)} に「LEGAL BREAK 法の拳 にログイン」というメールが届く。中のリンクを、このスマホで押してくれ。</p><p class="note">見当たらないときは<b>迷惑メール</b>のフォルダを見てくれ。迷惑メールに入っているとリンクが押せないので、先に<b>「迷惑メールではない」</b>を押してから、受信トレイに移ったメールのリンクを押すこと。</p><button class="btn" type="button" id="accClose">閉じる</button>`;$('#accClose').onclick=closeSheet})
      .catch(err=>{btn.disabled=false;btn.textContent='ログイン用のリンクを送る';$('#accMsg').textContent=(err&&err.code==='auth/quota-exceeded')?'今日の登録の受付は、もういっぱいだ。明日もう一度ためしてくれ。記録はこの端末には残っている。':'送れなかった。メールアドレスを確かめて、もう一度押してくれ。'})};
 }
 

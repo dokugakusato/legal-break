@@ -1,9 +1,29 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // 記録は本人だけが読み書きできる
+
+    // 記録は本人だけが読み書き・削除できる
     match /progress/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      function isOwner() {
+        return request.auth != null && request.auth.uid == uid;
+      }
+      // 保存してよい形：進み具合(p)と更新時刻(updated)だけ。
+      // メールアドレスなど、それ以外の項目は書き込めない。
+      function validData() {
+        return request.resource.data.keys().hasOnly(['p', 'updated'])
+          && request.resource.data.p is map
+          && request.resource.data.updated == request.time;
+      }
+
+      allow get: if isOwner();
+      allow list: if false;              // 一覧の取得は誰にもさせない
+      allow create, update: if isOwner() && validData();
+      allow delete: if isOwner();
+    }
+
+    // ここに書いていない場所は、すべて読み書き禁止
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
