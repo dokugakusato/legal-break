@@ -22,10 +22,20 @@ jobs:
         if: steps.key.outputs.ok == '1'
         with:
           ref: main
-      - uses: FirebaseExtended/action-hosting-deploy@v0
+      - uses: actions/setup-node@v4
         if: steps.key.outputs.ok == '1'
         with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          projectId: legal-break-6882d
-          channelId: live
+          node-version: 22
+      - name: Firebase Hosting に公開
+        if: steps.key.outputs.ok == '1'
+        env:
+          SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          printf '%s' "$SA" > "$RUNNER_TEMP/sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
+          set +e
+          npx -y firebase-tools@latest deploy --only hosting --project legal-break-6882d --non-interactive > "$RUNNER_TEMP/out.txt" 2>&1
+          code=$?
+          cat "$RUNNER_TEMP/out.txt"
+          rm -f "$RUNNER_TEMP/sa.json"
+          if [ $code -ne 0 ]; then grep -v '^\s*$' "$RUNNER_TEMP/out.txt" | tail -12 | while IFS= read -r l; do echo "::error::$l"; done; exit $code; fi
