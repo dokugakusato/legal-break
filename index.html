@@ -843,7 +843,7 @@ function damage(n,label){
 // 技の種類：punch=拳、kick=蹴り、grab=寝技
 const MOVES={punch:{kiai:'アチョーッ！',k:1,hit:'ドゴォッ！'},kick:{kiai:'アタタタタタッ！',rapid:6,hit:'バキィッ！'},grab:{kiai:'ふんッ！',k:.72,hit:'ボキィッ！'},weapon:{kiai:'喰らえ、六法ッ！',k:.9,hit:'ゴシャァッ！'},elbow:{kiai:'ハァァッ！',k:1.15,hit:'ゴキィッ！'}};
 let LASTMOVE='';
-function randMove(){const ks=Object.keys(MOVES).filter(k=>k!==LASTMOVE);LASTMOVE=ks[Math.floor(Math.random()*ks.length)];return LASTMOVE}
+function randMove(){const ks=Object.keys(MOVES).filter(k=>k!==LASTMOVE&&(k!=='elbow'||hokuto()));LASTMOVE=ks[Math.floor(Math.random()*ks.length)];return LASTMOVE}
 function attack(then,style='punch'){
   const M=MOVES[style]||MOVES.punch;if(M.rapid)rapidKiai(M.rapid);else kiai(M.k,M.L||0);
   const h=$('#stage .fig.l'),st=$('#stage'),e=$('#stage .fig.r');
@@ -1024,7 +1024,27 @@ function bossBattle(){
     }
   });
 }
-function finisher(){
+// 北斗風の決め・エルボーは第3話から（第1・2話は元の演出のまま）。話データで hokuto:true/false を指定すれば上書き
+const hokuto=()=>!!CH&&(CH.hokuto??CH.no>=3);
+function finisher(){if(!hokuto())return finisherClassic();return finisherHokuto()}
+function finisherClassic(){
+  BGM.stop();closeSheet();stopSay();
+  const name=EP.lawName||EP.ougi,ov=$('#ov');ov.hidden=false;ov.classList.add('black');
+  ov.innerHTML=`<div class="finisher"><div class="fude" id="fude" aria-label="${name}"></div><div class="fude-sub" id="fudeSub">${EP.lawRef||''}</div></div>`;
+  const a=ac();if(a){I.taiko(a,a.destination,a.currentTime+.05,1)}
+  setTimeout(()=>{
+    say([[name+'！','hero']]);const f=$('#fude');const chars=[...name];f.style.fontSize=Math.min(78,Math.floor((f.parentElement.clientWidth||320)*.92/chars.length))+'px';f.style.flexWrap='nowrap';
+    chars.forEach((ch,i)=>setTimeout(()=>{const sp=document.createElement('span');sp.textContent=ch;f.appendChild(sp);hit(i===chars.length-1?2:.8)},i*190));
+    setTimeout(()=>$('#fudeSub').classList.add('on'),chars.length*190+200);
+    setTimeout(()=>{const w=$('#wo');w.classList.remove('on');void w.offsetWidth;w.classList.add('on');punch(2.4);scream(.55,1.5);ov.classList.remove('black');
+      ov.innerHTML=`<div class="finisher"><div class="doka">ドカーン！！</div><div class="stage" style="width:100%">${stageHTML(EP.efig||'boss',EP.enemy,1)}</div><p class="tagline" style="text-align:left">${EP.result}</p><div class="card"><span class="law">模範解答（${EP.lawRef||''}）</span><div class="model">${EP.model}</div>${wbBox(EP.wb,true)}<p style="margin:0;font-size:13px">${EP.exp}</p></div><button class="btn" type="button" id="toClear">戦いの記録を見る</button></div>`;
+      ov.style.overflowY='auto';ov.style.alignItems='flex-start';
+      setTimeout(()=>{const b=ov.querySelector('.fig.r');if(b){b.classList.add('ed1','ed2','ed3','ko')}},300);
+      $('#toClear').onclick=()=>{ov.hidden=true;ov.innerHTML='';ov.style.cssText='';nextPart()};
+    },chars.length*190+2300);
+  },900);
+}
+function finisherHokuto(){
   BGM.stop();closeSheet();stopSay();
   const name=EP.lawName||EP.ougi,ov=$('#ov'),bk=VP[EP.efig]?EP.efig:'boss';ov.hidden=false;ov.classList.add('black');
   const wait=ms=>new Promise(r=>setTimeout(r,ms)),sayP=(t,k)=>new Promise(r=>say([[t,k]],r));
