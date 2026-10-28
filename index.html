@@ -1184,6 +1184,7 @@ function openSelect(){renderSelect();setTab('eps');show('s-select');if(BGM.cur!=
 function refreshTitle(){
   const nn=nextNo(),c=cleared();
   $('#startBtn').textContent=c===0?'修行を始める':(nn?`続きから ― 第${nn}話`:'話を選ぶ');
+  $('#selectBtn').hidden=c>0&&!nn; // 全話クリア済みなら上のボタンが「話を選ぶ」になるので、下の同じボタンは隠す
   const tr=$('#titleRank');tr.hidden=c===0;if(c)tr.innerHTML=`<small>現在の地位</small>${RANKS[rankIdx()].name}<span>${c}/${LIST.length}話クリア・平均${avgBest()}%</span>`;
 }
 
