@@ -21,6 +21,27 @@ service cloud.firestore {
       allow delete: if isOwner();
     }
 
+    // 全国ランキング：誰でも見られる。書けるのは本人の1件だけ。
+    // 載せてよいのはニックネーム・クリア数・平均正答率・点数・更新時刻だけ（メールアドレスは載せられない）
+    match /ranking/{uid} {
+      function isOwner() {
+        return request.auth != null && request.auth.uid == uid;
+      }
+      function validRank() {
+        let d = request.resource.data;
+        return d.keys().hasOnly(['name', 'cleared', 'avg', 'score', 'updated'])
+          && d.name is string && d.name.size() >= 1 && d.name.size() <= 12
+          && !d.name.matches('.*[@＠].*')
+          && d.cleared is int && d.cleared >= 0 && d.cleared <= 2000
+          && d.avg is int && d.avg >= 0 && d.avg <= 100
+          && d.score == d.cleared * 1000 + d.avg
+          && d.updated == request.time;
+      }
+      allow read: if true;
+      allow create, update: if isOwner() && validRank();
+      allow delete: if isOwner();
+    }
+
     // ここに書いていない場所は、すべて読み書き禁止
     match /{document=**} {
       allow read, write: if false;

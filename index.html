@@ -8,6 +8,14 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="法の拳">
+<meta name="description" content="荒野の事件を「法の拳」で裁きながら、行政書士試験を独学で学ぶゲーム。毎日1話更新。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="LEGAL BREAK ―法の拳―｜行政書士独学応援ゲーム">
+<meta property="og:description" content="荒野の事件を「法の拳」で裁きながら、行政書士試験を独学で学ぶゲーム。毎日1話更新。">
+<meta property="og:url" content="https://dokugakusato.github.io/legal-break/">
+<meta property="og:image" content="https://dokugakusato.github.io/legal-break/icons/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://dokugakusato.github.io/legal-break/icons/ogp.png">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Yuji+Boku&family=Yomogi&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap">
@@ -300,6 +308,30 @@ textarea{width:100%;min-height:96px;resize:vertical;background:#fbf6ec;color:#12
 .closebtn:active{transform:scale(.92)}
 body.hasclose #s-story .chap,body.hasclose #s-select .chap,body.hasclose #s-clear .chap{padding-left:34px}
 body.hasclose #s-battle .hud{padding-left:38px}
+/* ---------- 全国ランキング ---------- */
+.myrank{display:flex;align-items:baseline;gap:10px}
+.myrank small{font-size:11px;color:var(--dust);font-weight:700;letter-spacing:.15em}
+.myrank b{font-family:var(--display);font-weight:400;font-size:48px;color:var(--gold);line-height:1;text-shadow:3px 3px 0 var(--sil)}
+.myrank b span{font-size:20px;margin-left:2px}
+.myrank em{font-style:normal;font-size:13px;color:var(--bone)}
+.nickline{display:flex;align-items:center;gap:8px;font-size:13px;flex-wrap:wrap}
+.nickline b{color:var(--gold)}
+.kt{display:flex;flex-direction:column}
+.kk{display:grid;grid-template-columns:2.2em 1fr 3em 3.2em;gap:6px;align-items:center;padding:7px 2px;border-bottom:1px solid rgba(201,138,75,.35);font-size:13px;font-variant-numeric:tabular-nums}
+.kk .kr{font-family:var(--display);font-weight:400;font-size:17px;text-align:center}
+.kk:nth-child(2) .kr{color:var(--gold)}.kk:nth-child(3) .kr{color:#c8ccd2}.kk:nth-child(4) .kr{color:#c98a4b}
+.kk .kn2{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:900}
+.kk .kc,.kk .ka{text-align:right}
+.kk.kh{font-size:11px;color:var(--dust);padding-top:0}.kk.kh .kr{font-family:var(--body);font-size:11px;color:var(--dust)}
+.kk.me{background:rgba(194,45,34,.25);outline:1.5px solid var(--blood)}
+b.gold{color:var(--gold)}
+.tabs button{font-size:13px;letter-spacing:.04em}
+/* ---------- 共有ボタン ---------- */
+.share{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.share span{font-size:11.5px;color:var(--dust);font-weight:700;letter-spacing:.1em;width:100%;text-align:center}
+.share a{flex:1;min-width:0;max-width:120px;text-align:center;text-decoration:none;font-weight:900;font-size:13px;padding:7px 4px;border:1.5px solid var(--bone);color:var(--bone);background:#0b0807}
+.share a.sl{background:#06c755;border-color:#06c755;color:#fff}
+.share a:active{transform:translate(1px,1px)}
 /* ---------- 表情 ---------- */
 .emo{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
 .emo>g{display:none}
@@ -410,7 +442,7 @@ body.hasclose #s-battle .hud{padding-left:38px}
 .rstrip small{display:block;font-size:10.5px;color:var(--dust);font-weight:700;letter-spacing:.15em}
 .rstrip b{font-family:var(--display);font-weight:400;font-size:22px;color:var(--gold)}
 .rstrip span{font-size:11.5px;color:var(--bone);text-align:right;line-height:1.5}
-.tabs{display:grid;grid-template-columns:repeat(3,1fr);border:2px solid var(--dust)}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);border:2px solid var(--dust)}
 .tabs button{background:transparent;color:var(--dust);border:none;padding:9px 4px;font-weight:900;font-size:14px;letter-spacing:.1em}
 .tabs button+button{border-left:2px solid var(--dust)}
 .tabs button.on{background:var(--blood);color:var(--bone)}
@@ -445,6 +477,7 @@ body.hasclose #s-battle .hud{padding-left:38px}
     <div class="rankmini" id="titleRank" hidden></div>
     <button class="btn" id="startBtn" type="button">修行を始める</button>
     <button class="btn ghost" id="selectBtn" type="button">話を選ぶ</button>
+    <div id="titleShare"></div>
     <button class="btn ghost" id="installBtn" type="button" hidden>ホーム画面に置いて、アプリにする</button>
     <div class="accbox" hidden></div>
     <p class="note">毎日1話ずつ更新中。1話は事件3つと章ボス。事件を法の拳で裁け。</p>
@@ -454,11 +487,13 @@ body.hasclose #s-battle .hud{padding-left:38px}
   <section class="screen" id="s-select" hidden>
     <h2 class="chap"><span>修行の書</span>話を選ぶ</h2>
     <div id="selRank"></div>
-    <div class="tabs" role="tablist"><button type="button" role="tab" data-tab="eps" class="on" aria-selected="true">話を選ぶ</button><button type="button" role="tab" data-tab="rec" aria-selected="false">戦績</button><button type="button" role="tab" data-tab="badge" aria-selected="false">称号</button></div>
+    <div class="tabs" role="tablist"><button type="button" role="tab" data-tab="eps" class="on" aria-selected="true">話を選ぶ</button><button type="button" role="tab" data-tab="rec" aria-selected="false">戦績</button><button type="button" role="tab" data-tab="rank" aria-selected="false">全国</button><button type="button" role="tab" data-tab="badge" aria-selected="false">称号</button></div>
     <div class="tabp" id="tab-eps"><div id="epList"></div></div>
     <div class="tabp" id="tab-rec" hidden></div>
+    <div class="tabp" id="tab-rank" hidden></div>
     <div class="tabp" id="tab-badge" hidden><div class="card" id="badgeBox"></div></div>
     <div class="accbox" hidden></div>
+    <div id="selShare"></div>
     <button class="btn ghost" id="selBack" type="button">タイトルへ戻る</button>
     <button class="btn ghost danger" id="resetBtn" type="button">記録を消す</button>
     <div id="resetBox"></div>
@@ -1016,9 +1051,9 @@ function renderSelect(){
   $('#tab-rec').innerHTML=recTable();
   const arcB=Object.entries(P.badges).filter(([k])=>k.startsWith('arc')).map(([,v])=>v);
   $('#badgeBox').innerHTML=`<span class="qtag">称号</span><div class="badges">${BADGES.map(b=>{const on=P.badges[b.id];return `<div class="badge${on?' on':''}"><b>${on?b.name:'？？？'}</b><small>${b.desc}</small></div>`}).join('')}${arcB.map(v=>`<div class="badge on arcb"><b>${v.name}</b><small>${v.desc}</small></div>`).join('')}</div>`;
-  accRender();
+  accRender();$('#selShare').innerHTML=shareRow(SHARE_BASE);
 }
-function setTab(t){document.querySelectorAll('.tabs button').forEach(b=>{const on=b.dataset.tab===t;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});['eps','rec','badge'].forEach(k=>$('#tab-'+k).hidden=k!==t);$('#app').scrollTop=0}
+function setTab(t){document.querySelectorAll('.tabs button').forEach(b=>{const on=b.dataset.tab===t;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});['eps','rec','rank','badge'].forEach(k=>$('#tab-'+k).hidden=k!==t);if(t==='rank')renderRanking();$('#app').scrollTop=0}
 function openSelect(){renderSelect();setTab('eps');show('s-select');if(BGM.cur!=='title')BGM.play('title')}
 function refreshTitle(){
   const nn=nextNo(),c=cleared();
@@ -1026,6 +1061,53 @@ function refreshTitle(){
   const tr=$('#titleRank');tr.hidden=c===0;if(c)tr.innerHTML=`<small>現在の地位</small>${RANKS[rankIdx()].name}<span>${c}/${LIST.length}話クリア・平均${avgBest()}%</span>`;
 }
 
+
+/* ---------- 全国ランキング ---------- */
+// 公開するのは「ニックネーム・クリアした話の数・平均正答率」だけ。メールアドレスは載せない。
+const NICK_BAD=/[@＠]|https?:|www\.|\.(com|jp|net|org)|\d{7,}/i;
+function myNick(){if(!P.nick){P.nick='独学者'+String(Math.floor(1000+Math.random()*9000));saveP()}return P.nick}
+const rankScore=()=>cleared()*1000+avgBest();
+function pushRank(){
+  if(!ACC.user||!cleared())return Promise.resolve();
+  const d={name:myNick(),cleared:cleared(),avg:avgBest(),score:rankScore(),updated:firebase.firestore.FieldValue.serverTimestamp()};
+  return ACC.db.collection('ranking').doc(ACC.user.uid).set(d).catch(()=>{});
+}
+async function countWhere(q){try{if(q.count){const s=await q.count().get();return s.data().count}}catch(e){}const s=await q.limit(2000).get();return s.size}
+async function myRank(){
+  if(!ACC.user||!cleared())return null;
+  const col=ACC.db.collection('ranking');
+  const [above,total]=await Promise.all([countWhere(col.where('score','>',rankScore())),countWhere(col)]);
+  return {rank:above+1,total};
+}
+async function renderRanking(){
+  const box=$('#tab-rank');
+  if(!ACC.on){box.innerHTML=`<div class="card"><p class="qtext">ランキングは、ネットにつながっているときに見られる。</p></div>`;return}
+  box.innerHTML=`<div class="card"><p class="qtext">全国ランキングを読み込み中…</p></div>`;
+  try{
+    await pushRank();
+    const [me,top]=await Promise.all([myRank(),ACC.db.collection('ranking').orderBy('score','desc').limit(20).get()]);
+    const uid=ACC.user&&ACC.user.uid;
+    const rows=top.docs.map((d,i)=>{const r=d.data();return `<div class="kk${d.id===uid?' me':''}"><b class="kr">${i+1}</b><span class="kn2">${esc(r.name)}</span><span class="kc">${r.cleared}話</span><span class="ka">${r.avg}%</span></div>`}).join('');
+    box.innerHTML=`<div class="card rankme"><span class="qtag">全国ランキング</span>
+      ${me?`<div class="myrank"><small>あなたの順位</small><b>${me.rank}<span>位</span></b><em>${me.total}人中</em></div>`:`<p class="qtext">1話クリアすると、ランキングに載る。</p>`}
+      <div class="nickline">ニックネーム：<b>${esc(myNick())}</b><button class="btn ghost mini" type="button" id="nickBtn">変える</button></div>
+      <p class="note">順位は、クリアした話の数が多い順。同じ数なら平均正答率が高い順。</p></div>
+    <div class="card"><span class="qtag">上位20人</span><div class="kt"><div class="kk kh"><b class="kr">位</b><span class="kn2">ニックネーム</span><span class="kc">クリア</span><span class="ka">正答率</span></div>${rows||'<p class="note">まだ誰も載っていない。最初の一人になれ。</p>'}</div></div>`;
+    $('#nickBtn').onclick=nickSheet;
+  }catch(e){box.innerHTML=`<div class="card"><p class="qtext">ランキングを読み込めなかった。少し時間をおいて、もう一度開いてくれ。</p></div>`}
+}
+const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function nickSheet(){
+  const f=openSheet();
+  f.innerHTML=`<span class="qtag">ニックネームを変える</span><p class="qtext">全国ランキングに出る名前。12文字まで。</p>
+  <form id="nickForm" class="accform"><label for="nickIn" class="law">ニックネーム</label><input id="nickIn" type="text" maxlength="12" autocomplete="off" value="${esc(myNick())}"><button class="btn" type="submit">これにする</button></form>
+  <p class="note" id="nickMsg">メールアドレスや本名、電話番号は入れないでくれ。ランキングは誰でも見られる。</p><button class="btn ghost" type="button" id="nickClose">閉じる</button>`;
+  $('#nickClose').onclick=closeSheet;
+  $('#nickForm').onsubmit=e=>{e.preventDefault();const v=$('#nickIn').value.trim().replace(/\s+/g,' ');
+    if(!v){$('#nickMsg').textContent='名前を入れてくれ。';return}
+    if(NICK_BAD.test(v)){$('#nickMsg').textContent='メールアドレスやURL、長い数字は使えない。別の名前にしてくれ。';return}
+    P.nick=v.slice(0,12);saveP();closeSheet();renderRanking()};
+}
 
 /* ---------- メールでログインして記録をネットに保存（Firebase） ---------- */
 // config.js の LB_FIREBASE に設定が入っているときだけ動く。入っていなければ、記録はこの端末だけに保存。
@@ -1038,7 +1120,7 @@ function mergeP(a,b){
   ['best','ok','n','clears'].forEach(k=>o[k]=Math.max(a[k]||0,b[k]||0));
   o.streak=(b.clears||0)>(a.clears||0)?(b.streak||0):(a.streak||0);return o;
 }
-function pushCloud(){if(!ACC.user)return;clearTimeout(ACC.timer);ACC.timer=setTimeout(()=>{ACC.db.collection('progress').doc(ACC.user.uid).set({p:P,updated:firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{})},700)}
+function pushCloud(){if(!ACC.user)return;clearTimeout(ACC.timer);ACC.timer=setTimeout(()=>{ACC.db.collection('progress').doc(ACC.user.uid).set({p:P,updated:firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{});pushRank()},700)}
 function pullCloud(){ACC.db.collection('progress').doc(ACC.user.uid).get().then(d=>{if(d.exists&&d.data().p)P=mergeP(P,d.data().p);saveP();refreshTitle();if(!$('#s-select').hidden)renderSelect()}).catch(()=>{})}
 function accInit(){
   const cfg=window.LB_FIREBASE;if(!cfg||!cfg.apiKey)return;
@@ -1046,30 +1128,32 @@ function accInit(){
   const load=f=>new Promise((res,rej)=>{const s=document.createElement('script');s.src=base+f;s.onload=res;s.onerror=rej;document.head.appendChild(s)});
   load('firebase-app-compat.js').then(()=>Promise.all([load('firebase-auth-compat.js'),load('firebase-firestore-compat.js')])).then(()=>{
     firebase.initializeApp(cfg);ACC.auth=firebase.auth();ACC.auth.languageCode='ja';ACC.db=firebase.firestore();ACC.on=true;
-    ACC.auth.onAuthStateChanged(u=>{ACC.user=u;if(u)pullCloud();accRender()});
+    ACC.auth.onAuthStateChanged(u=>{ACC.user=u;if(u){pullCloud()}else if(!ACC.auth.isSignInWithEmailLink(location.href)){ACC.auth.signInAnonymously().catch(()=>{})}accRender()});
     if(ACC.auth.isSignInWithEmailLink(location.href)){let em='';try{em=localStorage.getItem(EMAIL_KEY)||''}catch(e){}if(em)finishLink(em);else accSheet('confirm')}
     accRender();
   }).catch(()=>{});
 }
 function finishLink(em){
-  ACC.auth.signInWithEmailLink(em,location.href).then(()=>{try{localStorage.removeItem(EMAIL_KEY)}catch(e){}history.replaceState(null,'',location.pathname);accSheet('done')})
+  const cur=ACC.auth.currentUser,href=location.href;
+  const go=cur&&cur.isAnonymous?cur.linkWithCredential(firebase.auth.EmailAuthProvider.credentialWithLink(em,href)).catch(()=>ACC.auth.signInWithEmailLink(em,href)):ACC.auth.signInWithEmailLink(em,href);
+  go.then(()=>{try{localStorage.removeItem(EMAIL_KEY)}catch(e){}history.replaceState(null,'',location.pathname);accSheet('done')})
    .catch(()=>{history.replaceState(null,'',location.pathname);accSheet('fail')});
 }
 function accRender(){
-  const t=ACC.on?(ACC.user?`<p class="accline">ログイン中：${escH(ACC.user.email)}<br>記録はネットに保存されている。</p><div class="minirow"><button class="btn ghost mini" type="button" id="accOut">ログアウト</button><button class="btn ghost mini" type="button" id="accDel">登録を消す</button></div>`:`<button class="btn ghost" type="button" id="accIn">記録をネットに保存する（メールで登録）</button>`):'';
+  const t=ACC.on?(ACC.user&&!ACC.user.isAnonymous?`<p class="accline">ログイン中：${escH(ACC.user.email)}<br>記録はネットに保存されている。</p><div class="minirow"><button class="btn ghost mini" type="button" id="accOut">ログアウト</button><button class="btn ghost mini" type="button" id="accDel">登録を消す</button></div>`:`<button class="btn ghost" type="button" id="accIn">記録をネットに保存する（メールで登録）</button>`):'';
   document.querySelectorAll('.accbox').forEach(b=>{b.innerHTML=t;b.hidden=!t});
   document.querySelectorAll('#accIn').forEach(b=>b.onclick=()=>accSheet('form'));
-  document.querySelectorAll('#accOut').forEach(b=>b.onclick=()=>ACC.auth.signOut());
+  document.querySelectorAll('#accOut').forEach(b=>b.onclick=()=>ACC.auth.signOut().then(()=>ACC.auth.signInAnonymously()).catch(()=>{}));
   document.querySelectorAll('#accDel').forEach(b=>b.onclick=accDeleteSheet);
 }
 // 登録の削除：ネットの記録とメールアドレスを消す（この端末の記録は残る）
 function accDeleteSheet(){
   const f=openSheet();
-  f.innerHTML=`<span class="qtag">登録を消す</span><p class="qtext">ネットに保存した記録と、登録したメールアドレスを消す。この端末の記録は残るので、続けて遊べる。</p>
+  f.innerHTML=`<span class="qtag">登録を消す</span><p class="qtext">ネットに保存した記録と全国ランキングの名前、登録したメールアドレスを消す。この端末の記録は残るので、続けて遊べる。</p>
   <button class="btn" type="button" id="accDelGo">消す</button><button class="btn ghost" type="button" id="accClose">やめる</button><p class="note" id="accMsg"></p>`;
   $('#accClose').onclick=closeSheet;
   $('#accDelGo').onclick=()=>{const u=ACC.user;if(!u)return closeSheet();const btn=$('#accDelGo');btn.disabled=true;btn.textContent='消している…';clearTimeout(ACC.timer);
-    ACC.db.collection('progress').doc(u.uid).delete().then(()=>u.delete()).then(()=>{
+    Promise.all([ACC.db.collection('progress').doc(u.uid).delete(),ACC.db.collection('ranking').doc(u.uid).delete()]).then(()=>u.delete()).then(()=>{
       f.innerHTML=`<div class="verdict ok">消した</div><p>ネットの記録と登録したメールアドレスを消した。この端末の記録はそのまま残っている。</p><button class="btn" type="button" id="accClose">閉じる</button>`;$('#accClose').onclick=closeSheet})
      .catch(err=>{btn.disabled=false;btn.textContent='消す';
       $('#accMsg').textContent=(err&&err.code==='auth/requires-recent-login')?'安全のため、いったんログアウトして、もう一度メールでログインしてから消してくれ。':'消せなかった。電波のいい所でもう一度押してくれ。'})};
@@ -1135,11 +1219,13 @@ function epClear(){
   ${e.next?`<div class="card nextep"><span class="qtag">次回予告</span><p class="qtext">${e.next}</p></div>`:''}
   ${nx?`<button class="btn" type="button" id="goNext">第${nx.no}話「${nx.title.split(' ― ')[0]}」へ</button>`:`<div class="tagline">次の話は近日配信。<br>明日の更新を待て！</div>`}
   <button class="btn ghost" type="button" id="goSel">話を選ぶ</button>
-  ${pct<100?'<button class="btn ghost" type="button" id="goAgain">もう一度挑む（正答率を上げる）</button>':''}`;
+  ${pct<100?'<button class="btn ghost" type="button" id="goAgain">もう一度挑む（正答率を上げる）</button>':''}
+  ${shareRow(`第${e.no}話「${e.title.split(' ― ')[0]}」をクリア！『LEGAL BREAK 法の拳』で行政書士試験を修行中`)}`;
   if(nx)$('#goNext').onclick=()=>playEp(nx.no);
   $('#goSel').onclick=openSelect;
   const ga=$('#goAgain');if(ga)ga.onclick=()=>playEp(e.no);
   if(r1>r0)setTimeout(()=>rankUp(r1),1200);
+  if(ACC.on&&ACC.user){$('#s-clear').querySelector('.result').insertAdjacentHTML('beforeend','<p class="note" id="natRank">全国順位を計算中…</p>');pushRank().then(myRank).then(m=>{const n=$('#natRank');if(n&&m)n.innerHTML=`全国 <b class="gold">${m.rank}位</b>（${m.total}人中）`;else if(n)n.remove()}).catch(()=>{const n=$('#natRank');if(n)n.remove()})}
 }
 function rankUp(i){
   const ov=$('#ov');ov.hidden=false;const line=`お前は今日から「${RANKS[i].name}」だ。`;
@@ -1182,6 +1268,12 @@ $('#closeBtn').onclick=()=>{
   f.innerHTML=`<span class="qtag">ゲームを終える</span><p class="qtext">この話を途中でやめて、タイトルに戻る。ここまでの進み具合は記録されない。</p><button class="btn" type="button" id="endYes">やめてタイトルへ</button><button class="btn ghost" type="button" id="endNo">続ける</button>`;
   $('#endNo').onclick=closeSheet;$('#endYes').onclick=goTitle;
 };
+/* ---------- 共有（X・Threads・LINE） ---------- */
+const SITE='https://dokugakusato.github.io/legal-break/',TAGS=' #行政書士 #行政書士試験 #独学';
+function shareRow(text){const t=text+TAGS,e=encodeURIComponent;
+  return `<div class="share"><span>みんなに教える</span><a class="sx" href="https://x.com/intent/post?text=${e(t)}&url=${e(SITE)}" target="_blank" rel="noopener">X</a><a class="sth" href="https://www.threads.net/intent/post?text=${e(t+' '+SITE)}" target="_blank" rel="noopener">Threads</a><a class="sl" href="https://social-plugins.line.me/lineit/share?url=${e(SITE+'?openExternalBrowser=1')}" target="_blank" rel="noopener">LINE</a></div>`}
+const SHARE_BASE='荒野の事件を「法の拳」で裁きながら行政書士試験を学ぶゲーム『LEGAL BREAK 法の拳』で修行中！毎日1話更新';
+$('#titleShare').innerHTML=shareRow(SHARE_BASE);
 /* ---------- 前の画面に戻る ---------- */
 $('#backBtn').onclick=()=>{
   ac();const cur=[...document.querySelectorAll('.screen')].find(x=>!x.hidden);const id=cur&&cur.id;
