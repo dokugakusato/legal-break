@@ -1,4 +1,6 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head><script>/* 旧住所（GitHub）から新住所へ。記録も一緒に引っ越す */
+(function(){if(!/github\.io$/.test(location.hostname))return;var d={};try{d.s=localStorage.getItem('legalbreak.v2');d.e=localStorage.getItem('legalbreak.email')}catch(e){}
+var h='';try{if(d.s||d.e)h='#lbmove='+btoa(unescape(encodeURIComponent(JSON.stringify(d))))}catch(e){}location.replace('https://legal-break.5ukaku.com/'+location.search+h)})();</script><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>LEGAL BREAK 法の拳</title>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#120c0a">
@@ -12,10 +14,10 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="LEGAL BREAK ―法の拳―｜行政書士独学応援ゲーム">
 <meta property="og:description" content="荒野の事件を「法の拳」で裁きながら、行政書士試験を独学で学ぶゲーム。毎日1話更新。">
-<meta property="og:url" content="https://dokugakusato.github.io/legal-break/">
-<meta property="og:image" content="https://dokugakusato.github.io/legal-break/icons/ogp.png">
+<meta property="og:url" content="https://legal-break.5ukaku.com/">
+<meta property="og:image" content="https://legal-break.5ukaku.com/icons/ogp.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://dokugakusato.github.io/legal-break/icons/ogp.png">
+<meta name="twitter:image" content="https://legal-break.5ukaku.com/icons/ogp.png">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Yuji+Boku&family=Yomogi&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap">
@@ -1292,6 +1294,10 @@ function loadEp(no){
 /* ---------- 進み具合の記録（この端末のブラウザに保存） ---------- */
 const SAVE_KEY='legalbreak.v2';
 function loadP(){let p=null;try{p=JSON.parse(localStorage.getItem(SAVE_KEY)||'null')}catch(e){}return Object.assign({eps:{},streak:0,best:0,ok:0,n:0,clears:0,badges:{}},p||{})}
+/* 旧住所から引っ越してきた記録を受け取る（この端末に記録がまだ無いか、少ないときだけ） */
+(function(){var m=location.hash.match(/^#lbmove=(.+)$/);if(!m)return;try{var d=JSON.parse(decodeURIComponent(escape(atob(m[1])))),cur=null;try{cur=JSON.parse(localStorage.getItem(SAVE_KEY)||'null')}catch(e){}
+var nc=x=>x&&x.eps?Object.keys(x.eps).length:0;if(d.s){var inc=JSON.parse(d.s);if(nc(inc)>=nc(cur))localStorage.setItem(SAVE_KEY,d.s)}if(d.e&&!localStorage.getItem('legalbreak.email'))localStorage.setItem('legalbreak.email',d.e)}catch(e){}
+try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}})();
 let P=loadP();
 function saveP(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(P))}catch(e){}if(typeof pushCloud==='function')pushCloud()}
 const cleared=()=>Object.keys(P.eps).length;
@@ -1618,7 +1624,7 @@ $('#closeBtn').onclick=()=>{
   $('#endNo').onclick=closeSheet;$('#endYes').onclick=goTitle;
 };
 /* ---------- 共有（X・Threads・LINE） ---------- */
-const SITE='https://dokugakusato.github.io/legal-break/',TAGS=' #行政書士 #行政書士試験 #独学';
+const SITE='https://legal-break.5ukaku.com/',TAGS=' #行政書士 #行政書士試験 #独学';
 function shareRow(text){const t=text+TAGS,e=encodeURIComponent;
   return `<div class="share"><span>みんなに教える</span><a class="sx" href="https://x.com/intent/post?text=${e(t)}&url=${e(SITE)}" target="_blank" rel="noopener">X</a><a class="sth" href="https://www.threads.net/intent/post?text=${e(t+' '+SITE)}" target="_blank" rel="noopener">Threads</a><a class="sl" href="https://social-plugins.line.me/lineit/share?url=${e(SITE+'?openExternalBrowser=1')}" target="_blank" rel="noopener">LINE</a></div>`}
 const SHARE_BASE='荒野の事件を「法の拳」で裁きながら行政書士試験を学ぶゲーム『LEGAL BREAK 法の拳』で修行中！毎日1話更新';

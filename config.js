@@ -3,7 +3,7 @@
    この値は公開してよいもので、記録の読み書きは Firestore のルールで本人だけに制限している。 */
 window.LB_FIREBASE={
   apiKey:"AIzaSyBw1sYjfke9_F0HkhfnMNPoOfJ94IXaflY",
-  authDomain:"legal-break-6882d.firebaseapp.com",
+  authDomain:"legal-break.5ukaku.com",
   projectId:"legal-break-6882d",
   storageBucket:"legal-break-6882d.firebasestorage.app",
   messagingSenderId:"602255738798",
