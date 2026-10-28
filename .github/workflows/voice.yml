@@ -3,7 +3,7 @@ name: 声を録音
 on:
   push:
     branches: [main]
-    paths: ['episodes/**', 'index.html', 'tools/gen_voice.mjs', '.github/workflows/voice.yml']
+    paths: ['episodes/**', 'index.html', 'tools/gen_voice.mjs', 'tools/promo_lines.json', '.github/workflows/voice.yml']
   workflow_dispatch:
 permissions:
   contents: write
