@@ -1446,13 +1446,18 @@ function accInit(){
   const load=f=>new Promise((res,rej)=>{const s=document.createElement('script');s.src=base+f;s.onload=res;s.onerror=rej;document.head.appendChild(s)});
   load('firebase-app-compat.js').then(()=>Promise.all([load('firebase-auth-compat.js'),load('firebase-firestore-compat.js')])).then(()=>{
     firebase.initializeApp(cfg);ACC.auth=firebase.auth();ACC.auth.languageCode='ja';ACC.db=firebase.firestore();ACC.on=true;
-    let redirWait=false;try{redirWait=sessionStorage.getItem('lbRedir')==='1'}catch(e){}
+    let redirWait=false,reRedir=false;try{redirWait=sessionStorage.getItem('lbRedir')==='1'}catch(e){}
     ACC.auth.onAuthStateChanged(u=>{ACC.user=u;if(u){pullCloud()}else if(!redirWait&&!ACC.auth.isSignInWithEmailLink(location.href)){ACC.auth.signInAnonymously().catch(()=>{})}accRender()});
     // Googleの画面から戻ってきたときの結果を受け取る
     ACC.auth.getRedirectResult().then(r=>{if(!redirWait)return;if(r&&r.user)accSheet('done');else{accSheet();const m=$('#accMsg');if(m)m.textContent='Googleから戻ったが、ログインの結果を受け取れなかった。（R0）'}}).catch(err=>{
-      if(err&&err.code==='auth/credential-already-in-use'&&err.credential)return ACC.auth.signInWithCredential(err.credential).then(()=>accSheet('done'));
+      if(err&&(err.code==='auth/credential-already-in-use'||err.code==='auth/email-already-in-use'||err.code==='auth/account-exists-with-different-credential')){
+        // このGoogleアカウントは、もう別の記録とつながっている → その記録にログインし直す
+        const G=firebase.auth.GoogleAuthProvider,cred=err.credential||(G.credentialFromError&&G.credentialFromError(err));
+        if(cred)return ACC.auth.signInWithCredential(cred).then(()=>accSheet('done'));
+        if(err.code==='auth/credential-already-in-use'){reRedir=true;redirWait=false;try{sessionStorage.setItem('lbRedir','1')}catch(e){}return ACC.auth.signInWithRedirect(new G())}
+      }
       if(redirWait){accSheet();const m=$('#accMsg');if(m)m.textContent='Googleでログインできなかった。もう一度押すか、下の「メールとパスワード」で登録してくれ。（'+((err&&err.code)||'R1')+'）'}
-    }).finally(()=>{try{sessionStorage.removeItem('lbRedir')}catch(e){}if(redirWait){redirWait=false;if(!ACC.auth.currentUser)ACC.auth.signInAnonymously().catch(()=>{})}});
+    }).finally(()=>{if(reRedir)return;try{sessionStorage.removeItem('lbRedir')}catch(e){}if(redirWait){redirWait=false;if(!ACC.auth.currentUser)ACC.auth.signInAnonymously().catch(()=>{})}});
     if(ACC.auth.isSignInWithEmailLink(location.href)){let em='';try{em=localStorage.getItem(EMAIL_KEY)||''}catch(e){}if(em)finishLink(em);else accSheet('confirm')}
     accRender();
   }).catch(()=>{});
