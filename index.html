@@ -367,6 +367,23 @@ b.gold{color:var(--gold)}
 .ougi-stamp small{font-size:.45em;letter-spacing:.4em;color:var(--gold)}
 .ougi-stamp.on{animation:stampIn .45s cubic-bezier(.2,1.6,.4,1) forwards}
 @keyframes stampIn{0%{opacity:0;transform:rotate(-6deg) scale(2.4)}100%{opacity:1;transform:rotate(-6deg) scale(1)}}
+/* ---------- 逮捕のアニメーション ---------- */
+.arrest{position:relative}
+.siren{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:0}
+.siren.on{opacity:1;animation:sirenA .7s steps(1) infinite}
+@keyframes sirenA{0%{background:radial-gradient(ellipse at 0% 0%,rgba(230,30,30,.55),transparent 60%)}50%{background:radial-gradient(ellipse at 100% 0%,rgba(40,90,255,.55),transparent 60%)}}
+.arrest>*:not(.siren){position:relative;z-index:1}
+.fig.acop{transform:translateX(140%);transition:transform .7s cubic-bezier(.2,.9,.3,1)}
+.fig.acop.in{transform:none}
+.cuffsdrop{position:absolute;z-index:6;left:12%;width:22%;aspect-ratio:120/70;top:-30%;opacity:0;pointer-events:none}
+.cuffsdrop svg{width:100%;height:100%;display:block}
+.cuffsdrop.on{animation:cuffA .5s cubic-bezier(.5,0,.8,1.4) forwards}
+@keyframes cuffA{0%{top:-30%;opacity:1;transform:rotate(-40deg) scale(1.6)}100%{top:62%;opacity:1;transform:rotate(0) scale(1)}}
+.taiho{font-family:var(--display);font-size:clamp(60px,20vw,110px);line-height:1;color:var(--blood);text-shadow:4px 4px 0 #000,0 0 26px rgba(255,60,30,.6);transform:scale(2.6) rotate(-8deg);opacity:0}
+.taiho.on{animation:stampIn2 .45s cubic-bezier(.2,1.6,.4,1) forwards}
+@keyframes stampIn2{0%{opacity:0;transform:scale(2.6) rotate(-8deg)}100%{opacity:1;transform:scale(1) rotate(-8deg)}}
+.tsuzuku{font-weight:900;color:var(--gold);letter-spacing:.2em;font-size:16px;opacity:0;transition:opacity .8s}
+.tsuzuku.on{opacity:1}
 /* ---------- 表情 ---------- */
 .emo{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
 .emo>g{display:none}
@@ -668,8 +685,10 @@ function tl(d,rev){
   for(const p of d.pts){const x=X(p.at),col=c(p.c),top=(rev&&p.topR)||p.top||[];
     s+=`<path d="M${x} 83v18" stroke="${col}" stroke-width="2.6" stroke-linecap="round"/>`;
     top.forEach((t,i)=>s+=`<text x="${x}" y="${74-(top.length-1-i)*15}" text-anchor="middle" font-size="13" fill="${col}">${hid(p,t)}</text>`);
-    (p.bot||[]).forEach((t,i)=>s+=`<text x="${x}" y="${116+i*14}" text-anchor="middle" font-size="11.5" fill="${col}">${t}</text>`)}
-  for(const sp of d.spans||[]){const x1=X(sp.from),x2=X(sp.to),col=c(sp.c||'b'),y=sp.y||142;
+    (p.bot||[]).forEach((t,i)=>s+=`<text x="${x<44?6:x}" y="${116+i*14}" text-anchor="${x<44?'start':'middle'}" font-size="11.5" fill="${col}">${t}</text>`)}
+  // 期間の帯は、指定の y の順に2段（132・154）へ並べ直す（下の説明の枠と重ならないように）
+  const ys=[...new Set((d.spans||[]).map(o=>o.y||142))].sort((p,q)=>p-q);
+  for(const sp of d.spans||[]){const x1=X(sp.from),x2=X(sp.to),col=c(sp.c||'b'),y=132+Math.min(1,ys.indexOf(sp.y||142))*22;
     s+=`<path d="M${x1} ${y-6}v6H${x2}v-6" fill="none" stroke="${col}" stroke-width="2" stroke-linecap="round"/><text x="${(x1+x2)/2}" y="${y+14}" text-anchor="middle" font-size="12.5" fill="${col}">${hid(sp,sp.t)}</text>`}
   const note=rev?d.note:d.q;
   s+=`<rect x="8" y="176" width="324" height="42" rx="4" fill="none" stroke="${rev?MK.b:K}" stroke-width="1.6" stroke-dasharray="${rev?'0':'4 4'}"/>`;
@@ -1317,7 +1336,7 @@ function beginPart(){
   EP.chapter=[`第${CH.no}話 ${CH.title}｜${EP.type==='boss'?'章ボス戦':'事件 '+(S.part+1)+'/'+(n-1)}`,EP.title];
   if(EP.type==='boss')bossStart();else startCase();
 }
-function nextPart(){if(S.part<CH.parts.length-1){S.part++;beginPart()}else if(CH.epi){BGM.play(CH.epibgm);story([`第${CH.no}話 ${CH.title}｜エピローグ`,CH.epiTitle||'その後'],CH.epi,epClear,null,'記録を見る ▶')}else epClear()}
+function nextPart(){if(S.part<CH.parts.length-1){S.part++;beginPart()}else if(CH.arrest)arrestScene(epClear);else if(CH.epi){BGM.play(CH.epibgm);story([`第${CH.no}話 ${CH.title}｜エピローグ`,CH.epiTitle||'その後'],CH.epi,epClear,null,'記録を見る ▶')}else epClear()}
 
 /* ---------- 1話クリア ---------- */
 function epClear(){
@@ -1489,6 +1508,33 @@ const VP={narr:{p:0,r:.74,g:'m',i:0},
  old:{p:.45,r:.62,g:'m',i:3},farmer:{p:.7,r:.98,g:'m',i:2},sou:{p:.85,r:.85,g:'m',i:1},haru:{p:1.25,r:1.15,g:'m',i:3},inn:{p:1.05,r:.78,g:'m',i:2},
  oldwoman:{p:.9,r:.6,g:'f',i:1},mina:{p:1.5,r:1.08,g:'f',i:0},girl:{p:2,r:1.22,g:'f',i:2}};
 Object.assign(VP,VP2);
+
+/* ---------- 章の終わり：逮捕のアニメーション（CH.arrest があるときだけ） ---------- */
+// CH.arrest={lines:[[セリフ,声の人,名前]],tsuzuku:'次章 ○○編へ続く'}
+function arrestScene(done){
+  closeSheet();stopSay();BGM.stop();const A=CH.arrest,ov=$('#ov');ov.hidden=false;ov.className='black';ov.style.cssText='';
+  const wait=ms=>new Promise(r=>setTimeout(r,ms)),sayP=(t,k)=>new Promise(r=>say([[t,k]],r));
+  ov.innerHTML=`<div class="finisher hk arrest"><div class="siren" id="siren"></div><div class="stage fstage" id="astage"><div class="tone"></div><div class="fig l hero">${SIL.hero}${EMOSVG}<span class="ntag">佐藤</span></div><div class="fig r keiji acop">${SIL.keiji}${EMOSVG}<span class="ntag">${NAMES.keiji}</span></div><div class="cuffsdrop" id="cuffs"><svg viewBox="0 0 120 70">${PROPS.cuffs.svg}</svg></div></div><div class="fline" id="aline"></div><div class="taiho" id="taiho">逮捕</div><div class="tsuzuku" id="tsuzuku">${A.tsuzuku||'次章へ続く'}</div><button class="btn" type="button" id="toRec" hidden>戦いの記録を見る</button></div>`;
+  const line=(t,who,cls='')=>{$('#aline').innerHTML=`<div class="fl ${cls}"><b>${who}</b>${t}</div>`};
+  const st=$('#astage'),cop=st.querySelector('.acop'),hero=st.querySelector('.fig.l');
+  (async()=>{
+    await wait(500);
+    for(const [t,k,nm] of A.lines){
+      if(k==='keiji'&&!cop.classList.contains('in')){
+        $('#siren').classList.add('on');const a=ac();if(a&&!S.mute){BGM.play(CH.arrestbgm||'k5arrest');I.siren(a,a.destination,a.currentTime+.05,6,.05)}
+        await wait(900);cop.classList.add('in');await wait(700)}
+      if(k==='hero')hero.classList.add('emo-angry');
+      line(t,nm||NAMES[k]||'',k==='hero'?'hero':'');await Promise.all([sayP(t,k),wait(Math.max(1800,t.length*120))]);
+    }
+    // 手錠がかかる
+    const c=$('#cuffs');c.classList.add('on');await wait(520);
+    const a=ac();if(a&&!S.mute){I.clank(a,a.destination,a.currentTime+.01,.5);I.taiko(a,a.destination,a.currentTime+.01,.9)}
+    hit(1.6);$('#aline').innerHTML='';
+    await wait(500);$('#taiho').classList.add('on');await wait(1300);$('#tsuzuku').classList.add('on');await wait(900);
+    const b=$('#toRec');b.hidden=false;b.onclick=()=>{ov.hidden=true;ov.innerHTML='';ov.className='';ov.style.cssText='';done()};
+  })();
+}
+
 /* ---------- 第五章（逮捕編）の登場人物・小道具・曲 ---------- */
 Object.assign(SIL,{
 sawa:mk(`<path d="${B.slim}" fill="#55555f"/>${SHD(B.slim)}<path d="M30 100v60M40 90v70M60 90v70M70 100v60" stroke="#7d7d8a" stroke-width="1" fill="none"/><path d="M40 70l10 22 10-22z" fill="#efe3cf"/><path d="M46 74h8l-4 6z" fill="#c22d22"/>${NECK(50,14)}<ellipse cx="50" cy="40" rx="13" ry="16" fill="${SK}"/><path d="M36 36C34 20 44 16 52 17C62 18 66 24 64 34C58 26 46 26 36 36Z" fill="#141112"/><path d="M41 37l7 2M59 37l-7 2" stroke-width="2.2" fill="none"/><path d="M42 42h5M53 42h5" stroke-width="1.8" fill="none"/><path d="M42 48q4-3 8 0q4-3 8 0" stroke-width="1.6" fill="none"/><path d="M45 53q6 3 11-1" fill="none"/><rect x="51" y="52.5" width="3" height="2.4" fill="#d9a441" stroke="none"/>`),

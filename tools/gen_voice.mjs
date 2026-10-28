@@ -38,6 +38,7 @@ for(const m of ctx.window.LB_LIST)vm.runInContext(fs.readFileSync(ROOT+'episodes
 const enemyKey=f=>VPKEYS.has(f)?f:'boss';
 for(const ep of ctx.LB.eps){
   (ep.op||[]).forEach(L=>add(L.v||L.t,L.c==='say'?'hero':'narr'));
+  for(const L of ((ep.arrest||{}).lines||[]))add(L[0],L[1]);
   for(const P of (ep.epi||[])){add(P.nar,'narr');if(P.say){const sp=(P.figs.find(f=>f[1]===P.say.side)||P.figs[0])[0];add(P.say.text,sp)}}
   for(const p of ep.parts){
     for(const P of p.panels){add(P.nar,'narr');if(P.say){const sp=(P.figs.find(f=>f[1]===P.say.side)||P.figs[0])[0];add(P.say.text,sp)}}
