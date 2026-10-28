@@ -29,25 +29,29 @@ LB.episode({
         {
           nar:"荒野の牧場。牧場主の斉藤義男は、一頭の名馬を大事に育てていた。",
           figs:[["rancher","l"]],
-          say:{side:"l",text:"こいつだけは、誰にも売らねえ",emo:"happy"}
+          say:{side:"l",text:"こいつだけは、誰にも売らねえ",emo:"happy"},
+          props:[["horse","br"]]
         },
         {
           nar:"ある日、甥の渡辺は、頼まれてもいないのに「伯父の代理人だ」と名乗った。",
           bg:"dark",
           figs:[["rancher","l"],["nephew","r"]],
-          say:{side:"r",text:"伯父さんは留守だ。俺が代わりに売ってやるよ",evil:1,emo:"evil"}
+          say:{side:"r",text:"伯父さんは留守だ。俺が代わりに売ってやるよ",evil:1,emo:"evil"},
+          props:[["horse","bc"]]
         },
         {
           nar:"渡辺は、馬商人の加藤正樹にその馬を売る契約を結んだ。",
           bg:"red",
           lines:1,
           figs:[["nephew","l"],["trader","r"]],
-          say:{side:"l",text:"代理人の俺が言うんだ、間違いねえ！",evil:1,emo:"evil"}
+          say:{side:"l",text:"代理人の俺が言うんだ、間違いねえ！",evil:1,emo:"evil"},
+          props:[["horse","bc"]]
         },
         {
           nar:"帰ってきた斉藤は迷った。値段は悪くない。この契約を認めるべきか。",
           figs:[["rancher","l"],["trader","r"]],
-          say:{side:"r",text:"斉藤さん、この契約、生きてるんですか？",emo:"shock"}
+          say:{side:"r",text:"斉藤さん、この契約、生きてるんですか？",emo:"shock"},
+          props:[["horse","bc"]]
         }
       ],
       q:{text:"斉藤が、渡辺のした売買契約を追認した。この契約は、いつから斉藤に対して効力を生じるか。",opts:["追認した時から効力を生じる","契約の時にさかのぼって効力を生じる","馬を引き渡した時から効力を生じる"],ans:1,law:"民法113条1項・116条",exp:"無権代理の契約は、本人が追認しなければ本人に効力を生じない。追認すると、別段の意思表示がない限り、契約の時にさかのぼって効力を生じる。ただし第三者の権利を害することはできない。"},
@@ -84,26 +88,30 @@ LB.episode({
         {
           nar:"砂漠の宿場町。料理屋の女将・松本千代子は、番頭の井上に店を任せていた。",
           figs:[["okami","l"],["clerk","r"]],
-          say:{side:"l",text:"井上さん、仕入れのお金を借りてきておくれ。実印を預けるよ",emo:"happy"}
+          say:{side:"l",text:"井上さん、仕入れのお金を借りてきておくれ。実印を預けるよ",emo:"happy"},
+          props:[["inkan","mid"]]
         },
         {
           nar:"井上が任されたのは、金を借りることだけだった。",
           bg:"dark",
           figs:[["clerk","c"]],
-          say:{side:"c",text:"実印さえあれば、何でもできる…",evil:1,emo:"evil"}
+          say:{side:"c",text:"実印さえあれば、何でもできる…",evil:1,emo:"evil"},
+          props:[["inkan","hr"]]
         },
         {
           nar:"ところが井上は、店の倉庫と土地を、材木商の木村剛に売ってしまった。",
           bg:"red",
           lines:1,
           figs:[["clerk","l"],["lumber","r"]],
-          say:{side:"l",text:"女将の実印と委任状だ。代理権はちゃんとある！",evil:1,emo:"evil"}
+          say:{side:"l",text:"女将の実印と委任状だ。代理権はちゃんとある！",evil:1,emo:"evil"},
+          props:[["paper","mid"]]
         },
         {
           nar:"木村は実印と委任状を確かめ、井上を信じて代金を払った。",
           figs:[["okami","l"],["lumber","r"]],
           say:{side:"r",text:"女将さん、倉庫は俺が買ったんだ",emo:"angry"},
-          react:"shock"
+          react:"shock",
+          props:[["inkan","mid"]]
         }
       ],
       q:{
@@ -146,7 +154,8 @@ LB.episode({
         {
           nar:"海の消えた港町。漁師の林大輔は、古い船を持っていた。",
           figs:[["fisher","l"]],
-          say:{side:"l",text:"この船は親父の形見だ"}
+          say:{side:"l",text:"この船は親父の形見だ"},
+          props:[["boat","br"]]
         },
         {
           nar:"清水は、代理権がないと知りながら、林の代理人だと名乗った。",
@@ -159,13 +168,15 @@ LB.episode({
           bg:"red",
           lines:1,
           figs:[["shimizu","l"],["shipwright","r"]],
-          say:{side:"l",text:"毎度あり！あとは林と話してくれ！",evil:1,emo:"evil"}
+          say:{side:"l",text:"毎度あり！あとは林と話してくれ！",evil:1,emo:"evil"},
+          props:[["boat","bc"]]
         },
         {
           nar:"林は追認を拒絶した。船は手に入らず、代金も戻らない。",
           figs:[["fisher","l"],["shipwright","r"]],
           say:{side:"r",text:"俺の金は、どうなるんだ…",emo:"sad"},
-          react:"sad"
+          react:"sad",
+          props:[["boat","bc"]]
         }
       ],
       q:{
@@ -212,21 +223,24 @@ LB.episode({
         {
           nar:"町の井戸の水利権は、村長の岡田清のものだった。",
           figs:[["mayor","l"]],
-          say:{side:"l",text:"この水は、町のみんなのものじゃ"}
+          say:{side:"l",text:"この水は、町のみんなのものじゃ"},
+          props:[["well","br"]]
         },
         {
           nar:"影の代理人・黒田は、岡田の代理人を名乗り、その水利権を運送屋の森彩花に売りつけた。",
           bg:"red",
           lines:1,
           figs:[["kuroda","l"],["mori","r"]],
-          say:{side:"l",text:"村長の代理人、黒田だ。水はお前のものになる",evil:1,emo:"evil"}
+          say:{side:"l",text:"村長の代理人、黒田だ。水はお前のものになる",evil:1,emo:"evil"},
+          props:[["well","bc"]]
         },
         {
           nar:"岡田は、追認するとも拒絶するとも言わない。森の商売は宙ぶらりんになった。",
           bg:"dark",
           figs:[["mayor","l"],["mori","r"]],
           say:{side:"r",text:"認めるのか、認めないのか、どっちなんですか！",emo:"angry"},
-          react:"shock"
+          react:"shock",
+          props:[["well","bc"]]
         },
         {
           nar:"途方に暮れる森。そこへ、砂煙の向こうから男が来た。",

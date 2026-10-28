@@ -326,6 +326,15 @@ body.hasclose #s-battle .hud{padding-left:38px}
 .kk.me{background:rgba(194,45,34,.25);outline:1.5px solid var(--blood)}
 b.gold{color:var(--gold)}
 .tabs button{font-size:13px;letter-spacing:.04em}
+/* ---------- 小道具 ---------- */
+.prop{position:absolute;z-index:1;pointer-events:none;height:calc(var(--s,.4) * min(100%,330px));max-width:92%}
+.panel.talk .prop{height:calc(var(--s,.4) * min(100% - 118px,330px))}
+.prop svg{width:100%;height:100%;display:block}
+.prop.bc{left:50%;transform:translateX(-50%);bottom:4%}
+.prop.br{right:5%;bottom:-2px}
+.prop.bl{left:5%;bottom:-2px}
+.prop.mid{left:50%;transform:translateX(-50%);bottom:max(4%,40px);z-index:3}
+.prop.hr{right:9%;bottom:24%;z-index:3}
 /* ---------- 共有ボタン ---------- */
 .share{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
 .share span{font-size:11.5px;color:var(--dust);font-weight:700;letter-spacing:.1em;width:100%;text-align:center}
@@ -839,6 +848,20 @@ function hurt(){flashEmo($('#stage .fig.l.hero'),'shock');if(S.run)S.run.lost++;
 /* scrollToCard は解説シート側で定義 */
 
 /* ---------- 4コマ ---------- */
+/* ---------- 小道具（4コマに出てくる物） ---------- */
+const PROP_S=s=>`<g stroke="${O}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round">${s}</g>`;
+const PROPS={
+ horse:{vb:[170,130],s:.78,svg:PROP_S(`<path d="M34 64C22 66 14 80 16 100C22 92 27 82 36 74Z" fill="#2b1a12"/><path d="M36 62C36 48 56 44 86 46L116 44C120 28 126 18 138 14L152 12C159 12 163 18 161 24L155 29C153 35 147 37 141 35L133 56C133 66 127 74 119 76L120 124H111L108 80H67L63 124H54L52 78C44 76 38 70 36 64Z" fill="#7a4a2a"/><path d="M116 44C120 30 127 20 138 16C131 26 127 36 125 48Z" fill="#2b1a12"/><path d="M54 124h9M111 124h9" stroke-width="4"/><circle cx="148" cy="21" r="2" fill="${O}" stroke="none"/><path d="M70 50q18 6 40 0" fill="none" stroke="#a8743a" stroke-width="3" opacity=".7"/>`)},
+ well:{vb:[120,140],s:.58,svg:PROP_S(`<path d="M18 60L60 34L102 60Z" fill="#6b4a2a"/><path d="M26 60v42M94 60v42" stroke-width="5" stroke="#4a3220"/><path d="M48 60v18" stroke-width="1.6"/><path d="M42 78h12l-2 10h-8z" fill="#8a5a32"/><path d="M12 102h96v34H12z" fill="#8a8178"/><path d="M12 113h96M12 124h96M36 102v11M66 102v11M90 113v11M24 124v12M54 124v12M84 124v12" stroke-width="1.6" fill="none"/>`)},
+ boat:{vb:[170,110],s:.48,svg:PROP_S(`<path d="M80 6v62" stroke-width="3"/><path d="M82 10l40 50H82z" fill="#d8c8a8"/><path d="M8 66h154l-22 34H30z" fill="#7a5236"/><path d="M14 76h146M22 88h128" fill="none" stroke="#4a3220" stroke-width="1.8"/><path d="M0 104q20-8 40 0t40 0 40 0 40 0" fill="none" stroke="#c98a4b" stroke-width="2"/>`)},
+ barrels:{vb:[130,90],s:.3,svg:PROP_S(`<path d="M10 20q-6 30 0 66h44q6-36 0-66z" fill="#9a6a3a"/><path d="M8 34h48M8 72h48" stroke="#4a3220" stroke-width="3"/><path d="M60 14q-6 34 0 72h50q6-38 0-72z" fill="#8a5a32"/><path d="M58 30h54M58 70h54" stroke="#4a3220" stroke-width="3"/><path d="M78 40q7 9 0 18q-7-9 0-18z" fill="#8fd0ff" stroke="none"/>`)},
+ deed:{vb:[80,100],s:.3,svg:PROP_S(`<path d="M8 6h56l10 10v80H8z" fill="#efe3cf"/><path d="M64 6v10h10" fill="none"/><text x="40" y="30" text-anchor="middle" font-size="15" font-weight="900" fill="${O}" stroke="none" font-family="sans-serif">権利証</text><path d="M18 44h44M18 54h44M18 64h30" stroke-width="1.6"/><circle cx="58" cy="80" r="9" fill="none" stroke="#c22d22" stroke-width="2.6"/><text x="58" y="84.5" text-anchor="middle" font-size="11" font-weight="900" fill="#c22d22" stroke="none" font-family="sans-serif">印</text>`)},
+ paper:{vb:[80,100],s:.3,svg:PROP_S(`<path d="M8 6h64v88H8z" fill="#f4ecdc"/><text x="40" y="26" text-anchor="middle" font-size="13" font-weight="900" fill="${O}" stroke="none" font-family="sans-serif">契約書</text><path d="M18 40h44M18 50h44M18 60h44M18 70h26" stroke-width="1.6"/><rect x="48" y="70" width="16" height="16" fill="none" stroke="#c22d22" stroke-width="2.6"/>`)},
+ bag:{vb:[80,90],s:.27,svg:PROP_S(`<path d="M28 18h24l-6 12c18 6 28 24 26 42c-2 14-14 16-32 16s-30-2-32-16c-2-18 8-36 26-42z" fill="#c9a46a"/><path d="M26 18q14-10 28 0" fill="none" stroke-width="3"/><text x="40" y="70" text-anchor="middle" font-size="24" font-weight="900" fill="#7a3a12" stroke="none" font-family="sans-serif">金</text>`)},
+ inkan:{vb:[70,100],s:.34,svg:PROP_S(`<rect x="22" y="6" width="26" height="60" rx="12" fill="#c9a46a"/><path d="M27 18h16" stroke="#8a5a32" stroke-width="2"/><rect x="18" y="62" width="34" height="14" rx="3" fill="#8a5a32"/><rect x="8" y="78" width="54" height="18" rx="3" fill="#efe3cf"/><circle cx="35" cy="87" r="7" fill="none" stroke="#c22d22" stroke-width="2.4"/><text x="35" y="91" text-anchor="middle" font-size="9" font-weight="900" fill="#c22d22" stroke="none" font-family="sans-serif">実印</text>`)},
+ sprout:{vb:[150,60],s:.17,svg:PROP_S(`<path d="M2 50q74-20 146 0v10H2z" fill="#5a3a22"/><path d="M30 44v-14M75 40v-18M120 44v-14" stroke="#3f7d3a" stroke-width="3"/><path d="M30 32q-10-8-14 2q8 4 14-2zM30 32q10-8 14 2q-8 4-14-2zM75 24q-12-10-17 2q10 5 17-2zM75 24q12-10 17 2q-10 5-17-2zM120 32q-10-8-14 2q8 4 14-2zM120 32q10-8 14 2q-8 4-14-2z" fill="#6fbf4a"/>`)}
+};
+function propHTML([k,pos]){const P=PROPS[k];if(!P)return '';return `<div class="prop ${pos}" style="--s:${P.s};aspect-ratio:${P.vb[0]}/${P.vb[1]}"><svg viewBox="0 0 ${P.vb[0]} ${P.vb[1]}" aria-hidden="true">${P.svg}</svg></div>`}
 const EMOSVG='<svg class="emo" viewBox="0 0 100 160" aria-hidden="true"><g class="e-angry"><ellipse cx="50" cy="45" rx="13" ry="7" fill="#e0402a" opacity=".3"/><g stroke="#ff3b2e" stroke-width="2.8" fill="none" stroke-linecap="round"><path d="M65 13q5 3 3 8"/><path d="M76 13q-5 3-3 8"/><path d="M65 29q5-3 3-8"/><path d="M76 29q-5-3-3-8"/></g><path d="M26 30l-6-3M24 38h-7" stroke="#ff3b2e" stroke-width="2" stroke-linecap="round"/></g><g class="e-sad"><path d="M43 44c-1.5 5-1 10 .5 15M57 44c1.5 5 1 10-.5 15" stroke="#8fd0ff" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="44" cy="61" r="2.1" fill="#8fd0ff"/><circle cx="56.5" cy="61" r="2.1" fill="#8fd0ff"/><path d="M32 2v13M40 0v11M48 2v9M56 0v11M64 2v13" stroke="#7d8cd0" stroke-width="1.7" opacity=".8"/></g><g class="e-shock"><path d="M70 25c3 4 4.5 7.5 1.5 9.5c-3 1.5-5.5-2-3.5-5z" fill="#9fdcff" stroke="#0b0807" stroke-width=".8"/><path d="M27 19l-7-6M50 11V1M73 19l7-6" stroke="#fbf6ec" stroke-width="2.6" stroke-linecap="round"/></g><g class="e-happy"><path d="M23 20l2 5 5 2-5 2-2 5-2-5-5-2 5-2zM77 13l1.6 4 4 1.6-4 1.6-1.6 4-1.6-4-4-1.6 4-1.6z" fill="#ffe08a"/><ellipse cx="41" cy="47" rx="3.6" ry="2.1" fill="#ff8a7a" opacity=".6"/><ellipse cx="59" cy="47" rx="3.6" ry="2.1" fill="#ff8a7a" opacity=".6"/></g><g class="e-evil"><ellipse cx="50" cy="37" rx="18" ry="10" fill="#0b0807" opacity=".5"/><circle cx="44" cy="40" r="2" fill="#ff4a3a"/><circle cx="56" cy="40" r="2" fill="#ff4a3a"/><path d="M71 22l4-4M73 29h5" stroke="#c22d22" stroke-width="2" stroke-linecap="round"/></g></svg>';
 const NAMES={hero:'佐藤',old:'田中',thug:'坂東',mina:'佐々木',oldwoman:'鈴木',trick:'三浦',jin:'中村',farmer:'山本（父）',girl:'さや',dogra:'土倉',sou:'小林',haru:'高橋',inn:'伊藤',boss:'権田'};
 /* ---------- 下から出る解説シート ---------- */
@@ -864,7 +887,7 @@ function panelHTML(p,i){
   const emo=p.say?(p.say.emo||(p.say.evil?'evil':/！/.test(p.say.text)?'angry':/…/.test(p.say.text)?'sad':'')):'';
   const figs=p.figs.map(([t,pos])=>{const e=t===sp?emo:(p.react||'');return `<div class="fig ${pos} ${t}${e?' emo-'+e:''}">${SIL[t]}${EMOSVG}<span class="ntag">${NAMES[t]||''}</span></div>`}).join('');
   const say=p.say?`<div class="say ${p.say.side}${p.say.evil?' evil':''}"><b class="who">${NAMES[sp]||''}</b>${p.say.text}</div>`:'';
-  return `<div class="kw"><div class="cap">${p.nar}</div><div class="panel ${p.bg?'bg-'+p.bg:''}${p.lines?' lines':''}${p.say?' talk':''}"><div class="tone"></div>${figs}${say}<span class="pno">${i+1}</span></div></div>`;
+  return `<div class="kw"><div class="cap">${p.nar}</div><div class="panel ${p.bg?'bg-'+p.bg:''}${p.lines?' lines':''}${p.say?' talk':''}"><div class="tone"></div>${(p.props||[]).map(propHTML).join('')}${figs}${say}<span class="pno">${i+1}</span></div></div>`;
 }
 /* ---------- 雑魚戦 ---------- */
 function startCase(){const c=EP;BGM.play(c.bgm);story(c.chapter,c.panels,()=>battle(c),c.wb)}

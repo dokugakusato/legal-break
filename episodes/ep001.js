@@ -29,12 +29,14 @@ LB.episode({
         {
           nar:"水が金より重い荒野。農夫の田中六郎は、借金取りから水場の土地を隠したかった。",
           figs:[["old","l"]],
-          say:{side:"l",text:"名義だけ変えておけば、取り立てられまい…",emo:"evil"}
+          say:{side:"l",text:"名義だけ変えておけば、取り立てられまい…",emo:"evil"},
+          props:[["well","br"]]
         },
         {
           nar:"田中は仲間の坂東と示し合わせ、売ったことにして土地を坂東名義にした。",
           figs:[["old","l"],["thug","r"]],
-          say:{side:"r",text:"ああ、形だけだ。形だけな…ヒヒッ",evil:1,emo:"evil"}
+          say:{side:"r",text:"ああ、形だけだ。形だけな…ヒヒッ",evil:1,emo:"evil"},
+          props:[["deed","mid"]]
         },
         {
           nar:"ところが坂東は、事情を知らない行商人の佐々木美奈に土地を売り払った。",
@@ -42,7 +44,8 @@ LB.episode({
           lines:1,
           figs:[["thug","l"],["mina","r"]],
           say:{side:"l",text:"買ったのはお前だ！文句は田中に言え！",evil:1,emo:"angry"},
-          react:"shock"
+          react:"shock",
+          props:[["deed","mid"]]
         },
         {
           nar:"土地を取り戻そうと、田中は佐々木に詰め寄った。",
@@ -57,7 +60,8 @@ LB.episode({
           bg:"dark",
           figs:[["old","l"],["mina","r"]],
           say:{side:"r",text:"私は何も知らずに買ったんです…",emo:"sad"},
-          react:"angry"
+          react:"angry",
+          props:[["bag","mid"]]
         }
       ],
       q:{text:"田中は、佐々木に対して「坂東との売買は虚偽表示で無効だ」と主張し、土地を取り戻せるか。",opts:["取り戻せる。虚偽表示は当事者間で無効だから","取り戻せない。佐々木は善意の第三者だから","佐々木が登記を備えていなければ取り戻せる"],ans:1,law:"民法94条2項",exp:"虚偽表示の無効は、善意の第三者に対抗できない。判例上、第三者は善意であれば足り、無過失も登記も要らない。"},
@@ -92,27 +96,31 @@ LB.episode({
           nar:"井戸守の鈴木トメ婆さんのもとに、詐術師の三浦が現れた。",
           figs:[["oldwoman","l"],["trick","r"]],
           say:{side:"r",text:"婆さん、この井戸はじき毒で枯れるぜ。今のうちに売っちまいな",evil:1,emo:"evil"},
-          react:"shock"
+          react:"shock",
+          props:[["well","bc"]]
         },
         {
           nar:"嘘を信じた鈴木は、井戸の権利を二束三文で売った。",
           bg:"dark",
           figs:[["oldwoman","l"],["trick","r"]],
           say:{side:"l",text:"そうかい…なら仕方ないねえ",emo:"sad"},
-          react:"evil"
+          react:"evil",
+          props:[["bag","mid"]]
         },
         {
           nar:"三浦はすぐに商人の中村仁へ転売。中村は詐欺を知らなかったが、少し調べれば分かることだった。",
           lines:1,
           bg:"red",
           figs:[["trick","l"],["jin","r"]],
-          say:{side:"l",text:"高く売れたぜ！調べもしねえお人好しでな！",evil:1,emo:"evil"}
+          say:{side:"l",text:"高く売れたぜ！調べもしねえお人好しでな！",evil:1,emo:"evil"},
+          props:[["well","bc"]]
         },
         {
           nar:"だまされたと知った鈴木は、売買を取り消した。",
           figs:[["oldwoman","l"],["jin","r"]],
           say:{side:"r",text:"知らなかったんだ。井戸は渡さないよ",emo:"angry"},
-          react:"sad"
+          react:"sad",
+          props:[["well","bc"]]
         }
       ],
       q:{text:"鈴木は、売買の取消しを中村に対抗できるか。（中村は取消しの前に権利を取得している）",opts:["対抗できない。中村は詐欺を知らなかったから","対抗できる。中村には過失があるから","対抗できない。だまされた鈴木にも落ち度があるから"],ans:1,law:"民法96条3項",exp:"詐欺による取消しは「善意でかつ過失がない第三者」に対抗できない。中村は善意でも過失があるので、保護されない。"},
@@ -147,7 +155,8 @@ LB.episode({
           nar:"荒れ地を耕す父・山本源二。娘のさやと二人きりの暮らしだった。",
           figs:[["farmer","l"],["girl","r"]],
           say:{side:"r",text:"お父ちゃん、今年は芽が出たよ！",emo:"happy"},
-          react:"happy"
+          react:"happy",
+          props:[["sprout","mid"]]
         },
         {
           nar:"そこへ鉄鎖の土倉が押し入った。",
@@ -155,19 +164,22 @@ LB.episode({
           lines:1,
           figs:[["farmer","l"],["dogra","r"]],
           say:{side:"r",text:"この紙に判を押せ。押さなきゃ娘がどうなるか…",evil:1,emo:"evil"},
-          react:"shock"
+          react:"shock",
+          props:[["paper","mid"]]
         },
         {
           nar:"山本はやむなく判を押した。土倉は畑をすぐ旅人の小林蒼太に転売した。",
           bg:"dark",
           figs:[["dogra","l"],["sou","r"]],
-          say:{side:"l",text:"小林は何も知らねえ善人だ。もう手出しはできねえぜ！",evil:1,emo:"evil"}
+          say:{side:"l",text:"小林は何も知らねえ善人だ。もう手出しはできねえぜ！",evil:1,emo:"evil"},
+          props:[["paper","mid"]]
         },
         {
           nar:"山本は強迫を理由に売買を取り消した。小林は善意で、過失もなかった。",
           figs:[["farmer","l"],["sou","r"]],
           say:{side:"l",text:"あれは脅されて押した判だ。畑を返してくれ",emo:"sad"},
-          react:"shock"
+          react:"shock",
+          props:[["sprout","mid"]]
         }
       ],
       q:{text:"山本は、売買の取消しを小林に対抗できるか。",opts:["対抗できる。強迫による取消しは善意無過失の第三者にも対抗できる","対抗できない。小林は善意無過失だから","そもそも取り消せない。強迫による意思表示は無効だから"],ans:0,law:"民法96条1項・3項",exp:"96条3項が第三者を守るのは詐欺のときだけ。強迫された者には落ち度がないので、善意無過失の第三者にも取消しを対抗できる。"},
@@ -203,13 +215,15 @@ LB.episode({
         {
           nar:"水商人の高橋晴人は、宿屋の伊藤に水五百樽を売った。代金はまだ払われていない。",
           figs:[["haru","l"],["inn","r"]],
-          say:{side:"l",text:"伊藤さん、代金は来月でいいよ",emo:"happy"}
+          say:{side:"l",text:"伊藤さん、代金は来月でいいよ",emo:"happy"},
+          props:[["barrels","mid"]]
         },
         {
           nar:"伊藤の宿は傾き、残った財産は井戸付きの土地だけになった。",
           bg:"dark",
           figs:[["inn","c"]],
-          say:{side:"c",text:"もう払えるものがない…",emo:"sad"}
+          say:{side:"c",text:"もう払えるものがない…",emo:"sad"},
+          props:[["well","br"]]
         },
         {
           nar:"地上げ王・権田が現れ、その土地を伊藤からただで譲り受けた。二人とも、高橋が取りはぐれると分かっていた。",
@@ -217,7 +231,8 @@ LB.episode({
           lines:1,
           figs:[["inn","l"],["boss","r"]],
           say:{side:"r",text:"商人ごときに渡す財産など、もう無いわ！",evil:1,emo:"evil"},
-          react:"sad"
+          react:"sad",
+          props:[["well","bc"]]
         },
         {
           nar:"取り立てる先を失った高橋。そこへ、砂煙の向こうから男が来た。",
