@@ -71,7 +71,7 @@ kagi:mk(`<path d="${B.coat}" fill="#17151b"/>${SHD(B.coat)}<path d="M38 64L50 12
 });
 Object.assign(NAMES,{minami:'南',kyaku:'大樹',haruka:'春香',kagi:'鍵屋'});
 // 声が録音されていないときの読み上げ（端末の声）の高さと速さ
-Object.assign(VP,{minami:{p:1.45,r:1.08,g:'f',i:1},kyaku:{p:1.1,r:1.05,g:'m',i:1},haruka:{p:1.3,r:1.02,g:'f',i:0},kagi:{p:.15,r:.66,g:'m',i:0}});
+Object.assign(VP,{minami:{p:2,r:1.22,g:'f',i:2},kyaku:{p:1.1,r:1.05,g:'m',i:1},haruka:{p:1.3,r:1.02,g:'f',i:0},kagi:{p:.15,r:.66,g:'m',i:0}});
 
 /* ---------- 宅建版の小道具 ---------- */
 Object.assign(PROPS,{
