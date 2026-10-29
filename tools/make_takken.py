@@ -64,7 +64,6 @@ assert h.count('src="extra.js"') == 1
 rep("const yomi=t=>t.replace(", "const yomi=t=>t.replace(/宅建/g,'たっけん').replace(/黒鍵/g,'くろかぎ').replace(")
 
 # 7) もう一方のゲームへ行くボタン（同じアプリ・同じログインのまま行き来できる）
-rep("onclick=\"location.href='takken/'\">宅建版 TAKKEN HUNTER で遊ぶ</button>", "onclick=\"location.href='../'\">行政書士版 LEGAL BREAK で遊ぶ</button>")
 
 head = '<!-- このファイルは tools/make_takken.py が行政書士版の index.html から作る。直接は直さず、宅建版だけの部分は extra.js に書く -->\n'
 (ROOT / 'takken' / 'index.html').write_text(head + h, encoding='utf-8')
