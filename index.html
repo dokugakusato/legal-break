@@ -952,7 +952,7 @@ const MOVES={punch:{kiai:'アチョーッ！',k:1,hit:'ドゴォッ！'},kick:{k
  shou:{kiai:'ショウッ！',k:1.2,hit:'ザシュッ！'},chair:{kiai:'オラァッ！',k:1.1,hit:'ガッシャーン！'},cobra:{kiai:'コブラツイスト！',k:.8,hit:'ギブアップか！？'},pile:{kiai:'パイルドライバー！',k:1,hit:'ズドォォン！'}};
 // 技が出る話：エルボーは第3話から、斬撃・椅子・プロレス技は第6話から
 const MOVE6=['shou','chair','cobra','pile'];
-const moveOK=k=>k==='elbow'?hokuto():MOVE6.includes(k)?!!(CH&&CH.no>=6):true;
+let moveOK=k=>k==='elbow'?hokuto():MOVE6.includes(k)?!!(CH&&CH.no>=6):true;
 let LASTMOVE='';
 function randMove(){const ks=Object.keys(MOVES).filter(k=>k!==LASTMOVE&&moveOK(k));LASTMOVE=ks[Math.floor(Math.random()*ks.length)];return LASTMOVE}
 function attack(then,style='punch'){
@@ -2003,5 +2003,6 @@ function opening(ep,done){
 }
 $('#opSkip').onclick=opEnd;
 </script>
+<script src="kijutsu.js"></script>
 
 </body></html>
