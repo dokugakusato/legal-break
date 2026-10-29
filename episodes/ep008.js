@@ -174,6 +174,7 @@ LB.episode({
       lawName:"差止めの訴え",
       lawRef:"行政事件訴訟法37条の4・37条の5",
       ougi:"差止拳",
+      ougi2:"仮の差止め",
       bgm:"k8bossin",
       bbgm:"k8boss",
       result:"裁判所は、仮の差止めを命じた。<br>埋め立ての許可は止まり、井戸は守られた。",

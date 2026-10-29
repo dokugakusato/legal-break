@@ -380,6 +380,11 @@ b.gold{color:var(--gold)}
 .fl.hero b{color:#8a5a12}
 .fl.big{font-family:var(--display);font-weight:400;font-size:clamp(34px,10vw,52px);color:var(--blood);background:none;border:none;text-shadow:3px 3px 0 #000,0 0 18px rgba(255,80,40,.7);transform:rotate(-6deg)}
 .fl.big b{display:none}
+.ougi2{position:fixed;left:50%;top:70%;transform:translate(-50%,-50%) scale(3);opacity:0;display:flex;flex-direction:column;align-items:center;font-family:var(--display);color:var(--gold);background:rgba(0,0,0,.88);border:5px double var(--gold);padding:10px 20px;white-space:nowrap;text-shadow:0 0 18px rgba(255,190,60,.9),3px 3px 0 var(--blood);z-index:5}
+.ougi2 small{font-size:clamp(14px,4.4vw,20px);letter-spacing:.3em;color:var(--bone)}
+.ougi2 b{font-size:clamp(34px,11vw,56px);line-height:1.15}
+.ougi2.on{animation:ougi2In .5s cubic-bezier(.2,1.6,.4,1) forwards}
+@keyframes ougi2In{to{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(-3deg)}}
 .ougi-stamp{font-family:var(--display);font-size:clamp(26px,8vw,40px);color:var(--bone);background:var(--blood);border:4px double var(--bone);padding:6px 18px;transform:rotate(-6deg) scale(2.4);opacity:0;text-shadow:2px 2px 0 var(--sil);display:flex;flex-direction:column;align-items:center;line-height:1.1}
 .ougi-stamp small{font-size:.45em;letter-spacing:.4em;color:var(--gold)}
 .ougi-stamp.on{animation:stampIn .45s cubic-bezier(.2,1.6,.4,1) forwards}
@@ -1208,8 +1213,9 @@ function finisherHokuto(){
     $('#fudeSub').classList.add('on');await wait(1200);
     // 6. 奥義〇〇拳で決める
     $('#ougiStamp').classList.add('on');punch(2.2);await Promise.all([sayP('奥義、'+(EP.ougi||name+'拳')+'！','hero'),wait(1800)]);
+    if(EP.ougi2){await ougi2Show(sayP,wait)}
     const w=$('#wo');w.classList.remove('on');void w.offsetWidth;w.classList.add('on');punch(2.4);ov.classList.remove('black');
-    ov.innerHTML=`<div class="finisher"><div class="doka">${EP.ougi||'ドカーン！！'}</div><p class="tagline" style="text-align:left">${EP.result}</p><div class="card"><span class="law">${EP.tashi?'判例のポイント':EP.jobun?'条文のポイント':'模範解答'}（${EP.lawRef||''}）</span><div class="model">${EP.model}</div>${wbBox(EP.wb,true)}<p style="margin:0;font-size:13px">${EP.exp}</p></div><button class="btn" type="button" id="toClear">戦いの記録を見る</button></div>`;
+    ov.innerHTML=`<div class="finisher"><div class="doka">${EP.ougi2||EP.ougi||'ドカーン！！'}</div><p class="tagline" style="text-align:left">${EP.result}</p><div class="card"><span class="law">${EP.tashi?'判例のポイント':EP.jobun?'条文のポイント':'模範解答'}（${EP.lawRef||''}）</span><div class="model">${EP.model}</div>${wbBox(EP.wb,true)}<p style="margin:0;font-size:13px">${EP.exp}</p></div><button class="btn" type="button" id="toClear">戦いの記録を見る</button></div>`;
     ov.style.overflowY='auto';ov.style.alignItems='flex-start';
     $('#toClear').onclick=()=>{ov.hidden=true;ov.innerHTML='';ov.style.cssText='';nextPart()};
   })();
@@ -1248,11 +1254,19 @@ function finisherSlash(){
     $('#fudeSub').classList.add('on');await wait(1200);
     // 6. 奥義〇〇拳で決める
     $('#ougiStamp').classList.add('on');punch(2.2);await Promise.all([sayP('奥義、'+(EP.ougi||name+'拳')+'！','hero'),wait(1800)]);
+    if(EP.ougi2){await ougi2Show(sayP,wait)}
     const w=$('#wo');w.classList.remove('on');void w.offsetWidth;w.classList.add('on');punch(2.4);ov.classList.remove('black');
-    ov.innerHTML=`<div class="finisher"><div class="doka">${EP.ougi||'ドカーン！！'}</div><p class="tagline" style="text-align:left">${EP.result}</p><div class="card"><span class="law">${EP.tashi?'判例のポイント':EP.jobun?'条文のポイント':'模範解答'}（${EP.lawRef||''}）</span><div class="model">${EP.model}</div>${wbBox(EP.wb,true)}<p style="margin:0;font-size:13px">${EP.exp}</p></div><button class="btn" type="button" id="toClear">戦いの記録を見る</button></div>`;
+    ov.innerHTML=`<div class="finisher"><div class="doka">${EP.ougi2||EP.ougi||'ドカーン！！'}</div><p class="tagline" style="text-align:left">${EP.result}</p><div class="card"><span class="law">${EP.tashi?'判例のポイント':EP.jobun?'条文のポイント':'模範解答'}（${EP.lawRef||''}）</span><div class="model">${EP.model}</div>${wbBox(EP.wb,true)}<p style="margin:0;font-size:13px">${EP.exp}</p></div><button class="btn" type="button" id="toClear">戦いの記録を見る</button></div>`;
     ov.style.overflowY='auto';ov.style.alignItems='flex-start';
     $('#toClear').onclick=()=>{ov.hidden=true;ov.innerHTML='';ov.style.cssText='';nextPart()};
   })();
+}
+// 奥義中の奥義（EP.ougi2）：奥義の後に、もう一段
+async function ougi2Show(sayP,wait){
+  const ov=$('#ov'),o=document.createElement('div');o.className='ougi2';o.innerHTML=`<small>奥義中の奥義</small><b>${EP.ougi2}</b>`;
+  ov.querySelector('.finisher').appendChild(o);await wait(500);
+  const a=ac();if(a){I.taiko(a,a.destination,a.currentTime+.02,1);I.taiko(a,a.destination,a.currentTime+.22,1)}
+  o.classList.add('on');punch(3);hit(2.4);await Promise.all([sayP('奥義中の奥義、'+EP.ougi2+'！','hero'),wait(2200)]);
 }
 // 斬った線にそって、ボスを帯に切り分け、互い違いにずらして崩す
 function sliceApart(fig,st,cuts){
