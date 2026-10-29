@@ -51,7 +51,7 @@ for(const ep of ctx.LB.eps){
     for(const P of p.panels){add(P.nar,'narr');if(P.say){const sp=(P.figs.find(f=>f[1]===P.say.side)||P.figs[0])[0];add(P.say.text,sp)}}
     add(p.kime,'hero');add('わっはっはっはっ、あっはっはっはっ！',enemyKey(p.efig||'boss'));
     if(p.type==='boss'){const bk=p.efig||'boss';add('甘いわ、小僧！',bk);if(p.lawName)add(p.lawName+'！','hero');
-      if((ep.fin||(ep.no>=6?'slash':'hokuto'))==='slash'){add('しょうっ！','hero');add('な、何をしやがった？',bk);add('お前の主張は、すでに切り裂かれている。','hero');add('ぐわあああっ！',bk)}else{add('ん？なんともねえぞ？',bk);add('ひでぶっ！',bk);add('お前の主張は、もう死んでいる。','hero');}add('奥義、'+(p.ougi||p.lawName+'拳')+'！','hero');if(p.ougi2)add('奥義中の奥義、'+p.ougi2+'！','hero')}
+      const FS=ep.fin||(ep.no>=10&&ep.no<=13?'hyaku':ep.no>=6?'slash':'hokuto');if(FS==='hyaku'){const H=Object.assign({taunt:'へっ、そんな拳、効かねえなあ！',reply:'なら、まとめて叩き込んでやる！'},ep.hyaku||{});add('アタタタタタタタタタタタタタタッ！','hero');add(H.taunt,bk);add(H.reply,'hero');add('ほあたぁっ！','hero');add('ぶべらぁっ！',bk)}else if(FS==='slash'){add('しょうっ！','hero');add('な、何をしやがった？',bk);add('お前の主張は、すでに切り裂かれている。','hero');add('ぐわあああっ！',bk)}else{add('ん？なんともねえぞ？',bk);add('ひでぶっ！',bk);add('お前の主張は、もう死んでいる。','hero');}add('奥義、'+(p.ougi||p.lawName+'拳')+'！','hero');if(p.ougi2)add('奥義中の奥義、'+p.ougi2+'！','hero')}
   }
 }
 

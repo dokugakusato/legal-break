@@ -380,6 +380,19 @@ b.gold{color:var(--gold)}
 .fl.hero b{color:#8a5a12}
 .fl.big{font-family:var(--display);font-weight:400;font-size:clamp(34px,10vw,52px);color:var(--blood);background:none;border:none;text-shadow:3px 3px 0 #000,0 0 18px rgba(255,80,40,.7);transform:rotate(-6deg)}
 .fl.big b{display:none}
+.fstage.hyaku{animation:hyShake .09s infinite}
+@keyframes hyShake{0%{transform:translate(0,0)}50%{transform:translate(2px,-1px)}100%{transform:translate(-2px,1px)}}
+.speedfx{position:absolute;inset:-30%;z-index:1;background:repeating-conic-gradient(from 0deg at 70% 45%,rgba(255,240,210,.18) 0 3deg,transparent 3deg 11deg);animation:spdA .25s linear infinite;pointer-events:none}
+@keyframes spdA{to{transform:rotate(11deg)}}
+.fistx{position:absolute;z-index:6;width:44px;margin-top:-16px;pointer-events:none;animation:fistA .24s ease-out forwards;filter:drop-shadow(-10px 0 0 rgba(242,230,210,.35)) drop-shadow(-20px 0 0 rgba(242,230,210,.18))}
+@keyframes fistA{0%{transform:translateX(0) scale(.7);opacity:.9}70%{transform:translateX(var(--dx)) scale(1.15);opacity:1}100%{transform:translateX(var(--dx)) scale(1.3);opacity:0}}
+.kiai.hyk{animation:none;transform:rotate(-8deg);top:6%;left:4%;color:#ffd36a}
+.kiai.hyk.big{font-size:44px;left:20%;top:16%;color:#fff;-webkit-text-stroke:2px #c22d22;animation:kiaiA 1.2s forwards}
+.fig.r.flyaway{animation:flyA 1.1s cubic-bezier(.3,.1,.6,1) forwards}
+@keyframes flyA{0%{transform:translate(0,0) rotate(0)}100%{transform:translate(160%,-230%) rotate(900deg) scale(.08);opacity:.9}}
+.kiran{position:absolute;z-index:8;right:8%;top:16%;font-family:var(--display);font-size:22px;color:#fff6c8;text-shadow:0 0 12px #ffe680,0 0 4px #fff;animation:kiranA 1.4s ease-out forwards;pointer-events:none}
+.kiran::before{content:"";position:absolute;left:-26px;top:2px;width:22px;height:22px;background:radial-gradient(circle,#fff 0 18%,transparent 22%),conic-gradient(from 0deg,#fff6c8 0 4deg,transparent 4deg 86deg,#fff6c8 86deg 94deg,transparent 94deg 176deg,#fff6c8 176deg 184deg,transparent 184deg 266deg,#fff6c8 266deg 274deg,transparent 274deg);border-radius:50%}
+@keyframes kiranA{0%{opacity:0;transform:scale(.3)}25%{opacity:1;transform:scale(1.3)}60%{transform:scale(1)}100%{opacity:0}}
 .ougi2{position:fixed;left:50%;top:70%;transform:translate(-50%,-50%) scale(3);opacity:0;display:flex;flex-direction:column;align-items:center;font-family:var(--display);color:var(--gold);background:rgba(0,0,0,.88);border:5px double var(--gold);padding:10px 20px;white-space:nowrap;text-shadow:0 0 18px rgba(255,190,60,.9),3px 3px 0 var(--blood);z-index:5}
 .ougi2 small{font-size:clamp(14px,4.4vw,20px);letter-spacing:.3em;color:var(--bone)}
 .ougi2 b{font-size:clamp(34px,11vw,56px);line-height:1.15}
@@ -1045,6 +1058,9 @@ const PROPS={
 };
 function propHTML([k,pos]){const P=PROPS[k];if(!P)return '';return `<div class="prop ${pos}" style="--s:${P.s};aspect-ratio:${P.vb[0]}/${P.vb[1]}"><svg viewBox="0 0 ${P.vb[0]} ${P.vb[1]}" aria-hidden="true">${P.svg}</svg></div>`}
 const EMOSVG='<svg class="emo" viewBox="0 0 100 160" aria-hidden="true"><g class="e-angry"><ellipse cx="50" cy="45" rx="13" ry="7" fill="#e0402a" opacity=".3"/><g stroke="#ff3b2e" stroke-width="2.8" fill="none" stroke-linecap="round"><path d="M65 13q5 3 3 8"/><path d="M76 13q-5 3-3 8"/><path d="M65 29q5-3 3-8"/><path d="M76 29q-5-3-3-8"/></g><path d="M26 30l-6-3M24 38h-7" stroke="#ff3b2e" stroke-width="2" stroke-linecap="round"/></g><g class="e-sad"><path d="M43 44c-1.5 5-1 10 .5 15M57 44c1.5 5 1 10-.5 15" stroke="#8fd0ff" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="44" cy="61" r="2.1" fill="#8fd0ff"/><circle cx="56.5" cy="61" r="2.1" fill="#8fd0ff"/><path d="M32 2v13M40 0v11M48 2v9M56 0v11M64 2v13" stroke="#7d8cd0" stroke-width="1.7" opacity=".8"/></g><g class="e-shock"><path d="M70 25c3 4 4.5 7.5 1.5 9.5c-3 1.5-5.5-2-3.5-5z" fill="#9fdcff" stroke="#0b0807" stroke-width=".8"/><path d="M27 19l-7-6M50 11V1M73 19l7-6" stroke="#fbf6ec" stroke-width="2.6" stroke-linecap="round"/></g><g class="e-happy"><path d="M23 20l2 5 5 2-5 2-2 5-2-5-5-2 5-2zM77 13l1.6 4 4 1.6-4 1.6-1.6 4-1.6-4-4-1.6 4-1.6z" fill="#ffe08a"/><ellipse cx="41" cy="47" rx="3.6" ry="2.1" fill="#ff8a7a" opacity=".6"/><ellipse cx="59" cy="47" rx="3.6" ry="2.1" fill="#ff8a7a" opacity=".6"/></g><g class="e-evil"><ellipse cx="50" cy="37" rx="18" ry="10" fill="#0b0807" opacity=".5"/><circle cx="44" cy="40" r="2" fill="#ff4a3a"/><circle cx="56" cy="40" r="2" fill="#ff4a3a"/><path d="M71 22l4-4M73 29h5" stroke="#c22d22" stroke-width="2" stroke-linecap="round"/></g></svg>';
+// 佐藤の衣装（CH.cos）。apron＝かわいいエプロン
+const COS={apron:`<g class="cos"><path d="M41 66L45 53M59 66L55 53" stroke="#f59ac0" stroke-width="2.6" fill="none"/><path d="M37 66h26l2 31H35z" fill="#f8acc9" stroke="#fff4f8" stroke-width="1.3"/><path d="M30 97h40l9 52H21z" fill="#f8acc9" stroke="#fff4f8" stroke-width="1.3"/><g fill="#fff4f8">${[24,30.5,37,43.5,50,56.5,63,69.5,76].map(x=>`<circle cx="${x}" cy="150" r="3.6"/>`).join('')}<circle cx="42" cy="74" r="1.4"/><circle cx="57" cy="84" r="1.4"/><circle cx="34" cy="110" r="1.6"/><circle cx="66" cy="108" r="1.6"/><circle cx="31" cy="136" r="1.6"/><circle cx="70" cy="138" r="1.6"/><circle cx="46" cy="139" r="1.6"/></g><path d="M38 66q12 7 24 0" stroke="#fff4f8" stroke-width="2.2" fill="none"/><rect x="28" y="94" width="44" height="5" rx="2" fill="#e8466e"/><path d="M72 96l9-6v12zM72 96l7 9-4 2z" fill="#e8466e"/><circle cx="72" cy="96" r="2.4" fill="#ff7aa0"/><path d="M50 129l-7.5-7.2a4.3 4.3 0 0 1 7.5-5a4.3 4.3 0 0 1 7.5 5z" fill="#e8466e"/></g>`};
+function heroSVG(){const c=CH&&CH.cos&&COS[CH.cos];return c?SIL.hero.replace('<g class="dmg dmg1">',c+'<g class="dmg dmg1">'):SIL.hero}
 const NAMES={hero:'佐藤',old:'田中',thug:'坂東',mina:'佐々木',oldwoman:'鈴木',trick:'三浦',jin:'中村',farmer:'山本（父）',girl:'さや',dogra:'土倉',sou:'小林',haru:'高橋',inn:'伊藤',boss:'権田'};
 /* ---------- 下から出る解説シート ---------- */
 function openSheet(delay){clearTimeout(S.sheetT);const s=$('#sheet'),f=$('#fb');f.innerHTML='';const go=()=>{s.hidden=false;$('.sheet-in').scrollTop=0};if(delay){s.hidden=true;S.sheetT=setTimeout(go,delay)}else go();return f}
@@ -1067,13 +1083,13 @@ function story(ch,panels,done,wbd,endLabel){
 function panelHTML(p,i){
   const spf=p.say?(p.figs.find(f=>f[1]===p.say.side)||p.figs[0]):null,sp=spf?spf[0]:null;
   const emo=p.say?(p.say.emo||(p.say.evil?'evil':/！/.test(p.say.text)?'angry':/…/.test(p.say.text)?'sad':'')):'';
-  const figs=p.figs.map(([t,pos,nm])=>{const e=t===sp?emo:(p.react||'');return `<div class="fig ${pos} ${t}${e?' emo-'+e:''}">${SIL[t]}${EMOSVG}<span class="ntag">${nm||NAMES[t]||''}</span></div>`}).join('');
+  const figs=p.figs.map(([t,pos,nm])=>{const e=t===sp?emo:(p.react||'');return `<div class="fig ${pos} ${t}${e?' emo-'+e:''}">${t==='hero'?heroSVG():SIL[t]}${EMOSVG}<span class="ntag">${nm||NAMES[t]||''}</span></div>`}).join('');
   const say=p.say?`<div class="say ${p.say.side}${p.say.evil?' evil':''}"><b class="who">${(spf&&spf[2])||NAMES[sp]||''}</b>${p.say.text}</div>`:'';
   return `<div class="kw"><div class="cap">${p.nar}</div><div class="panel ${p.bg?'bg-'+p.bg:''}${p.lines?' lines':''}${p.say?' talk':''}"><div class="tone"></div>${(p.props||[]).map(propHTML).join('')}${figs}${say}<span class="pno">${i+1}</span></div></div>`;
 }
 /* ---------- 雑魚戦 ---------- */
 function startCase(){const c=EP;BGM.play(c.bgm);story(c.chapter,c.panels,()=>battle(c),c.wb)}
-function stageHTML(efig,name,big,tag){return `<div class="tone"></div><div class="fig l hero">${SIL.hero}${EMOSVG}<span class="ntag">佐藤</span></div><div class="fig r ${efig}${big?' bigboss':''}">${SIL[efig]}${EMOSVG}<svg class="edmg" viewBox="0 0 100 160" aria-hidden="true"><g class="e1"><ellipse cx="57" cy="44" rx="5" ry="4" fill="#5a2a6a" opacity=".55"/><path d="M34 98l10 6M60 112l9-5M44 128l7 4" stroke="#efe3cf" stroke-width="1.6" fill="none" opacity=".9"/></g><g class="e2"><path d="M45 22c-1.5 7 1 10-1 17c-1 4 2.6 4.4 2.6.4c.5-6-.6-10-1.6-17.4z" fill="#c22d22"/><path d="M26 108l7-10 5 10 5-7 1 12zM60 96l9-4 2 10 6 2-7 8z" fill="#2a1a14" stroke="#efe3cf" stroke-width=".8"/><path d="M58 50q2 5 0 9" stroke="#c22d22" stroke-width="2" fill="none"/></g><g class="e3"><path d="M32 100l20 18M52 100l-20 18" stroke="#c22d22" stroke-width="3" stroke-linecap="round"/><circle cx="43" cy="40" r="4" fill="#3a1a2a" opacity=".8"/><path d="M64 120l6-8 4 8 5-6 2 11zM18 140l6-7 3 7 5-5 1 9z" fill="#2a1a14" stroke="#efe3cf" stroke-width=".8"/><path d="M50 56c2 6-1 9 1 14c1 3-2.4 3-2.2 0c0-4 .4-8 1.2-14z" fill="#c22d22"/></g></svg><span class="ntag">${tag||NAMES[efig]||''}</span></div><div class="enemyname">${name}</div>`}
+function stageHTML(efig,name,big,tag){return `<div class="tone"></div><div class="fig l hero">${heroSVG()}${EMOSVG}<span class="ntag">佐藤</span></div><div class="fig r ${efig}${big?' bigboss':''}">${SIL[efig]}${EMOSVG}<svg class="edmg" viewBox="0 0 100 160" aria-hidden="true"><g class="e1"><ellipse cx="57" cy="44" rx="5" ry="4" fill="#5a2a6a" opacity=".55"/><path d="M34 98l10 6M60 112l9-5M44 128l7 4" stroke="#efe3cf" stroke-width="1.6" fill="none" opacity=".9"/></g><g class="e2"><path d="M45 22c-1.5 7 1 10-1 17c-1 4 2.6 4.4 2.6.4c.5-6-.6-10-1.6-17.4z" fill="#c22d22"/><path d="M26 108l7-10 5 10 5-7 1 12zM60 96l9-4 2 10 6 2-7 8z" fill="#2a1a14" stroke="#efe3cf" stroke-width=".8"/><path d="M58 50q2 5 0 9" stroke="#c22d22" stroke-width="2" fill="none"/></g><g class="e3"><path d="M32 100l20 18M52 100l-20 18" stroke="#c22d22" stroke-width="3" stroke-linecap="round"/><circle cx="43" cy="40" r="4" fill="#3a1a2a" opacity=".8"/><path d="M64 120l6-8 4 8 5-6 2 11zM18 140l6-7 3 7 5-5 1 9z" fill="#2a1a14" stroke="#efe3cf" stroke-width=".8"/><path d="M50 56c2 6-1 9 1 14c1 3-2.4 3-2.2 0c0-4 .4-8 1.2-14z" fill="#c22d22"/></g></svg><span class="ntag">${tag||NAMES[efig]||''}</span></div><div class="enemyname">${name}</div>`}
 function battle(c){show('s-battle');$('#s-battle').classList.remove('bossmode');BGM.play(c.bbgm);S.ehp=100;$('#eName').textContent=c.enemy;$('#stage').innerHTML=stageHTML(c.efig,c.enemy,0,c.efigName);bars();S.queue=['q','ox','ox2'];S.tried={};ask(c,'q')}
 const PART={q:50,ox:25,ox2:25};
 function ask(c,kind){
@@ -1161,8 +1177,8 @@ function bossBattle(){
 }
 // 北斗風の決め・エルボーは第3話から（第1・2話は元の演出のまま）。話データで hokuto:true/false を指定すれば上書き
 const hokuto=()=>!!CH&&(CH.hokuto??CH.no>=3);
-const finStyle=()=>!CH?'hokuto':CH.fin||(CH.no>=6?'slash':'hokuto');
-function finisher(){if(!hokuto())return finisherClassic();return finStyle()==='slash'?finisherSlash():finisherHokuto()}
+const finStyle=()=>!CH?'hokuto':CH.fin||(CH.no>=10&&CH.no<=13?'hyaku':CH.no>=6?'slash':'hokuto');
+function finisher(){if(!hokuto())return finisherClassic();const fs=finStyle();return fs==='hyaku'?finisherHyaku():fs==='slash'?finisherSlash():finisherHokuto()}
 function finisherClassic(){
   BGM.stop();closeSheet();stopSay();
   const name=EP.lawName||EP.ougi,ov=$('#ov');ov.hidden=false;ov.classList.add('black');
@@ -1256,6 +1272,57 @@ function finisherSlash(){
     $('#ougiStamp').classList.add('on');punch(2.2);await Promise.all([sayP('奥義、'+(EP.ougi||name+'拳')+'！','hero'),wait(1800)]);
     if(EP.ougi2){await ougi2Show(sayP,wait)}
     const w=$('#wo');w.classList.remove('on');void w.offsetWidth;w.classList.add('on');punch(2.4);ov.classList.remove('black');
+    ov.innerHTML=`<div class="finisher"><div class="doka">${EP.ougi2||EP.ougi||'ドカーン！！'}</div><p class="tagline" style="text-align:left">${EP.result}</p><div class="card"><span class="law">${EP.tashi?'判例のポイント':EP.jobun?'条文のポイント':'模範解答'}（${EP.lawRef||''}）</span><div class="model">${EP.model}</div>${wbBox(EP.wb,true)}<p style="margin:0;font-size:13px">${EP.exp}</p></div><button class="btn" type="button" id="toClear">戦いの記録を見る</button></div>`;
+    ov.style.overflowY='auto';ov.style.alignItems='flex-start';
+    $('#toClear').onclick=()=>{ov.hidden=true;ov.innerHTML='';ov.style.cssText='';nextPart()};
+  })();
+}
+// 百裂拳（10〜13話）：連打してぶっ飛ばす
+function finisherHyaku(){
+  BGM.stop();closeSheet();stopSay();
+  const name=EP.lawName||EP.ougi,ov=$('#ov'),bk=VP[EP.efig]?EP.efig:'boss',H=Object.assign({taunt:'へっ、そんな拳、効かねえなあ！',reply:'なら、まとめて叩き込んでやる！'},CH.hyaku||{});ov.hidden=false;ov.classList.add('black');
+  const wait=ms=>new Promise(r=>setTimeout(r,ms)),sayP=(t,k)=>new Promise(r=>say([[t,k]],r));
+  const line=(t,who,cls='')=>{const l=$('#fline');if(l)l.innerHTML=`<div class="fl ${cls}"><b>${who}</b>${t}</div>`};
+  ov.innerHTML=`<div class="finisher hk"><div class="stage fstage" id="fstage">${stageHTML(EP.efig||'boss',EP.enemy,1,EP.efigName)}</div><div class="fline" id="fline"></div></div>`;
+  const st=$('#fstage'),boss=st.querySelector('.fig.r'),hero=st.querySelector('.fig.l');boss.classList.add('ed1','ed2');
+  const FIST='<svg viewBox="0 0 40 30"><path d="M2 9h14V5c0-3 3-4 6-4h10c5 0 7 3 7 7v14c0 4-3 7-7 7H20c-3 0-5-2-5-4H2z" fill="#f2e6d2" stroke="#0b0807" stroke-width="2"/><path d="M24 2v26M31 2v26M24 15h14" stroke="#0b0807" stroke-width="1.6"/></svg>';
+  (async()=>{
+    // 1. 百裂の連打「アタタタタ…」
+    await wait(400);hero.classList.add('rush');st.classList.add('hyaku');
+    const sp=document.createElement('div');sp.className='speedfx';st.appendChild(sp);
+    const v=document.createElement('div');v.className='kiai hyk';st.appendChild(v);say([['アタタタタタタタタタタタタタタッ！','hero']]);rapidKiai(28);
+    const N=46;
+    for(let i=0;i<N;i++){
+      v.textContent='ア'+'タ'.repeat(Math.min(14,2+Math.floor(i/3)))+(i%2?'ッ':'');v.style.fontSize=(26+Math.min(16,i*.4))+'px';
+      const r=boss.getBoundingClientRect(),sr=st.getBoundingClientRect(),hr=hero.getBoundingClientRect();
+      const y=r.top-sr.top+r.height*(.15+Math.random()*.55),x=r.left-sr.left+r.width*(.25+Math.random()*.45);
+      const f=document.createElement('div');f.className='fistx';f.innerHTML=FIST;f.style.top=y+'px';f.style.left=(hr.right-sr.left-20)+'px';f.style.setProperty('--dx',(x-(hr.right-sr.left-20))+'px');st.appendChild(f);setTimeout(()=>f.remove(),260);
+      const d=document.createElement('div');d.className='hiko';d.style.left=x+'px';d.style.top=y+'px';st.appendChild(d);setTimeout(()=>d.remove(),600);
+      boss.classList.remove('hit');void boss.offsetWidth;boss.classList.add('hit');if(i%2)punch(.6);else hit(.35);
+      await wait(i>N-8?50:68)}
+    v.remove();await wait(300);hero.classList.remove('rush');boss.classList.remove('hit');
+    // 2. ボスの強がり
+    line(H.taunt,EP.efigName||EP.enemy);await Promise.all([sayP(H.taunt,bk),wait(1700)]);
+    line(H.reply,'佐藤','hero');await Promise.all([sayP(H.reply,'hero'),wait(1600)]);
+    // 3. 「ほあたぁっ！」でぶっ飛ばす
+    hero.classList.add('leap');const k=document.createElement('div');k.className='kiai hyk big';k.textContent='ほあたぁっ！';st.appendChild(k);say([['ほあたぁっ！','hero']]);
+    await wait(260);const w=document.createElement('div');w.className='whiteout-mini';st.appendChild(w);setTimeout(()=>w.remove(),400);punch(2.6);hit(2.4);
+    const a=ac();if(a)I.taiko(a,a.destination,a.currentTime+.02,1);
+    boss.classList.add('flyaway');line('ぶべらぁっ！！',EP.efigName||EP.enemy,'big');say([['ぶべらぁっ！',bk]]);
+    await wait(1200);k.remove();hero.classList.remove('leap');
+    const star=document.createElement('div');star.className='kiran';star.textContent='キラーン';st.appendChild(star);
+    if(a){I.bell(a,a.destination,88,a.currentTime,.12);I.bell(a,a.destination,91,a.currentTime+.12,.12)}
+    await wait(1500);$('#fline').innerHTML='';st.classList.remove('hyaku');
+    // 4. 暗転して、権利の名前を筆文字で
+    ov.innerHTML=`<div class="finisher"><div class="fude" id="fude" aria-label="${name}"></div><div class="fude-sub" id="fudeSub">${EP.lawRef||''}</div><div class="ougi-stamp" id="ougiStamp"><small>奥義</small>${EP.ougi||name+'拳'}</div></div>`;
+    const a2=ac();if(a2)I.taiko(a2,a2.destination,a2.currentTime+.05,1);await wait(800);
+    say([[name+'！','hero']]);const fu=$('#fude'),chars=[...name];
+    fu.style.fontSize=Math.min(78,Math.floor((fu.parentElement.clientWidth||320)*.92/chars.length))+'px';fu.style.flexWrap='nowrap';
+    for(let i=0;i<chars.length;i++){const s2=document.createElement('span');s2.textContent=chars[i];fu.appendChild(s2);hit(i===chars.length-1?2:.8);await wait(190)}
+    $('#fudeSub').classList.add('on');await wait(1200);
+    $('#ougiStamp').classList.add('on');punch(2.2);await Promise.all([sayP('奥義、'+(EP.ougi||name+'拳')+'！','hero'),wait(1800)]);
+    if(EP.ougi2){await ougi2Show(sayP,wait)}
+    const wo=$('#wo');wo.classList.remove('on');void wo.offsetWidth;wo.classList.add('on');punch(2.4);ov.classList.remove('black');
     ov.innerHTML=`<div class="finisher"><div class="doka">${EP.ougi2||EP.ougi||'ドカーン！！'}</div><p class="tagline" style="text-align:left">${EP.result}</p><div class="card"><span class="law">${EP.tashi?'判例のポイント':EP.jobun?'条文のポイント':'模範解答'}（${EP.lawRef||''}）</span><div class="model">${EP.model}</div>${wbBox(EP.wb,true)}<p style="margin:0;font-size:13px">${EP.exp}</p></div><button class="btn" type="button" id="toClear">戦いの記録を見る</button></div>`;
     ov.style.overflowY='auto';ov.style.alignItems='flex-start';
     $('#toClear').onclick=()=>{ov.hidden=true;ov.innerHTML='';ov.style.cssText='';nextPart()};
@@ -1638,7 +1705,7 @@ function sadTheme(delay=2){
 }
 function sadStop(now){const a=AC;if(!SAD.g||!a)return;const g=SAD.g;SAD.g=null;g.gain.cancelScheduledValues(a.currentTime);g.gain.setValueAtTime(g.gain.value,a.currentTime);g.gain.linearRampToValueAtTime(0,a.currentTime+(now?.05:.8));setTimeout(()=>{try{g.disconnect()}catch(e){}},1200)}
 
-$('#titleHero').innerHTML=SIL.hero;
+$('#titleHero').innerHTML=SIL.hero;/*title stays plain*/
 const VOICE_TEST=[['時は、にせんにじゅうエックスねん。荒野に、法の拳が戻ってくる。','narr'],['独学で戦うお前に、法の拳を教えてやる。','hero'],['ワシが地上げ王、権田だ！','boss'],['押さなきゃ、どうなるか分かってんだろうな。','dogra'],['ヒャッハー！形だけだ、形だけな！','thug'],['婆さん、この井戸はじき毒で枯れるぜ。','trick'],['お父ちゃん、今年は芽が出たよ！','girl'],['私は何も知らずに買ったんです。','mina'],['そうかい、なら仕方ないねえ。','oldwoman'],['名義だけ変えておけば、取り立てられまい。','old'],['伊藤さん、代金は来月でいいよ。','haru'],['もう払えるものがない。','inn']];
 $('#startBtn').onclick=()=>{ac();const nn=nextNo();if(nn)playEp(nn);else openSelect()};
 $('#selectBtn').onclick=()=>{ac();openSelect()};
@@ -1759,7 +1826,7 @@ Object.assign(VP,VP2);
 function arrestScene(done){
   closeSheet();stopSay();BGM.stop();const A=CH.arrest,ov=$('#ov');ov.hidden=false;ov.className='black';ov.style.cssText='';
   const wait=ms=>new Promise(r=>setTimeout(r,ms)),sayP=(t,k)=>new Promise(r=>say([[t,k]],r));
-  ov.innerHTML=`<div class="finisher hk arrest"><div class="siren" id="siren"></div><div class="stage fstage" id="astage"><div class="tone"></div><div class="fig l hero">${SIL.hero}${EMOSVG}<span class="ntag">佐藤</span></div><div class="fig r keiji acop">${SIL.keiji}${EMOSVG}<span class="ntag">${NAMES.keiji}</span></div><div class="cuffsdrop" id="cuffs"><svg viewBox="0 0 120 70">${PROPS.cuffs.svg}</svg></div></div><div class="fline" id="aline"></div><div class="taiho" id="taiho">逮捕</div><div class="tsuzuku" id="tsuzuku">${A.tsuzuku||'次章へ続く'}</div><button class="btn" type="button" id="toRec" hidden>戦いの記録を見る</button></div>`;
+  ov.innerHTML=`<div class="finisher hk arrest"><div class="siren" id="siren"></div><div class="stage fstage" id="astage"><div class="tone"></div><div class="fig l hero">${heroSVG()}${EMOSVG}<span class="ntag">佐藤</span></div><div class="fig r keiji acop">${SIL.keiji}${EMOSVG}<span class="ntag">${NAMES.keiji}</span></div><div class="cuffsdrop" id="cuffs"><svg viewBox="0 0 120 70">${PROPS.cuffs.svg}</svg></div></div><div class="fline" id="aline"></div><div class="taiho" id="taiho">逮捕</div><div class="tsuzuku" id="tsuzuku">${A.tsuzuku||'次章へ続く'}</div><button class="btn" type="button" id="toRec" hidden>戦いの記録を見る</button></div>`;
   const line=(t,who,cls='')=>{$('#aline').innerHTML=`<div class="fl ${cls}"><b>${who}</b>${t}</div>`};
   const st=$('#astage'),cop=st.querySelector('.acop'),hero=st.querySelector('.fig.l');
   (async()=>{
@@ -2002,7 +2069,7 @@ function opening(ep,done){
   OPDONE=done;const run=++OPRUN;const LINES=ep.op,T=ep.opTitle;
   $('#op .op-title').innerHTML=T?`<div class="logo"><span class="pre">${T.pre}</span>${T.main}${T.small?'<small>'+T.small+'</small>':''}</div>`:'<div class="logo"><span class="pre">行政書士独学応援</span>LEGAL BREAK<small>―法の拳―</small></div>';
   try{if(TTS.ok){speechSynthesis.cancel();const w=new SpeechSynthesisUtterance(' ');w.volume=0;speechSynthesis.speak(w)}}catch(e){}
-  const op=$('#op');op.hidden=false;op.classList.remove('village','titlecard');$('#opHero').innerHTML=SIL.hero;const cap=$('#opCap');cap.innerHTML='';
+  const op=$('#op');op.hidden=false;op.classList.remove('village','titlecard');$('#opHero').innerHTML=heroSVG();const cap=$('#opCap');cap.innerHTML='';
   const hero=$('#opHero');hero.classList.remove('walk');void hero.offsetWidth;hero.classList.add('walk');
   BGM.play('opening');
   const wait=(ms,f)=>OPT.push(setTimeout(()=>{if(run===OPRUN)f()},ms));

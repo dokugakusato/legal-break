@@ -4,6 +4,8 @@
 LB.episode({
   no:10,
   kijutsu:1,
+  cos:"apron",
+  hyaku:{taunt:"へっ、そんな拳、受け取らねえよ！",reply:"受け取らねえなら、まとめて届けてやる！"},
   cat:"民法",
   title:"皿洗い編 ― 受け取らない大家",
   arc:"第十章 皿洗い編",
@@ -128,7 +130,7 @@ LB.episode({
         say:{side:"c",text:"家賃を払わん店子は、出ていってもらう！",evil:1,emo:"evil"}
       },
       {
-        nar:"佐藤はエプロンを外し、サングラスを光らせた。",
+        nar:"佐藤はエプロンのひもを締め直し、サングラスを光らせた。",
         figs:[["hero","l"],["ooya","r","馬場（B）"]],
         say:{side:"l",text:"受け取らないなら、受け取らないなりのやり方がある。"},
         react:"evil"
