@@ -85,7 +85,7 @@ body.w-prison .op-hero{filter:drop-shadow(0 0 14px rgba(160,190,220,.4))}
 .fig{position:absolute;bottom:-4px;height:84%;aspect-ratio:100/160;z-index:2}
 .fig svg{width:100%;height:100%;display:block}
 .fig.l{left:5%}.fig.r{right:5%}.fig.c{left:50%;transform:translateX(-50%)}
-.fig.boss,.fig.kurosaki,.fig.ronanushi,.fig.kanshucho{height:100%}
+.fig.boss,.fig.bucho,.fig.kurosaki,.fig.ronanushi,.fig.kanshucho{height:100%}
 .fig.girl{height:66%}
 .fig.dogra{height:94%}
 .fig.inn{height:86%}
@@ -454,7 +454,7 @@ b.gold{color:var(--gold)}
 #koma .panel{flex:1;height:auto;min-height:220px}
 #koma .wb{flex:none}
 #koma .fig{height:calc(var(--k,.84) * min(100%,330px))}
-#koma .fig.boss{--k:1}#koma .fig.ronanushi{--k:1}#koma .fig.kanshucho{--k:1}#koma .fig.kurosaki{--k:1}#koma .fig.girl{--k:.66}#koma .fig.dogra{--k:.94}#koma .fig.inn{--k:.86}
+#koma .fig.boss{--k:1}#koma .fig.bucho{--k:1}#koma .fig.ronanushi{--k:1}#koma .fig.kanshucho{--k:1}#koma .fig.kurosaki{--k:1}#koma .fig.girl{--k:.66}#koma .fig.dogra{--k:.94}#koma .fig.inn{--k:.86}
 #koma .kw{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px}
 #koma .cap{flex:none;background:var(--sil);color:var(--bone);border:2px solid var(--bone);border-left:6px solid var(--blood);padding:8px 12px;font-size:15px;line-height:1.65;animation:panelIn .45s ease-out both}
 #koma .panel.talk .fig{height:calc(var(--k,.84) * min(100% - 118px, 330px))}
@@ -1764,6 +1764,43 @@ function arrestScene(done){
     const b=$('#toRec');b.hidden=false;b.onclick=()=>{ov.hidden=true;ov.innerHTML='';ov.className='';ov.style.cssText='';done()};
   })();
 }
+
+/* ---------- 第八章（書士会編）の登場人物・小道具・曲 ---------- */
+Object.assign(SIL,{
+// 開発課長・権堂：黒崎組に抱きこまれた役場の課長。ちょびひげ、丸めがね、ベスト
+bucho:mk(`<path d="${B.boss}" fill="#3a3f52"/>${SHD(B.boss)}<path d="M34 66L50 112L66 66Z" fill="#efe3cf"/><path d="M30 70l20 52 20-52" fill="#6b2a2a" stroke="#2a1a1a" stroke-width="2"/><path d="M46 72h8l-4 8z" fill="#c9a441"/><circle cx="40" cy="100" r="2" fill="#d9a441"/><circle cx="60" cy="100" r="2" fill="#d9a441"/><circle cx="40" cy="114" r="2" fill="#d9a441"/><circle cx="60" cy="114" r="2" fill="#d9a441"/><path d="M62 96q12 4 10 14" stroke="#d9a441" stroke-width="1.6" fill="none"/>${NECK(46,16)}<ellipse cx="50" cy="38" rx="17" ry="18" fill="${SK}"/><path d="M33 34C33 20 42 16 52 18C40 20 36 26 36 34z" fill="#2b2b2b"/><path d="M36 22q14-8 30 6" stroke="#2b2b2b" stroke-width="3" fill="none"/><circle cx="43" cy="38" r="5.5" fill="none" stroke-width="1.8"/><circle cx="57" cy="38" r="5.5" fill="none" stroke-width="1.8"/><path d="M48.5 38h3" fill="none"/><path d="M40 37q3-2 6 0M54 37q3-2 6 0" stroke-width="1.6" fill="none"/><path d="M42 47q8-4 16 0q-4 3-8 1q-4 2-8-1z" fill="#2b2b2b"/><path d="M44 53q6 3 12 0" fill="none"/>`)
+});
+Object.assign(NAMES,{bucho:'権堂'});
+Object.assign(VP,{bucho:{p:.4,r:.78,g:'m',i:1}});
+Object.assign(PROPS,{
+ kyoka:{vb:[80,100],s:.3,svg:PROP_S(`<path d="M8 6h64v88H8z" fill="#f4ecdc"/><text x="40" y="26" text-anchor="middle" font-size="13" font-weight="900" fill="${O}" stroke="none" font-family="sans-serif">許可書</text><path d="M18 40h44M18 50h44M18 60h30" stroke-width="1.6"/><circle cx="56" cy="78" r="10" fill="none" stroke="#c22d22" stroke-width="2.8"/><text x="56" y="82" text-anchor="middle" font-size="10" font-weight="900" fill="#c22d22" stroke="none" font-family="sans-serif">町</text>`)},
+ drill:{vb:[100,120],s:.42,svg:PROP_S(`<path d="M30 10h40v18H30z" fill="#c9a441"/><path d="M42 28h16v40H42z" fill="#8a929a"/><path d="M42 68h16l-8 40z" fill="#b8c0c8"/><path d="M44 74l12 6M44 84l12 6M46 94l8 4" stroke-width="1.6"/><path d="M20 112h60" stroke="#6b4a2a" stroke-width="5"/>`)}
+});
+Object.assign(TR,{
+ // 書士会館：古い木の館。チェロとピアノの、あたたかい賛美歌風
+ k8hall:{bpm:72,f(a,o,s,t,d){const bar=s>>3,ch=[[48,52,55],[53,57,60],[55,59,62],[48,52,55]][bar];if(s%8===0){I.cello(a,o,ch[0]-12,t,8*d*.95,.05);I.pad(a,o,ch.map(n=>n+12),t,8*d,.02,900)}
+  if(s%2===0)I.piano(a,o,ch[(s>>1)%3]+12,t,.04);const m={0:[67,4],4:[69,2],6:[71,2],8:[72,6],16:[71,3],19:[69,1],20:[67,4],24:[64,6]}[s];if(m)I.cello(a,o,m[0]-12,t,m[1]*d*.95,.05)}},
+ // 書士会のバトル：勇ましいブラスバンドの行進
+ k8brass:{bpm:132,f(a,o,s,t,d){const ch=[[48,52,55],[53,57,60],[55,59,62],[48,52,55]][s>>3];I.snare(a,o,t,s%4===0?.2:s%2?.05:.1);if(s%4===0)I.kick(a,o,t,.55);if(s%2===0)I.bass(a,o,s%4?ch[2]-24:ch[0]-12,t,d*.9,.15);
+  const m={0:[72,2],2:[72,1],3:[74,1],4:[76,2],6:[72,2],8:[77,3],11:[76,1],12:[74,4],16:[79,2],18:[77,2],20:[76,2],22:[74,2],24:[72,6]}[s];if(m){I.brass(a,o,m[0],t,m[1]*d*.9,.06);I.brass(a,o,m[0]-4,t,m[1]*d*.9,.03)}if(s===31)I.whip(a,o,t,.25)}},
+ // 役場の窓口：タイプライターと時計、すまし顔の木管風
+ k8office:{bpm:96,f(a,o,s,t,d){if(s%2===1)I.tick(a,o,t,2600+((s*37)%5)*120,.03);if(s===15||s===31)I.bell(a,o,96,t,.04,.6);const ch=[[57,60,64],[53,57,60],[52,55,59],[57,60,64]][s>>3];
+  if(s%4===0)I.pluck(a,o,ch[0]-12,t,.09);if(s%4===2)I.pluck(a,o,ch[2]-12,t,.07);const m={0:[69,2],2:[72,2],4:[71,4],8:[69,2],10:[65,2],12:[64,4],16:[64,2],18:[67,2],20:[71,4],24:[69,6]}[s];if(m)I.breath(a,o,m[0],t,m[1]*d*.9,.04)}},
+ // 指導係とのバトル：ビッグバンドのスウィング
+ k8swing:{bpm:168,f(a,o,s,t,d){const sw=s%2?d*.32:0,ch=[[53,57,60,63],[50,53,57,60],[55,58,62,65],[48,52,55,58]][s>>3];I.bass(a,o,[ch[0],ch[1],ch[2],ch[1]][(s>>1)%4]-12,t,d*1.8,.13);
+  if(s%2===0)I.hat(a,o,t,.03);if(s%2===1)I.hat(a,o,t+sw,.02);if(s%4===2)I.snare(a,o,t,.08);if(s%8===0||s%8===5)ch.forEach(n=>I.brass(a,o,n+12,t+(s%8===5?sw:0),d*.8,.022));if(s===31)I.whip(a,o,t,.25)}},
+ // 黒崎組の掘削現場：機械のうなりと乾いた打撃
+ k8site:{bpm:88,f(a,o,s,t,d){if(s%2===0){const n=a.createBufferSource();n.buffer=nbuf(a,d);const f=a.createBiquadFilter();f.type='bandpass';f.frequency.value=180;f.Q.value=3;const g=a.createGain();g.gain.value=.05;n.connect(f).connect(g).connect(o);n.start(t)}
+  if(s%8===0)I.kick(a,o,t,.5);if(s%8===6)I.clank(a,o,t,.06);if(s%16===0)I.cello(a,o,s?33:34,t,16*d*.9,.05);if(s===12||s===28)I.piano(a,o,s===12?58:57,t,.04)}},
+ // 掘削頭とのバトル：速いパンク・ロック
+ k8punk:{bpm:180,f(a,o,s,t,d){const r=[40,40,45,43][s>>3];I.bass(a,o,r,t,d*.85,.16,1);I.bass(a,o,r+7,t,d*.85,.08,1);if(s%2===0)I.kick(a,o,t,.5);if(s%2===1)I.snare(a,o,t,.18);I.hat(a,o,t,.03);if(s%8===0)I.clank(a,o,t,.05);if(s===31)I.whip(a,o,t,.3)}},
+ // 権堂の登場：低い金管と、大太鼓
+ k8bossin:{bpm:56,f(a,o,s,t,d){if(s%8===0){I.taiko(a,o,t,.7);I.brass(a,o,[41,41,40,39][s>>3],t,6*d,.05)}if(s%16===8)I.taiko(a,o,t,.4);if(s===0||s===16)I.pad(a,o,[29,36,41],t,16*d,.035,300);if(s===12||s===28)I.bell(a,o,53,t,.05,3.5)}},
+ // 権堂とのボス戦：金管と合唱と太鼓の大音楽
+ k8boss:{bpm:148,f(a,o,s,t,d){const bar=s>>3,r=[41,41,37,39][bar];I.bass(a,o,[r,r,r+12,r,r+3,r,r+7,r+5][s%8],t,d*.9,.17,1);
+  if(s%4===0)I.kick(a,o,t,.65);if(s%4===2){I.snare(a,o,t,.26);I.taiko(a,o,t,.3)}if(s%2===1)I.hat(a,o,t,.025);if(s%8===0)I.choir(a,o,[[65,68,72],[65,68,72],[61,65,68],[63,67,70]][bar],t,8*d,.03);
+  const m={0:[77,3],3:[75,1],4:[72,4],8:[73,2],10:[75,2],12:[77,4],16:[80,3],19:[79,1],20:[77,4],24:[75,3],27:[73,1],28:[72,4]}[s];if(m){I.brass(a,o,m[0],t,m[1]*d,.07);I.brass(a,o,m[0]-12,t,m[1]*d,.035)}if(s===31)I.whip(a,o,t,.35)}}
+});
 
 /* ---------- 第六章（獄中編）の登場人物・小道具・曲 ---------- */
 Object.assign(SIL,{
