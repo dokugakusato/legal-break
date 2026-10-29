@@ -39,8 +39,10 @@ jobs:
           cat "$RUNNER_TEMP/out.txt"
           rm -f "$RUNNER_TEMP/sa.json"
           if [ $code -ne 0 ]; then grep -v '^\s*$' "$RUNNER_TEMP/out.txt" | tail -12 | while IFS= read -r l; do echo "::error::$l"; done; exit $code; fi
-      - name: 記録の保存ルール（firestore.rules）も載せる（できなかったら、Firebaseの画面で貼り付ける）
-        if: steps.key.outputs.ok == '1'
+      # 記録の保存ルールは、この鍵では載せられない（権限がない）ので、毎回は試さない。
+      # ルールを変えたときは、Firebaseの画面（Firestore → ルール）に firestore.rules を貼り付けて公開する。手動実行のときだけ試す。
+      - name: 記録の保存ルール（firestore.rules）も載せる（手動実行のときだけ）
+        if: steps.key.outputs.ok == '1' && github.event_name == 'workflow_dispatch'
         continue-on-error: true
         env:
           SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
