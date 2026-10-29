@@ -38,8 +38,9 @@ rep("const SHARE_BASE='荒野の事件を「法の拳」で裁きながら行政
 rep('ホーム画面の「法の拳」のアイコンから', 'ホーム画面の「宅建の拳」のアイコンから')
 
 # 3) ファイルの場所（共通のものは1つ上のフォルダにある）
-rep('<link rel="apple-touch-icon" href="icons/icon-180.png">', '<link rel="apple-touch-icon" href="../icons/icon-180.png">')
-rep('<link rel="icon" type="image/png" href="icons/icon-192.png">', '<link rel="icon" type="image/png" href="../icons/icon-192.png">')
+# アイコンとリンク画像は宅建版専用（takken/icons・takken/ogp.png）
+rep('<meta name="theme-color" content="#120c0a">', '<meta name="theme-color" content="#0a0f1f">')
+rep('content="https://legal-break.5ukaku.com/icons/ogp.png"', 'content="https://legal-break.5ukaku.com/takken/ogp.png?v=2"', 2)
 rep('href="privacy.html"', 'href="../privacy.html"', None)
 rep('<script src="config.js"></script>', '<script src="../config.js"></script>')
 rep('href="faces/${key}.png"', 'href="../faces/${key}.png"')
@@ -61,6 +62,9 @@ assert h.count('src="extra.js"') == 1
 
 # 6) 読み方（宅建・黒鍵）。声の自動録音（tools/gen_voice.mjs）にも同じ直しが入っている
 rep("const yomi=t=>t.replace(", "const yomi=t=>t.replace(/宅建/g,'たっけん').replace(/黒鍵/g,'くろかぎ').replace(")
+
+# 7) もう一方のゲームへ行くボタン（同じアプリ・同じログインのまま行き来できる）
+rep("onclick=\"location.href='takken/'\">宅建版 TAKKEN HUNTER で遊ぶ</button>", "onclick=\"location.href='../'\">行政書士版 LEGAL BREAK で遊ぶ</button>")
 
 head = '<!-- このファイルは tools/make_takken.py が行政書士版の index.html から作る。直接は直さず、宅建版だけの部分は extra.js に書く -->\n'
 (ROOT / 'takken' / 'index.html').write_text(head + h, encoding='utf-8')
