@@ -165,3 +165,34 @@ body{background:var(--ink)}
 .share a{border:1px solid rgba(190,210,255,.35);border-radius:10px;background:rgba(255,255,255,.06)}
 .share a.sl{background:#06c755;border-color:#06c755}
 </style>`);
+
+/* ---------- 第3話の曲（雨の街の民法ドラマ：ピアノ、チェロ、弦） ---------- */
+Object.assign(TR,{
+ // 喫茶店の昼：ボサノバ風のピアノ
+ t3cafe:{bpm:96,f(a,o,s,t,d){const bar=s>>3,ch=[[57,60,64,67],[55,59,62,65],[53,57,60,64],[52,56,59,62]][bar];
+  if([0,3,6].includes(s%8))ch.slice(1).forEach(n=>I.vib(a,o,n,t,.012,1));if(s%8===0||s%8===5)I.bass(a,o,ch[0]-12,t,d*2,.12);if(s%2===1)I.hat(a,o,t,.015);if(s%4===3)I.wood(a,o,t,1200,.05);
+  const m={0:76,2:74,3:72,6:71,8:74,10:72,11:71,14:69,16:72,18:71,19:69,22:67,24:68,26:71,28:74}[s];if(m)I.piano(a,o,m,t,.045)}},
+ // 沢井とのバトル：ピチカートで追いかける
+ t3pizz:{bpm:140,f(a,o,s,t,d){const ch=[[57,60,64],[57,60,64],[53,57,60],[52,56,59]][s>>3];I.pluck(a,o,ch[s%3]+(s%4===3?12:0),t,.06);if(s%2===0)I.bass(a,o,ch[0]-12,t,d*.8,.15);
+  if(s%4===0)I.kick(a,o,t,.5);if(s%4===2)I.snare(a,o,t,.15);if(s%8===0)I.cello(a,o,ch[0],t,d*3.6,.05);if(s===31)I.whip(a,o,t,.25)}},
+ // 真夜中の訪問者：低いチェロのうなりと心音、不協和なピアノ
+ t3threat:{bpm:64,f(a,o,s,t,d){if(s%16===0)I.cello(a,o,s?37:36,t,16*d*.95,.06);if(s%8===0)I.kick(a,o,t,.4);if(s%8===1)I.kick(a,o,t,.22);
+  if(s===6||s===22)[61,62].forEach(n=>I.piano(a,o,n,t,.035));if(s===14)I.piano(a,o,67,t,.03);if(s===30)I.piano(a,o,66,t,.03);if(s===24)I.door(a,o,t,.04)}},
+ // 猫田とのバトル：刻み続けるチェロとドラム
+ t3drive:{bpm:136,f(a,o,s,t,d){const r=[38,38,36,37][s>>3];if(s%2===0)I.cello(a,o,r+(s%4===2?7:0),t,d*.9,.06);I.bass(a,o,r-12,t,d*.8,.14,1);
+  if(s%4===0)I.kick(a,o,t,.6);if(s%4===2)I.snare(a,o,t,.22);I.hat(a,o,t,.02);if(s%8===0)I.brass(a,o,r+24,t,d*2,.035);if(s===31)I.whip(a,o,t,.3)}},
+ // 雨の夜の部屋：ローファイなピアノと雨音
+ t3rain:{bpm:80,f(a,o,s,t,d){if(s%4===0){const n=a.createBufferSource();n.buffer=nbuf(a,4*d);const f=a.createBiquadFilter();f.type='highpass';f.frequency.value=3000;const g=a.createGain();g.gain.value=.012;n.connect(f).connect(g).connect(o);n.start(t)}
+  const ch=[[50,53,57,60],[48,52,55,59],[46,50,53,57],[45,49,52,55]][s>>3];if(s%8===0)I.bass(a,o,ch[0]-12,t,d*7,.11);if([0,3,5].includes(s%8))I.piano(a,o,ch[(s%8)%4]+12,t,.04);
+  if(s%8===4)I.snare(a,o,t,.04);if(s%8===0)I.kick(a,o,t,.3);const m={8:74,10:72,12:69,24:72,26:71,28:67}[s];if(m)I.vib(a,o,m,t,.02,1.6)}},
+ // 三上とのバトル：重いビートのヒップホップ
+ t3lofi:{bpm:122,f(a,o,s,t,d){const k=[1,0,0,1,0,0,1,0][s%8];if(k)I.kick(a,o,t,.6);if(s%8===4)I.snare(a,o,t,.24);I.hat(a,o,t,s%2?.03:.015);
+  const ch=[[50,53,57],[46,50,53],[48,52,55],[45,49,52]][s>>3];if(s%2===0)I.bass(a,o,ch[0]-12,t,d*1.6,.16,1);if(s%4===1)I.piano(a,o,ch[(s>>2)%3]+12,t,.04);if(s===31)I.whip(a,o,t,.25)}},
+ // 権藤の登場：法廷ドラマの緊張（時計と弦のトレモロ）
+ t3bossin:{bpm:58,f(a,o,s,t,d){I.tick(a,o,t,s%2?1600:2000,.02);if(s%16===0){I.cello(a,o,s?38:39,t,16*d*.95,.055);I.pad(a,o,[50,53,57],t,16*d,.025,700)}
+  if(s%8===4)I.piano(a,o,[62,63,62,61][s>>3],t,.04);if(s===0||s===16)I.taiko(a,o,t,.45)}},
+ // 権藤とのボス戦：オーケストラ（チェロの刻み、ラッパ、合唱、太鼓）
+ t3boss:{bpm:150,f(a,o,s,t,d){const bar=s>>3,r=[38,38,34,36][bar];if(s%2===0)I.cello(a,o,r+[0,7,12,7][(s>>1)%4],t,d*.9,.06);I.bass(a,o,r-12,t,d*.8,.15,1);
+  if(s%4===0)I.kick(a,o,t,.6);if(s%4===2){I.snare(a,o,t,.24);I.taiko(a,o,t,.3)}if(s%8===0)I.choir(a,o,[[62,65,69],[62,65,69],[58,62,65],[60,64,67]][bar],t,8*d,.03);
+  const m={0:[74,3],3:[77,1],4:[76,4],8:[74,2],10:[72,2],12:[69,4],16:[70,3],19:[72,1],20:[74,4],24:[76,3],27:[77,1],28:[79,4]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d,.07);if(s===31)I.whip(a,o,t,.3)}}
+});
