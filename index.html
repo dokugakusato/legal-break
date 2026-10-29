@@ -1645,7 +1645,9 @@ $('#selectBtn').onclick=()=>{ac();openSelect()};
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
 $('#selBack').onclick=()=>{refreshTitle();show('s-title')};
 $('#resetBtn').onclick=()=>{$('#resetBox').innerHTML=`<div class="card confirm"><p class="qtext" style="margin:0">クリア記録・ランク・称号をすべて消す。元には戻せない。</p><button class="btn" type="button" id="resetYes">消す</button><button class="btn ghost" type="button" id="resetNo">やめる</button></div>`;
-  $('#resetYes').onclick=()=>{P=Object.assign({eps:{},streak:0,best:0,ok:0,n:0,clears:0,badges:{}});saveP();$('#resetBox').innerHTML='';renderSelect()};
+  $('#resetYes').onclick=()=>{$('#resetBox').innerHTML=`<div class="card confirm" style="border-color:var(--blood)"><p class="qtext" style="margin:0;color:var(--blood)">本当に記録が消えるよ。<br>1話からやり直しになる。それでも消す？</p><button class="btn" type="button" id="resetYes2">本当に消す</button><button class="btn ghost" type="button" id="resetNo2">やめる</button></div>`;
+    $('#resetNo2').onclick=()=>{$('#resetBox').innerHTML=''};
+    $('#resetYes2').onclick=()=>{P=Object.assign({eps:{},streak:0,best:0,ok:0,n:0,clears:0,badges:{}});saveP();$('#resetBox').innerHTML='';renderSelect()}};
   $('#resetNo').onclick=()=>{$('#resetBox').innerHTML=''}};
 refreshTitle();accInit();
 /* ---------- ゲームを終える（左上の×） ---------- */
