@@ -10,6 +10,14 @@
 
 ※登場人物・事件はすべて架空です。
 
+## 宅建版（TAKKEN HUNTER ―不動産の拳―）
+
+宅建士試験の版は `takken/` フォルダに入っている。住所は https://legal-break.5ukaku.com/takken/ 。ログインは行政書士版と共通で、記録は別々に保存される（Firestore の `tk_progress`・`tk_ranking`）。
+
+- `takken/index.html` … ゲーム本体。`python3 tools/make_takken.py` で、行政書士版の `index.html` から作る（直接は直さない）
+- `takken/extra.js` … 宅建版だけの部分（夜の街の背景・登場人物・曲・小道具）
+- `takken/episodes/list.js` と `takken/episodes/epNNN.js` … 話の目次と、1話分のデータ（作り方は行政書士版と同じ。問題は4択）
+
 ## 声（自動録音）
 
 - `tools/gen_voice.mjs` … VOICEVOX でナレーションとセリフを録音し、`audio/` に mp3 で入れる

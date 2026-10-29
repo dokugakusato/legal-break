@@ -39,3 +39,17 @@ jobs:
           cat "$RUNNER_TEMP/out.txt"
           rm -f "$RUNNER_TEMP/sa.json"
           if [ $code -ne 0 ]; then grep -v '^\s*$' "$RUNNER_TEMP/out.txt" | tail -12 | while IFS= read -r l; do echo "::error::$l"; done; exit $code; fi
+      - name: 記録の保存ルール（firestore.rules）も載せる（できなかったら、Firebaseの画面で貼り付ける）
+        if: steps.key.outputs.ok == '1'
+        continue-on-error: true
+        env:
+          SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          printf '%s' "$SA" > "$RUNNER_TEMP/sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
+          set +e
+          npx -y firebase-tools@latest deploy --only firestore:rules --project legal-break-6882d --non-interactive
+          code=$?
+          rm -f "$RUNNER_TEMP/sa.json"
+          if [ $code -ne 0 ]; then echo "::warning::記録の保存ルールは載せられなかった。Firebaseの画面（Firestore → ルール）に firestore.rules の中身を貼り付けて公開してください。"; fi
+          exit $code

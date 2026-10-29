@@ -1,8 +1,10 @@
 // LEGAL BREAK 自動録音：VOICEVOX でセリフを mp3 にして audio/ に入れる
 // GitHub Actions から動かす（.github/workflows/voice.yml）。手元で動かすときは VOICEVOX を起動して node tools/gen_voice.mjs
+// 宅建版（takken フォルダ）は GAME=takken node tools/gen_voice.mjs で、takken/audio/ に録音する
 import fs from 'node:fs';import vm from 'node:vm';import {execFileSync} from 'node:child_process';
-const ROOT=new URL('..',import.meta.url).pathname,ENGINE=process.env.VOICEVOX_URL||'http://127.0.0.1:50021';
-const html=fs.readFileSync(ROOT+'index.html','utf8');
+const REPO=new URL('..',import.meta.url).pathname,ENGINE=process.env.VOICEVOX_URL||'http://127.0.0.1:50021';
+const GAME=process.env.GAME||'',ROOT=REPO+(GAME?GAME+'/':'');
+const html=fs.readFileSync(ROOT+'index.html','utf8')+(fs.existsSync(ROOT+'extra.js')?fs.readFileSync(ROOT+'extra.js','utf8'):'');
 
 // キャラごとの声：[VOICEVOXのキャラ名, スタイル名, 話す速さ, 高さ, 抑揚]
 const CAST={
@@ -16,11 +18,13 @@ const CAST={
  okami:['四国めたん','ノーマル',.98,-.03,1],clerk:['剣崎雌雄','ノーマル',1.05,.08,1.1],lumber:['青山龍星','熱血',1,.02,1.1],
  fisher:['玄野武宏','ノーマル',.95,-.06,1],shimizu:['白上虎太郎','おこ',1.12,.06,1.4],shipwright:['剣崎雌雄','ノーマル',.98,-.02,1],
  mayor:['ちび式じい','ノーマル',.95,.03,1],mori:['九州そら','ノーマル',1.02,0,1.1],
- sawa:['雀松朱司','ノーマル',1.05,.04,1.3],nekota:['白上虎太郎','ふつう',1.12,.08,1.4],kanshucho:['麒ヶ島宗麟','ノーマル',.84,-.1,1.15],kurosaki:['麒ヶ島宗麟','ノーマル',.86,-.08,1.25],keiji:['青山龍星','熱血',1,-.04,1.15]};
+ sawa:['雀松朱司','ノーマル',1.05,.04,1.3],nekota:['白上虎太郎','ふつう',1.12,.08,1.4],kanshucho:['麒ヶ島宗麟','ノーマル',.84,-.1,1.15],kurosaki:['麒ヶ島宗麟','ノーマル',.86,-.08,1.25],keiji:['青山龍星','熱血',1,-.04,1.15],
+ // 宅建版
+ minami:['春日部つむぎ','ノーマル',1.04,.01,1.15],kyaku:['白上虎太郎','ふつう',1.04,.03,1.1],haruka:['冥鳴ひまり','ノーマル',1.02,.04,1.1],kagi:['麒ヶ島宗麟','ノーマル',.86,-.07,1.25]};
 
 // ゲーム本体と同じ計算でファイル名を決める
 // 読み方の直し（画面の文字はそのまま、声だけ読み方を変える）
-const yomi=t=>t.replace(/取消(?!し)/g,'取り消し').replace(/荒野/g,'こうや').replace(/(?<![一-龯々])金(?![一-龯々])/g,'カネ');
+const yomi=t=>t.replace(/宅建/g,'たっけん').replace(/黒鍵/g,'くろかぎ').replace(/取消(?!し)/g,'取り消し').replace(/荒野/g,'こうや').replace(/(?<![一-龯々])金(?![一-龯々])/g,'カネ');
 const cleanTxt=t=>t.replace(/<br>/g,'').replace(/[「」―]/g,'').replace(/　/g,'');
 function vHash(s){let h=0x811c9dc5;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,0x01000193)}return (h>>>0).toString(16).padStart(8,'0')}
 const VPKEYS=new Set([...html.matchAll(/([a-zA-Z]+):\{p:/g)].map(m=>m[1]));
@@ -29,7 +33,7 @@ const norm=k=>VPKEYS.has(k)?k:'narr';
 // 読み上げるセリフを集める
 const lines=[];const add=(t,k)=>{if(t)lines.push([t,norm(k)])};
 // 宣伝動画のナレーション（ゲームでは使わない）
-try{for(const L of JSON.parse(fs.readFileSync(ROOT+'tools/promo_lines.json','utf8')))lines.push([L.t,L.k])}catch(e){}
+if(!GAME)try{for(const L of JSON.parse(fs.readFileSync(REPO+'tools/promo_lines.json','utf8')))lines.push([L.t,L.k])}catch(e){}
 const vt=html.match(/const VOICE_TEST=(\[.*?\]\]);/);if(vt)vm.runInNewContext(vt[1]).forEach(([t,k])=>add(t,k));
 for(const m of html.matchAll(/\{name:'(独学[^']+)',need:/g))add(`お前は今日から「${m[1]}」だ。`,'hero');
 const ctx={window:{},LB:{eps:[],episode(e){this.eps.push(e)}}};vm.createContext(ctx);

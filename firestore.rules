@@ -42,6 +42,42 @@ service cloud.firestore {
       allow delete: if isOwner();
     }
 
+    // 宅建版（TAKKEN HUNTER）の記録。行政書士版と同じ決まりで、本人だけが読み書きできる
+    match /tk_progress/{uid} {
+      function isOwner() {
+        return request.auth != null && request.auth.uid == uid;
+      }
+      function validData() {
+        return request.resource.data.keys().hasOnly(['p', 'updated'])
+          && request.resource.data.p is map
+          && request.resource.data.updated == request.time;
+      }
+      allow get: if isOwner();
+      allow list: if false;
+      allow create, update: if isOwner() && validData();
+      allow delete: if isOwner();
+    }
+
+    // 宅建版の全国ランキング。載せてよい項目は行政書士版と同じ
+    match /tk_ranking/{uid} {
+      function isOwner() {
+        return request.auth != null && request.auth.uid == uid;
+      }
+      function validRank() {
+        let d = request.resource.data;
+        return d.keys().hasOnly(['name', 'cleared', 'avg', 'score', 'updated'])
+          && d.name is string && d.name.size() >= 1 && d.name.size() <= 12
+          && !d.name.matches('.*[@＠].*')
+          && d.cleared is int && d.cleared >= 0 && d.cleared <= 2000
+          && d.avg is int && d.avg >= 0 && d.avg <= 100
+          && d.score == d.cleared * 1000 + d.avg
+          && d.updated == request.time;
+      }
+      allow read: if true;
+      allow create, update: if isOwner() && validRank();
+      allow delete: if isOwner();
+    }
+
     // ここに書いていない場所は、すべて読み書き禁止
     match /{document=**} {
       allow read, write: if false;
