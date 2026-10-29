@@ -196,3 +196,100 @@ Object.assign(TR,{
   if(s%4===0)I.kick(a,o,t,.6);if(s%4===2){I.snare(a,o,t,.24);I.taiko(a,o,t,.3)}if(s%8===0)I.choir(a,o,[[62,65,69],[62,65,69],[58,62,65],[60,64,67]][bar],t,8*d,.03);
   const m={0:[74,3],3:[77,1],4:[76,4],8:[74,2],10:[72,2],12:[69,4],16:[70,3],19:[72,1],20:[74,4],24:[76,3],27:[77,1],28:[79,4]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d,.07);if(s===31)I.whip(a,o,t,.3)}}
 });
+
+/* ---------- 調査パート（第4話から）：4コマのあと「資料を調べる → 論点を見つける」 ----------
+   話データの事件（またはボス）に probe:{intro, docs:[{name,lines:[…],mark:[行番号],note}], issue:{text,opts,ans,exp}} を書くと出る。
+   資料を全部開くと「論点を見つける」へ進める。論点をまちがえても命は減らず、ヒントを見て選び直す。 */
+document.body.insertAdjacentHTML('beforeend',`<style>
+.probe{display:flex;flex-direction:column;gap:10px}
+.probe .lead{margin:0;color:#d8e8ff;font-size:14px;line-height:1.6}
+.pdocs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pdoc{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;padding:12px;border-radius:12px;border:1px solid rgba(190,210,255,.35);background:rgba(255,255,255,.06);color:var(--bone);font:700 14px var(--body);cursor:pointer;min-height:64px}
+.pdoc small{font-weight:500;font-size:11.5px;color:var(--steel)}
+.pdoc.seen{border-color:var(--neo);background:rgba(56,214,255,.1)}
+.pdoc.seen small{color:var(--neo)}
+.paper{background:#f7f4ec;color:#1b1b22;border-radius:6px;padding:14px 14px 10px;font:500 13.5px/1.7 "Zen Kaku Gothic New",sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.paper h4{margin:0 0 6px;text-align:center;font-size:15px;letter-spacing:.2em}
+.paper p{margin:0;padding:1px 0;border-bottom:1px dashed #cfc8b8}
+.paper p.mk{background:linear-gradient(transparent 55%,rgba(255,79,109,.35) 55%);font-weight:700}
+.pnote{margin:10px 0 0;color:#d8e8ff;font-size:14px;line-height:1.6;border-left:3px solid var(--neo);padding-left:10px}
+.pfound{color:var(--gold);font-weight:700}
+#komaBtn:disabled{opacity:.45;box-shadow:none}
+</style>`);
+function probeStart(c,done){
+  const pr=c.probe;if(!pr){done();return}
+  closeSheet();show('s-story');
+  $('#chapTitle').innerHTML=`<span>${c.chapter[0]}｜調査</span>${c.chapter[1]}`;
+  const seen={};const k=$('#koma'),b=$('#komaBtn');
+  const draw=()=>{
+    const n=pr.docs.filter((d,i)=>seen[i]).length,all=n===pr.docs.length;
+    k.innerHTML=`<div class="card probe"><span class="qtag">調査 ― 資料を調べろ</span><p class="lead">${pr.intro}</p><div class="pdocs">${pr.docs.map((d,i)=>`<button class="pdoc${seen[i]?' seen':''}" type="button" data-i="${i}">${d.name}<small>${seen[i]?'調べた':'タップして見る'}</small></button>`).join('')}</div>${all?'<p class="lead pfound">資料はそろった。この事件は、何の問題だ？</p>':''}</div>`;
+    $('#komaN').textContent=`資料 ${n} / ${pr.docs.length}`;
+    b.textContent=all?'論点を見つける ▶':'資料を全部見よう';b.disabled=!all;
+    k.querySelectorAll('.pdoc').forEach(x=>x.onclick=e=>{e.stopPropagation();ac();openDoc(+x.dataset.i)});
+  };
+  const openDoc=i=>{
+    const d=pr.docs[i],f=openSheet();seen[i]=1;
+    f.innerHTML=`<div class="paper"><h4>${d.name}</h4>${d.lines.map((t,j)=>`<p class="${(d.mark||[]).includes(j)?'mk':''}">${t}</p>`).join('')}</div>${d.note?`<p class="pnote">${d.note}</p>`:''}`;
+    if(d.note)narrate(d.note);
+    const x=document.createElement('button');x.className='btn';x.type='button';x.textContent='閉じる';x.onclick=()=>{stopSay();closeSheet();draw()};f.appendChild(x);
+  };
+  draw();narrate(pr.intro.replace(/<[^>]+>/g,''));
+  k.onclick=null;
+  b.onclick=()=>{ac();if(b.disabled)return;stopSay();probeIssue(c,done)};
+}
+function probeIssue(c,done){
+  const q=c.probe.issue,k=$('#koma'),b=$('#komaBtn');
+  $('#komaN').textContent='論点';b.disabled=true;b.textContent='論点を選べ';
+  k.innerHTML=`<div class="card probe"><span class="qtag">論点を見つける</span><p class="qtext">${q.text}</p><div class="opts">${q.opts.map((t,i)=>`<button class="opt" type="button" data-i="${i}">${t}</button>`).join('')}</div></div>`;
+  k.querySelectorAll('.opt').forEach(x=>x.onclick=e=>{e.stopPropagation();ac();const i=+x.dataset.i,ok=i===q.ans,f=openSheet();
+    if(ok){x.classList.add('right');k.querySelectorAll('.opt').forEach(y=>y.disabled=true);
+      f.innerHTML=`<div class="verdict ok">論点、発見！</div><p>${q.exp}</p>`;
+      const n=document.createElement('button');n.className='btn';n.type='button';n.textContent=c.type==='boss'?'ボスに挑む ▶':'事件を裁く ▶';n.onclick=()=>{closeSheet();b.disabled=false;done()};f.appendChild(n)}
+    else{x.classList.add('wrong');x.disabled=true;
+      f.innerHTML=`<div class="verdict ng">ちがう。資料をもう一度思い出せ。</div><p>${q.hint||'印の付いた行に、手がかりがある。'}</p>`;
+      const n=document.createElement('button');n.className='btn';n.type='button';n.textContent='選び直す';n.onclick=closeSheet;f.appendChild(n)}
+  });
+}
+startCase=function(){const c=EP;BGM.play(c.bgm);story(c.chapter,c.panels,()=>c.probe?probeStart(c,()=>battle(c)):battle(c),c.wb)};
+bossStart=function(){BGM.play(EP.bgm);story(EP.chapter,EP.panels,()=>EP.probe?probeStart(EP,bossBattle):bossBattle(),EP.wb)};
+// 前の話の調査で「次へ」ボタンを止めたままにしない
+(function(){const st=story;story=function(...a){const b=$('#komaBtn');if(b)b.disabled=false;return st.apply(this,a)}})();
+
+/* ---------- 第4話の登場人物 ---------- */
+Object.assign(SIL,{
+// 綾：商店街で美容室を営む若い店主
+aya:mk(`<path d="${B.slim}" fill="#d9a441"/>${SHD(B.slim)}<path d="M30 160V106h40v54Z" fill="#2a2d38"/><path d="M30 106h40" fill="none"/><path d="M40 74q10 8 20 0" fill="none" stroke="#8a6a2a" stroke-width="2"/><path d="M66 112l12-14M70 116l12-14" stroke="#9aa3ab" stroke-width="2.4" fill="none"/><circle cx="64" cy="116" r="3" fill="none" stroke="#9aa3ab" stroke-width="1.8"/><circle cx="68" cy="120" r="3" fill="none" stroke="#9aa3ab" stroke-width="1.8"/>${NECK(52,12)}<ellipse cx="50" cy="40" rx="14" ry="16" fill="${SK}"/><path d="M34 42C30 22 42 15 52 16C63 17 70 26 66 42C64 34 60 30 56 28C50 32 42 32 36 30C35 34 34 38 34 42Z" fill="#7a3a2a"/><path d="M63 24c8 2 10 10 6 16" fill="none" stroke="#7a3a2a" stroke-width="5"/><ellipse cx="44" cy="42" rx="2.3" ry="2.8" fill="${O}" stroke="none"/><ellipse cx="56" cy="42" rx="2.3" ry="2.8" fill="${O}" stroke="none"/><circle cx="45" cy="41" r=".9" fill="#fff" stroke="none"/><circle cx="57" cy="41" r=".9" fill="#fff" stroke="none"/><path d="M46 50q4 2 8 0" fill="none" stroke-width="1.6"/><circle cx="36" cy="47" r="1.8" fill="#38d6ff" stroke="none"/>`),
+// 鬼頭：黒鍵商会の地上げ屋。紫のシャツに金の鎖、角刈り
+kito:mk(`<path d="${B.coat}" fill="#2a1f2e"/>${SHD(B.coat)}<path d="M36 64L50 110L64 64Z" fill="#6a2a8a"/><path d="M38 66q12 18 24 0" fill="none" stroke="#d9a441" stroke-width="2.6"/><circle cx="50" cy="79" r="3" fill="#d9a441" stroke="none"/><path d="M30 112h14M56 112h14" stroke="#3a2f40" stroke-width="2" fill="none"/>${NECK(46,16)}<ellipse cx="50" cy="38" rx="17" ry="18" fill="${SK}"/><path d="M33 30V18h34v12C60 24 40 24 33 30Z" fill="#151216"/><path d="M38 33l9 3M62 33l-9 3" stroke-width="2.8" fill="none"/><path d="M40 39h7M53 39h7" stroke-width="2.4" fill="none"/><path d="M42 50q8 3 16-1" fill="none" stroke-width="2"/><path d="M60 42l4 10" stroke="#a0302a" stroke-width="1.6" fill="none"/><path d="M30 36q-4 4 0 8M70 36q4 4 0 8" fill="${SK}"/>`)
+});
+Object.assign(NAMES,{aya:'綾',kito:'鬼頭'});
+Object.assign(VP,{aya:{p:1.35,r:1.08,g:'f',i:1},kito:{p:.05,r:.62,g:'m',i:2}});
+
+/* ---------- 第4話の曲（下町の商店街と地上げ：アコーディオン風の和音、口笛、和太鼓、ブラス） ---------- */
+Object.assign(TR,{
+ // 商店街の昼：のんびりした口笛とアコーディオン風のオルガン、木の打楽器
+ t4street:{bpm:104,f(a,o,s,t,d){const ch=[[60,64,67],[57,60,64],[53,57,60],[55,59,62]][s>>3];if(s%4===0)I.organ(a,o,ch,t,d*1.6,.02);if(s%4===2)I.organ(a,o,ch.map(n=>n+12),t,d*.8,.012);
+  if(s%4===0)I.bass(a,o,ch[0]-12,t,d*1.6,.12);if(s%4===2)I.bass(a,o,ch[2]-24,t,d*1.2,.1);if(s%2===1)I.wood(a,o,t,1400,.04);
+  const m={0:[72,2],2:[74,2],4:[76,4],8:[74,2],10:[72,2],12:[69,4],16:[72,2],18:[71,2],20:[69,2],22:[67,2],24:[71,6]}[s];if(m)I.whistle(a,o,m[0],t,m[1]*d,.06)}},
+ // 手下・赤井とのバトル：和太鼓とうなるベース
+ t4clash:{bpm:142,f(a,o,s,t,d){const r=[40,40,43,38][s>>3];if(s%2===0)I.bass(a,o,r-12+(s%8===6?7:0),t,d*.8,.17,1);if([0,3,6].includes(s%8))I.taiko(a,o,t,.45);if(s%4===2)I.snare(a,o,t,.2);I.hat(a,o,t,.018);
+  if(s%8===0)I.brass(a,o,r+24,t,d*1.5,.05);if(s%8===4)I.brass(a,o,r+27,t,d,.04);if(s===31)I.whip(a,o,t,.3)}},
+ // 夕暮れの美容室：ハープの分散和音と、やさしいピアノ
+ t4dusk:{bpm:84,f(a,o,s,t,d){const ch=[[57,60,64,69],[53,57,60,65],[55,59,62,67],[52,56,59,64]][s>>3];I.harp(a,o,ch[s%4]+(s%8>3?12:0),t,d*2,.03);if(s%8===0)I.bass(a,o,ch[0]-12,t,d*7,.1);
+  const m={2:76,6:74,10:72,14:71,18:72,22:74,26:76,30:79}[s];if(m)I.piano(a,o,m,t,.04)}},
+ // 顧問・堀とのバトル：はねるファンクのブラス
+ t4funk:{bpm:118,f(a,o,s,t,d){const k=[1,0,0,1,0,1,0,0][s%8];if(k)I.kick(a,o,t,.55);if(s%8===4)I.snare(a,o,t,.24);I.hat(a,o,t,s%2?.03:.016);
+  const r=[45,45,48,43][s>>3];if([0,3,5,7].includes(s%8))I.bass(a,o,r-12+(s%8===7?12:0),t,d*.7,.17,1);if(s%8===2)I.brass(a,o,r+24,t,d*.6,.05);if(s%8===6)I.brass(a,o,r+28,t,d*.6,.045)}},
+ // 古い長屋の夜：すきま風と、ゆっくり鳴る琴
+ t4nagaya:{bpm:66,f(a,o,s,t,d){if(s%16===0)I.pad(a,o,[45,52,57],t,16*d,.022,600);if(s%8===0)I.bass(a,o,33,t,d*7,.1);
+  const m={0:69,3:72,6:71,8:69,16:67,19:69,22:64,24:62}[s];if(m)I.koto(a,o,m,t,.08);if(s===12||s===28)I.bell(a,o,81,t,.025,3)}},
+ // 沢井とのバトル：速いスネアと口笛の追いかけっこ
+ t4run:{bpm:156,f(a,o,s,t,d){const r=[50,50,48,45][s>>3];if(s%2===0)I.bass(a,o,r-12,t,d*.7,.16,1);if(s%4===0)I.kick(a,o,t,.6);I.snare(a,o,t,s%4===2?.22:.05);
+  const m={0:74,2:77,4:79,6:77,8:74,10:72,12:69,16:72,18:74,20:77,24:81,28:79}[s];if(m)I.whistle(a,o,m,t,d*1.6,.05);if(s===31)I.whip(a,o,t,.3)}},
+ // 鬼頭の登場：重い太鼓と、低い金管のうなり
+ t4kitoin:{bpm:56,f(a,o,s,t,d){if(s%8===0)I.taiko(a,o,t,.6);if(s%8===3)I.taiko(a,o,t,.3);if(s%16===0)I.brass(a,o,[38,37][s>>4],t,14*d,.05);if(s%16===0)I.pad(a,o,[50,53,56],t,16*d,.02,600);if(s===24)I.clank(a,o,t,.08)}},
+ // 鬼頭とのボス戦：和太鼓の連打、ブラス、合唱
+ t4kito:{bpm:152,f(a,o,s,t,d){const bar=s>>3,r=[40,40,36,38][bar];if(s%2===0)I.bass(a,o,r-12+[0,0,7,12][(s>>1)%4],t,d*.8,.17,1);if(s%4===0)I.kick(a,o,t,.6);if(s%2===1)I.taiko(a,o,t,.22);if(s%4===2)I.snare(a,o,t,.24);
+  if(s%8===0)I.choir(a,o,[[64,67,71],[64,67,71],[60,64,67],[62,66,69]][bar],t,8*d,.03);const m={0:[76,2],2:[79,2],4:[83,4],8:[81,2],10:[79,2],12:[76,4],16:[72,3],19:[74,1],20:[76,4],24:[78,4],28:[79,4]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d,.07);if(s===31)I.whip(a,o,t,.3)}}
+});
