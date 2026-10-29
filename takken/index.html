@@ -1477,10 +1477,12 @@ function accDeleteSheet(){
   f.innerHTML=`<span class="qtag">登録を消す</span><p class="qtext">ネットに保存した記録と全国ランキングの名前、登録したメールアドレスを消す。ログインは行政書士版（LEGAL BREAK）と共通なので、そちらのネットの記録も消える。この端末の記録は残るので、続けて遊べる。</p>
   <button class="btn" type="button" id="accDelGo">消す</button><button class="btn ghost" type="button" id="accClose">やめる</button><p class="note" id="accMsg"></p>`;
   $('#accClose').onclick=closeSheet;
-  $('#accDelGo').onclick=()=>{const u=ACC.user;if(!u)return closeSheet();const btn=$('#accDelGo');btn.disabled=true;btn.textContent='消している…';clearTimeout(ACC.timer);
+  // もう一段、本当に消すか確かめる
+  $('#accDelGo').onclick=()=>{const b=$('#accDelGo');b.insertAdjacentHTML('beforebegin','<p class="qtext" id="accWarn" style="color:var(--blood);font-weight:bold">本当に消す？ネットの記録は元に戻せない。機種変更や別の端末では、また1話からになるよ。</p>');b.textContent='本当に消す';b.onclick=accDelDo};
+  const accDelDo=()=>{const u=ACC.user;if(!u)return closeSheet();const btn=$('#accDelGo');btn.disabled=true;btn.textContent='消している…';clearTimeout(ACC.timer);
     Promise.all([ACC.db.collection('tk_progress').doc(u.uid).delete(),ACC.db.collection('tk_ranking').doc(u.uid).delete(),ACC.db.collection('progress').doc(u.uid).delete().catch(()=>{}),ACC.db.collection('ranking').doc(u.uid).delete().catch(()=>{})]).then(()=>u.delete()).then(()=>{
       f.innerHTML=`<div class="verdict ok">消した</div><p>ネットの記録と登録したメールアドレスを消した。この端末の記録はそのまま残っている。</p><button class="btn" type="button" id="accClose">閉じる</button>`;$('#accClose').onclick=closeSheet})
-     .catch(err=>{btn.disabled=false;btn.textContent='消す';
+     .catch(err=>{btn.disabled=false;btn.textContent='本当に消す';
       $('#accMsg').textContent=(err&&err.code==='auth/requires-recent-login')?'安全のため、いったんログアウトして、もう一度ログインしてから消してくれ。':'消せなかった。電波のいい所でもう一度押してくれ。'})};
 }
 function accGoogle(){
