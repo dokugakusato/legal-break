@@ -63,7 +63,7 @@ assert h.count('src="extra.js"') == 1
 # 6) 読み方（宅建・黒鍵）。声の自動録音（tools/gen_voice.mjs）にも同じ直しが入っている
 rep("const yomi=t=>t.replace(", "const yomi=t=>t.replace(/宅建/g,'たっけん').replace(/黒鍵/g,'くろかぎ').replace(")
 
-# 7) もう一方のゲームへ行くボタン（同じアプリ・同じログインのまま行き来できる）
+# 7) （行き来ボタンは撤去済み）
 
 head = '<!-- このファイルは tools/make_takken.py が行政書士版の index.html から作る。直接は直さず、宅建版だけの部分は extra.js に書く -->\n'
 (ROOT / 'takken' / 'index.html').write_text(head + h, encoding='utf-8')
