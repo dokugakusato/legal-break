@@ -93,3 +93,75 @@ Object.assign(TR,{
  opening:{bpm:80,f(a,o,s,t,d){const r=[38,38,41,36][s>>3];if(s%4===0)I.kick(a,o,t,.35);if(s%2===0)I.bass(a,o,r,t,d*1.6,.14);if(s%8===0)I.pad(a,o,[r+12,r+19,r+24],t,8*d,.022,700);
   if(s%4===2)I.hat(a,o,t,.02);if(s===0)I.bell(a,o,74,t,.05,4);if(s===16)I.bell(a,o,69,t,.04,4);if(s%16===12)I.vib(a,o,r+24,t,.02)}}
 });
+
+/* ---------- 第2話の曲（昼と夜の街・現代の音） ---------- */
+Object.assign(TR,{
+ // ひだまり不動産の昼：エレピ風の和音と、はずむベース（明るいジャズっぽさ）
+ t2office:{bpm:104,f(a,o,s,t,d){const bar=s>>3,ch=[[53,57,60,64],[50,53,57,60],[55,58,62,65],[48,52,55,58]][bar];
+  if(s%4===0||s%8===3)ch.forEach(n=>I.vib(a,o,n,t,.012,1.2));const bl=[ch[0]-12,0,ch[0]-5,0,ch[0]-12,ch[0]-10,0,ch[0]-7][s%8];if(bl)I.bass(a,o,bl,t,d*.9,.14);
+  if(s%2===1)I.hat(a,o,t,.02);if(s%4===2)I.snare(a,o,t,.05);if(s%8===0)I.kick(a,o,t,.35);
+  const m={0:72,2:74,3:76,6:79,8:77,10:76,12:74,16:74,18:72,19:70,22:69,24:67,26:69,28:72}[s];if(m)I.piano(a,o,m+12,t,.04)}},
+ // 猫田を追いつめる：シンセのファンク
+ t2chase:{bpm:128,f(a,o,s,t,d){const r=[41,41,44,46][s>>3];const bl=[r,0,r+12,r,0,r+10,r+12,0][s%8];if(bl)I.bass(a,o,bl,t,d*.6,.17,1);
+  I.kick(a,o,t,s%4===0?.6:.0001);if(s%4===2)I.snare(a,o,t,.2);I.hat(a,o,t,s%2?.03:.015);
+  if(s%8===2||s%8===5)I.pluck(a,o,r+24+(s%8===5?3:0),t,.05);if(s%16===0)I.organ(a,o,[r+12,r+15,r+19],t,6*d,.02);if(s===31)I.whip(a,o,t,.25)}},
+ // 電卓をたたく：ちょこまかした指はじき
+ t2calc:{bpm:112,f(a,o,s,t,d){I.tick(a,o,t,s%4===0?2400:1800,.025);const ch=[[60,64,67],[57,60,64],[53,57,60],[55,59,62]][s>>3];if(s%2===0)I.pluck(a,o,ch[(s>>1)%3]+12,t,.05);
+  if(s%8===0)I.bass(a,o,ch[0]-12,t,d*3,.12);if(s%8===4)I.bass(a,o,ch[0]-5,t,d*3,.1);if(s===14||s===30)I.bell(a,o,84,t,.025,1)}},
+ // 三上とのバトル：エレクトロ
+ t2electro:{bpm:132,f(a,o,s,t,d){const ch=[[57,60,64],[53,57,60],[55,59,62],[52,56,59]][s>>3];I.pluck(a,o,ch[s%3]+12,t,.05);if(s%2===0)I.bass(a,o,ch[0]-12,t,d*.9,.17,1);
+  if(s%4===0)I.kick(a,o,t,.6);if(s%4===2){I.snare(a,o,t,.18);I.hat(a,o,t,.04)}if(s%8===0)I.pad(a,o,ch.map(n=>n+12),t,8*d,.016,1800);if(s===31)I.whip(a,o,t,.3)}},
+ // モデルルームのショールーム：きらびやかなシンセポップ
+ t2showroom:{bpm:116,f(a,o,s,t,d){const ch=[[52,56,59,63],[49,52,56,59],[45,49,52,56],[47,51,54,57]][s>>3];
+  if(s%8===0)I.pad(a,o,ch.map(n=>n+12),t,8*d,.02,2400);if(s%2===0)I.bass(a,o,ch[0]-12,t,d*.9,.13);if(s%4===0)I.kick(a,o,t,.4);if(s%4===2)I.snare(a,o,t,.08);I.hat(a,o,t,.015);
+  const m={0:83,2:80,4:78,6:75,8:76,12:80,16:81,18:78,20:76,22:73,24:75,28:71}[s];if(m)I.bell(a,o,m,t,.03,1)}},
+ // 沢井とのバトル：速いドラムンベース
+ t2dnb:{bpm:172,f(a,o,s,t,d){const k=[1,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0][s%16],sn=s%8===4;if(k)I.kick(a,o,t,.6);if(sn)I.snare(a,o,t,.24);I.hat(a,o,t,.02);
+  if(s%4===0)I.bass(a,o,[40,40,43,38][s>>3],t,d*3.6,.17,1);if(s%16===0)I.pad(a,o,[52,55,59,62],t,16*d,.018,1600);if(s%8===7)I.pluck(a,o,76,t,.04)}},
+ // 黒須の本部：低いシンセのうなりと、時を刻む音
+ t2bossin:{bpm:60,f(a,o,s,t,d){I.tick(a,o,t,s%2?1500:1900,.02);if(s%16===0){I.pad(a,o,[37,44],t,16*d,.04,380);I.organ(a,o,[49,52,56],t,16*d,.02)}if(s%8===0)I.kick(a,o,t,.45);if(s===12||s===28)I.bell(a,o,61,t,.05,4)}},
+ // 黒須とのボス戦：重いシンセ・リフ
+ t2boss:{bpm:150,f(a,o,s,t,d){const bar=s>>3,r=[37,37,33,35][bar],rf=[r,r,r+12,r,r+3,r,r+7,r+6][s%8];I.bass(a,o,rf,t,d*.9,.18,1);I.pluck(a,o,rf+24,t,.03);
+  if(s%4===0)I.kick(a,o,t,.65);if(s%4===2)I.snare(a,o,t,.26);I.hat(a,o,t,.03);if(s%8===0)I.organ(a,o,[[61,64,68],[61,64,68],[57,61,64],[59,63,66]][bar],t,7*d,.025);
+  const m={0:[73,3],3:[76,1],4:[78,4],8:[76,2],10:[73,2],12:[71,4],16:[69,3],19:[71,1],20:[73,4],24:[76,6]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d,.06);if(s===31)I.whip(a,o,t,.3)}}
+});
+
+/* ---------- 令和の都会デザイン（宅建版だけ）：紺とネオン、半透明のガラスのパネル、角の丸いボタン ---------- */
+// 本体のスタイルは body の中にあるので、それより後ろ（body の最後）に足して上書きする
+document.body.insertAdjacentHTML('beforeend',`<style>
+:root{--ink:#0a0f1f;--panel:rgba(12,18,38,.8);--bone:#eef3ff;--dust:#6f80a8;--blood:#ff4f6d;--gold:#ffd166;--steel:#8fa3c8;--sil:#050814;--neo:#38d6ff;
+ --display:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif}
+body{background:var(--ink)}
+.btn{border:0;border-radius:14px;background:linear-gradient(135deg,#ff4f6d,#ff8a5b);color:#fff;box-shadow:0 8px 22px rgba(255,79,109,.32);letter-spacing:.06em}
+.btn:active{transform:translateY(2px);box-shadow:0 4px 12px rgba(255,79,109,.28)}
+.btn.ghost{background:rgba(255,255,255,.06);border:1px solid rgba(190,210,255,.28);color:var(--bone);box-shadow:none;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.btn.mini{border-radius:10px}
+/* タイトル */
+#s-title .logo{font-family:var(--display);font-weight:900;transform:none;text-shadow:none;letter-spacing:.03em;line-height:1.02;
+ background:linear-gradient(180deg,#ffffff 35%,#9fdcff 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 16px rgba(56,214,255,.45))}
+#s-title .logo .pre{-webkit-text-fill-color:#bff0ff;color:#bff0ff;background:rgba(56,214,255,.12);border:1px solid var(--neo);border-radius:999px;letter-spacing:.3em;padding:3px 10px 3px 16px;font-size:.26em;filter:none}
+#s-title .logo small{-webkit-text-fill-color:var(--gold);color:var(--gold);text-shadow:none;font-size:.4em;letter-spacing:.5em;margin-top:12px}
+#s-title .logo small::before,#s-title .logo small::after{content:"";display:inline-block;width:24px;height:1px;background:var(--gold);vertical-align:middle;margin:0 10px}
+.tagline{color:#cfe0ff}
+.title-hero{filter:drop-shadow(0 0 22px rgba(56,214,255,.55))!important}
+.rankmini{border-radius:14px}
+/* カード・問題・舞台 */
+.card{border:1px solid rgba(190,210,255,.22);border-radius:16px;background:var(--panel);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.qtag{border-radius:999px;background:linear-gradient(135deg,#ff4f6d,#ff8a5b)}
+.opt{border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(143,163,200,.45);padding:8px 12px!important;font-size:14px!important;line-height:1.45;color:var(--bone)}
+.opts.ox .opt{padding:4px!important;font-size:28px!important}
+.stage{border:1px solid rgba(190,210,255,.35);border-radius:14px}
+.arena{background:linear-gradient(180deg,var(--ink) 80%,rgba(10,15,31,0))}
+.panel{border:2px solid rgba(238,243,255,.85);border-radius:10px}
+.chap{border-bottom:2px solid var(--neo);text-shadow:0 0 12px rgba(56,214,255,.35)}
+.sheet-in{background:linear-gradient(180deg,#141c36,#0a0f1f);border:1px solid rgba(190,210,255,.3);border-bottom:none;border-radius:18px 18px 0 0}
+.mute{border-radius:10px;border-color:rgba(190,210,255,.3)}
+.btn{border:0!important}.btn.ghost{border:1px solid rgba(190,210,255,.28)!important}
+#s-title .logo .pre{display:block;width:max-content;margin:0 auto 10px}
+.tagline{background:rgba(12,18,38,.72);border-left:0;border-radius:14px;border:1px solid rgba(56,214,255,.35);text-align:center;color:#d8e8ff;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+#koma .cap{background:rgba(8,12,28,.88);border:1px solid rgba(190,210,255,.35);border-left:4px solid var(--neo);border-radius:10px}
+.hud{border:1px solid rgba(190,210,255,.3);border-radius:14px}
+.chap{border-bottom:2px solid var(--neo)}
+.share a{border:1px solid rgba(190,210,255,.35);border-radius:10px;background:rgba(255,255,255,.06)}
+.share a.sl{background:#06c755;border-color:#06c755}
+</style>`);
