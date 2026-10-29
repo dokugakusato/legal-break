@@ -113,7 +113,7 @@ function kjNextBtn(fb,i,ok){
 }
 
 /* ---------- 記述ボス ---------- */
-function kjBossIntro(){const B=CH.boss;EP={chapter:[`第${CH.no}話 ${CH.title}｜記述ボス戦`,B.enemy],wb:B.wb||CH.wb};
+function kjBossIntro(){const B=CH.boss;EP={kjBoss:1,chapter:[`第${CH.no}話 ${CH.title}｜記述ボス戦`,B.enemy],wb:B.wb||CH.wb};
   if(B.panels&&B.panels.length){BGM.play(B.bgm||'k9bossin');story(EP.chapter,B.panels,kjBoss,null,'記述で倒す ▶')}else kjBoss()}
 // 書き方の揺れをそろえる（取り消し→取消し など）
 const kjNorm=t=>String(t||'').normalize('NFKC').replace(/[\s、。，．,.・「」『』（）()]/g,'')
@@ -130,7 +130,7 @@ function kjScore(text){
 function kjBoss(){
   const B=CH.boss;closeSheet();show('s-battle');$('#s-battle').classList.add('bossmode','kj','kjboss');BGM.play(B.bbgm||'k9boss');S.ehp=100;
   $('#eName').textContent=B.enemy;$('#stage').innerHTML=stageHTML(B.efig,B.enemy,1,B.efigName);bars();
-  EP=Object.assign({},B,{topic:B.topic,efig:B.efig,enemy:B.enemy,efigName:B.efigName,wb:B.wb||CH.wb});
+  EP=Object.assign({},B,{kjBoss:1,topic:B.topic,efig:B.efig,enemy:B.enemy,efigName:B.efigName,wb:B.wb||CH.wb});
   const tiles=kjShuffle([...B.tiles,...(B.decoys||[])]);let built=[],mode=KJ.mode||'tile';
   $('#qcard').innerHTML=`<div class="qhead"><span class="qtag">記述ボス戦 ― 40字前後で書いて倒せ</span>${EP.wb?'<button class="btn ghost mini" type="button" id="wbBtn">関係図</button>':''}</div>
   <p class="qtext kjq">${B.q}</p>
