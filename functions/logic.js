@@ -31,7 +31,7 @@
   function buildMatch(a, b, cpu, t, nQuestions, rnd) {
     const order = shuffle([...Array(nQuestions).keys()], rnd);
     const total = Math.min(R.MAXQ, order.length);
-    const perms = order.map(() => shuffle([0, 1, 2, 3, 4], rnd));
+    const perms = order.map(() => shuffle([0, 1, 2, 3, 4], rnd).join('')); // Firestore は配列の中の配列を保存できないので、文字列（例 "30412"）で持つ
     const players = {};
     players[a.uid] = Object.assign(pub(a.p), { hp: R.HP, cpu: false });
     players[b.uid] = Object.assign(pub(b.p), { hp: R.HP, cpu: !!cpu });
@@ -49,7 +49,7 @@
     rnd = rnd || Math.random;
     m.qi += 1;
     const k = m.qi % s.order.length;
-    const q = Q[s.order[k]], perm = s.perms[k];
+    const q = Q[s.order[k]], perm = String(s.perms[k]).split('').map(Number);
     m.q = { no: m.qi + 1, field: q.field, topic: q.topic, type: q.type, text: q.text, choices: perm.map(i => q.choices[i]) };
     m.ans = {}; m.rv = null; m.phase = 'q'; m.phaseAt = t; m.until = t + R.QTIME;
     m.ev = { seq: m.ev.seq + 1, list: [] };
