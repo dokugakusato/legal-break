@@ -2124,6 +2124,8 @@ function say(list,done){
   if(S.mute||S.noVoice||!list.length){done&&done();return}
   stopVoice();try{TTS.ok&&speechSynthesis.cancel()}catch(e){}
   const a=ac(),run=++SAY.run;let i=0;duck(true);
+  // 第11話からのナレーションは、少し速い声で
+  if(CH&&CH.no>=11)list=list.map(([t,k])=>[t,k==='narr'?'narrf':k]);
   const loads=list.map(([t,k])=>{const h=vKey(t,k);return a&&VO.map[h]?vLoad(h):null});
   loads.forEach(p=>p&&p.catch(()=>{}));
   const next=()=>{if(run!==SAY.run)return;if(i>=list.length){duck(false);done&&done();return}

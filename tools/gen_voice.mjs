@@ -8,7 +8,7 @@ const html=fs.readFileSync(ROOT+'index.html','utf8')+(fs.existsSync(ROOT+'extra.
 
 // キャラごとの声：[VOICEVOXのキャラ名, スタイル名, 話す速さ, 高さ, 抑揚]
 const CAST={
- narr:['青山龍星','ノーマル',.9,-.03,1.15],cm:['青山龍星','ノーマル',.92,-.06,1.2],hero:['玄野武宏','ノーマル',.98,-.03,1.1],
+ narr:['青山龍星','ノーマル',.9,-.03,1.15],narrf:['青山龍星','ノーマル',1.08,-.03,1.15],cm:['青山龍星','ノーマル',.92,-.06,1.2],hero:['玄野武宏','ノーマル',.98,-.03,1.1],
  boss:['麒ヶ島宗麟','ノーマル',.9,-.04,1.2],kuroda:['雀松朱司','ノーマル',.88,-.07,1.1],dogra:['剣崎雌雄','ノーマル',.92,-.09,1.1],
  thug:['白上虎太郎','おこ',1.12,.02,1.3],trick:['雀松朱司','ノーマル',1.1,.06,1.4],jin:['白上虎太郎','ふつう',1.02,0,1],
  old:['ちび式じい','ノーマル',.92,0,1],farmer:['玄野武宏','悲しみ',.95,-.04,1],sou:['白上虎太郎','ふつう',1,.03,1],
@@ -31,7 +31,8 @@ const VPKEYS=new Set([...html.matchAll(/([a-zA-Z]+):\{p:/g)].map(m=>m[1]));
 const norm=k=>VPKEYS.has(k)?k:'narr';
 
 // 読み上げるセリフを集める
-const lines=[];const add=(t,k)=>{if(t)lines.push([t,norm(k)])};
+// 第11話からのナレーションは、少し速い声（narrf）で録る
+let CURN=null;const lines=[];const add=(t,k)=>{if(t)lines.push([t,norm(k==='narr'&&CURN?CURN:k)])};
 // 宣伝動画のナレーション（ゲームでは使わない）
 if(!GAME)try{for(const L of JSON.parse(fs.readFileSync(REPO+'tools/promo_lines.json','utf8')))lines.push([L.t,L.k])}catch(e){}
 const vt=html.match(/const VOICE_TEST=(\[.*?\]\]);/);if(vt)vm.runInNewContext(vt[1]).forEach(([t,k])=>add(t,k));
@@ -41,6 +42,7 @@ vm.runInContext(fs.readFileSync(ROOT+'episodes/list.js','utf8'),ctx);
 for(const m of ctx.window.LB_LIST)vm.runInContext(fs.readFileSync(ROOT+'episodes/'+m.file,'utf8'),ctx);
 const enemyKey=f=>VPKEYS.has(f)?f:'boss';
 for(const ep of ctx.LB.eps){
+  CURN=ep.no>=11?'narrf':null;
   (ep.op||[]).forEach(L=>add(L.v||L.t,L.c==='say'?'hero':'narr'));
   for(const L of ((ep.arrest||{}).lines||[]))add(L[0],L[1]);
   for(const st of (ep.steps||[]))for(const [t,k] of (st.after||[]))add(t,k);
