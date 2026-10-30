@@ -11,8 +11,14 @@ if [ "$BR" != "online-battle" ]; then echo "online-battle ブランチで実行�
 cd "$(dirname "$0")/../.."
 node tools/battle-test/logic-test.js
 (cd functions && npm install --no-audit --no-fund --silent)
-# Googleにログイン（初回だけブラウザが開く）
-npx -y firebase-tools@latest login
-npx -y firebase-tools@latest deploy --config battle-firebase.json --project "$PJ" --force
+if [ "$CLOUD_SHELL" = "true" ] && command -v firebase >/dev/null; then
+  # Google Cloud Shell：ログイン済みの Firebase CLI がそのまま使える
+  FB="firebase"
+else
+  FB="npx -y firebase-tools@latest"
+  # Googleにログイン（初回だけブラウザが開く）
+  $FB login
+fi
+$FB deploy --config battle-firebase.json --project "$PJ" --force --non-interactive
 echo ""
 echo "公開しました： https://$PJ.web.app"
