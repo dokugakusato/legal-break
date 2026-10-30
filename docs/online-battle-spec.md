@@ -35,6 +35,17 @@ Claude Code への実装指示用。このファイルはリポジトリの `doc
 
 ---
 
+## 0-4. 宅建版・本体ファイルに触らない（必須・2026-10-30決定）
+
+- 宅建版（`takken/`）は、行政書士版の `index.html` から `tools/make_takken.py` で自動生成されている。そのため試作中は **`index.html`・`takken/` 以下・`tools/make_takken.py`・`config.js`・`sw.js`・`firestore.rules`・`firebase.json`・`.github/workflows/` の既存ファイルを一切変更しない**。
+- 対戦は**独立したページ** `battle/index.html`（＋ `battle/battle.js`・`battle/battle.css`・`battle/config.js`）として作る。佐藤の絵・ボロボロ演出など本体から流用したい部品は、本体を書き換えずに `battle/` 側へ写して使う。
+- サーバー側は `functions/` フォルダ、試験用プロジェクトの設定は `battle/` 内または新しい設定ファイルに置き、既存の `firebase.json`・`.firebaserc` は変えない。
+- 宅建版にオンライン対戦は入れない（今のところ予定なし）。
+- 本番に入れると決めた時は、行政書士版のタイトルから対戦ページへ行くボタンの付け方を、宅建版に混ざらない方法（`make_takken.py` で除く）で提示し、承認を得てから行う。
+- 0-2章の「`?battle=test` の隠しスイッチ」は、独立ページなので試作中は不要（本番に入れる段階で改めて決める）。
+
+---
+
 ## 1. 目的
 
 現在 HTML / CSS / JavaScript で制作している「LEGAL BREAK」を土台に、ダウンロード不要・URLアクセスだけで遊べるリアルタイムのオンライン対戦モードを追加する。
