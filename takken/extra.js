@@ -293,3 +293,65 @@ Object.assign(TR,{
  t4kito:{bpm:152,f(a,o,s,t,d){const bar=s>>3,r=[40,40,36,38][bar];if(s%2===0)I.bass(a,o,r-12+[0,0,7,12][(s>>1)%4],t,d*.8,.17,1);if(s%4===0)I.kick(a,o,t,.6);if(s%2===1)I.taiko(a,o,t,.22);if(s%4===2)I.snare(a,o,t,.24);
   if(s%8===0)I.choir(a,o,[[64,67,71],[64,67,71],[60,64,67],[62,66,69]][bar],t,8*d,.03);const m={0:[76,2],2:[79,2],4:[83,4],8:[81,2],10:[79,2],12:[76,4],16:[72,3],19:[74,1],20:[76,4],24:[78,4],28:[79,4]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d,.07);if(s===31)I.whip(a,o,t,.3)}}
 });
+
+/* ---------- 第5話・第6話の登場人物 ---------- */
+Object.assign(SIL,{
+// 源造：南の祖父。ひだまり不動産の創業者。白髪、作務衣に丸めがね
+genzo:mk(`<path d="${B.wide}" fill="#3e4a5a"/>${SHD(B.wide)}<path d="M38 70L50 104L62 70" fill="none" stroke="#2a3340" stroke-width="2.4"/><path d="M28 116h44" stroke="#2a3340" stroke-width="3" fill="none"/>${NECK(50,14)}<ellipse cx="50" cy="40" rx="15" ry="17" fill="${SK}"/><path d="M35 34C34 22 42 18 50 18C58 18 66 22 65 34C60 28 40 28 35 34Z" fill="#e8e6e0"/><path d="M34 38q-3 8 2 12M66 38q3 8-2 12" fill="#e8e6e0"/><circle cx="44" cy="41" r="4.6" fill="none" stroke-width="1.6"/><circle cx="56" cy="41" r="4.6" fill="none" stroke-width="1.6"/><path d="M48.6 41h2.8" stroke-width="1.4"/><circle cx="44" cy="41" r="1.4" fill="${O}" stroke="none"/><circle cx="56" cy="41" r="1.4" fill="${O}" stroke="none"/><path d="M44 51q6 3 12 0" fill="none" stroke-width="1.6"/><path d="M40 50q10 8 20 0" fill="none" stroke="#e8e6e0" stroke-width="2.4"/>`),
+// 蛇沼：黒鍵の土地転がし。白いスーツに蛇柄のネクタイ、細い目
+janu:mk(`<path d="${B.slim}" fill="#e8e2d6"/>${SHD(B.slim)}<path d="M40 70l10 10 10-10" fill="none"/><path d="M50 80l-4 6 3 34 1 3 1-3 3-34z" fill="#3f7a3a"/><path d="M47 92h6M47 102h6M47 112h6" stroke="#1d3a1a" stroke-width="1.4"/><path d="M28 104h10M62 104h10" stroke="#b8b0a0" stroke-width="1.4" fill="none"/>${NECK(52,12)}<ellipse cx="50" cy="38" rx="13" ry="17" fill="${SK}"/><path d="M36 30C35 18 44 14 52 15C61 16 66 22 64 30C58 24 48 24 42 26C40 27 38 28 36 30Z" fill="#2a2a2a"/><path d="M40 39l8-1M60 39l-8-1" stroke-width="2.2" fill="none"/><path d="M42 48q8 5 17-2" fill="none" stroke-width="1.8"/><path d="M57 47l3-2" stroke-width="1.4"/>`),
+// 金森：黒鍵の賃貸管理部長。金ぶちの眼鏡、ベストに懐中時計
+kanamori:mk(`<path d="${B.wide}" fill="#4a3a5a"/>${SHD(B.wide)}<path d="M30 160V92h40v68Z" fill="#7a2a3a"/><path d="M50 92v68" stroke="#5a1a2a" fill="none"/><circle cx="50" cy="104" r="1.6" fill="#d9a441" stroke="none"/><circle cx="50" cy="120" r="1.6" fill="#d9a441" stroke="none"/><path d="M50 112q8 4 14 2" stroke="#d9a441" stroke-width="1.6" fill="none"/><circle cx="64" cy="114" r="3.4" fill="#d9a441" stroke="none"/>${NECK(50,14)}<ellipse cx="50" cy="38" rx="16" ry="17" fill="${SK}"/><path d="M34 34C33 20 42 16 50 16C58 16 67 20 66 34C62 28 56 26 50 26C44 26 38 28 34 34Z" fill="#3a2e24"/><rect x="38" y="35" width="10" height="7" rx="2" fill="none" stroke="#d9a441" stroke-width="1.6"/><rect x="52" y="35" width="10" height="7" rx="2" fill="none" stroke="#d9a441" stroke-width="1.6"/><path d="M48 38h4" stroke="#d9a441" stroke-width="1.4"/><circle cx="43" cy="39" r="1.3" fill="${O}" stroke="none"/><circle cx="57" cy="39" r="1.3" fill="${O}" stroke="none"/><path d="M42 49q8 4 16 0" fill="none" stroke-width="1.8"/><path d="M40 47q10-3 20 0" fill="none" stroke="#3a2e24" stroke-width="2.4"/>`)
+});
+Object.assign(NAMES,{genzo:'源造',janu:'蛇沼',kanamori:'金森'});
+Object.assign(VP,{genzo:{p:.5,r:.7,g:'m',i:2},janu:{p:.9,r:1.12,g:'m',i:3},kanamori:{p:.3,r:.8,g:'m',i:1}});
+Object.assign(PROPS,{
+ keiji:{vb:[120,110],s:.46,svg:PROP_S(`<path d="M30 70v38M90 70v38" stroke="#4a3220" stroke-width="5"/><rect x="6" y="6" width="108" height="66" rx="3" fill="#f4ecdc"/><text x="60" y="24" text-anchor="middle" font-size="13" font-weight="900" fill="${O}" stroke="none" font-family="sans-serif">お知らせ</text><text x="60" y="42" text-anchor="middle" font-size="10" font-weight="700" fill="${O}" stroke="none" font-family="sans-serif">建物は火事で滅失</text><text x="60" y="58" text-anchor="middle" font-size="10" font-weight="700" fill="#c22d22" stroke="none" font-family="sans-serif">ここに建て直します</text>`)},
+ fire:{vb:[120,110],s:.5,svg:PROP_S(`<path d="M18 108V58l42-30 42 30v50Z" fill="#2a1a14"/><path d="M60 6c18 22 34 30 30 58c-2 16-14 28-30 28s-28-12-30-28c-3-22 12-30 18-46c4 10 6 16 12 20c2-12-2-22 0-32z" fill="#ff7a2a" stroke="#c22d22"/><path d="M60 46c8 10 14 16 12 28c-2 8-6 12-12 12s-10-4-12-12c-1-8 4-12 6-18c2 4 4 6 6 8c1-6-1-12 0-18z" fill="#ffd166" stroke="none"/>`)},
+ apart:{vb:[120,110],s:.52,svg:PROP_S(`<rect x="10" y="20" width="100" height="88" fill="#d8d2c4"/><path d="M6 20h108" stroke-width="3"/><path d="M10 50h100M10 80h100" stroke="#9a9284" stroke-width="2"/><g fill="#9fd0f0"><rect x="20" y="28" width="16" height="14"/><rect x="52" y="28" width="16" height="14"/><rect x="84" y="28" width="16" height="14"/><rect x="20" y="58" width="16" height="14"/><rect x="52" y="58" width="16" height="14"/><rect x="84" y="58" width="16" height="14"/></g><rect x="52" y="86" width="16" height="22" fill="#8a5a32"/><text x="60" y="15" text-anchor="middle" font-size="10" font-weight="900" fill="${O}" stroke="none" font-family="sans-serif">黒鍵ハイツ</text>`)}
+});
+
+/* ---------- 第5話の曲（借地と火事：琴と三味線風、和太鼓、炎のブラス） ---------- */
+Object.assign(TR,{
+ // 古い商店街の朝：琴の旋律と、ゆったりしたベース
+ t5morning:{bpm:92,f(a,o,s,t,d){const ch=[[57,60,64],[55,59,62],[53,57,60],[52,57,59]][s>>3];if(s%8===0)I.pad(a,o,ch.map(n=>n+12),t,8*d,.018,800);if(s%4===0)I.bass(a,o,ch[0]-12,t,d*3,.11);
+  const m={0:76,2:79,4:81,6:79,8:76,12:74,16:72,18:74,20:76,24:69,28:71}[s];if(m)I.koto(a,o,m,t,.08);if(s%8===6)I.wood(a,o,t,1100,.04)}},
+ // 三上とのバトル：三味線風のはじきと速い太鼓
+ t5shami:{bpm:146,f(a,o,s,t,d){const r=[45,45,43,40][s>>3];I.twang(a,o,r+[12,19,24,19][s%4],t,.07);if(s%2===0)I.bass(a,o,r-12,t,d*.8,.15,1);if([0,3,6].includes(s%8))I.taiko(a,o,t,.4);if(s%4===2)I.snare(a,o,t,.16);if(s===31)I.whip(a,o,t,.3)}},
+ // 新居の土地：明るいギター風のはじきと口笛
+ t5plot:{bpm:112,f(a,o,s,t,d){const ch=[[60,64,67],[65,69,72],[67,71,74],[60,64,67]][s>>3];I.pluck(a,o,ch[s%3]+(s%6===5?12:0),t,.05);if(s%4===0)I.bass(a,o,ch[0]-12,t,d*1.8,.12);if(s%4===2)I.hat(a,o,t,.02);
+  const m={0:[72,2],2:[76,2],4:[79,4],8:[77,2],10:[76,2],12:[74,4],16:[76,2],18:[77,2],20:[79,4],24:[84,6]}[s];if(m)I.whistle(a,o,m[0],t,m[1]*d,.05)}},
+ // 沢井とのバトル：跳ねるスネアとベース
+ t5bounce:{bpm:150,f(a,o,s,t,d){const r=[48,48,53,55][s>>3];if(s%2===0)I.bass(a,o,r-12+(s%8===6?12:0),t,d*.7,.16,1);if(s%4===0)I.kick(a,o,t,.55);if(s%4===2)I.snare(a,o,t,.22);I.hat(a,o,t,.02);if(s%8===4)I.brass(a,o,r+24,t,d*.8,.045);if(s===31)I.whip(a,o,t,.3)}},
+ // 地主の屋敷：静かなオルガンと時計の音
+ t5estate:{bpm:70,f(a,o,s,t,d){I.tick(a,o,t,s%2?1500:1900,.018);if(s%16===0)I.organ(a,o,[50,57,62,65],t,16*d*.95,.022);if(s%8===4)I.bell(a,o,[74,72,69,67][s>>3],t,.03,2.5)}},
+ // 猫田とのバトル：低いシンセのうなりと四つ打ち
+ t5synth:{bpm:132,f(a,o,s,t,d){if(s%4===0)I.kick(a,o,t,.6);if(s%4===2)I.hat(a,o,t,.04);if(s%8===4)I.snare(a,o,t,.2);const r=[41,41,44,39][s>>3];I.bass(a,o,r-12+(s%2?12:0),t,d*.6,.15,1);if(s%8===0)I.pad(a,o,[r+12,r+15,r+19],t,8*d,.025,1200)}},
+ // 火事の夜：鐘とサイレン、低いうなり
+ t5fire:{bpm:60,f(a,o,s,t,d){if(s===0)I.siren(a,o,t,16*d,.02);if(s%8===0)I.bell(a,o,[62,61][s>>4],t,.05,3.5);if(s%16===0)I.cello(a,o,[38,37][s>>4],t,16*d*.95,.06);if(s%8===4)I.taiko(a,o,t,.3)}},
+ // 蛇沼とのボス戦：和太鼓の連打、炎のブラス、合唱
+ t5boss:{bpm:154,f(a,o,s,t,d){const bar=s>>3,r=[45,45,41,43][bar];if(s%2===0)I.bass(a,o,r-12+[0,7,12,7][(s>>1)%4],t,d*.8,.17,1);if(s%4===0)I.kick(a,o,t,.6);if(s%2===1)I.taiko(a,o,t,.22);if(s%4===2)I.snare(a,o,t,.24);
+  if(s%8===0)I.choir(a,o,[[69,72,76],[69,72,76],[65,69,72],[67,71,74]][bar],t,8*d,.03);const m={0:[81,2],2:[79,2],4:[76,4],8:[77,2],10:[79,2],12:[81,4],16:[77,3],19:[76,1],20:[74,4],24:[76,4],28:[79,4]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d,.07);if(s===31)I.whip(a,o,t,.3)}}
+});
+
+/* ---------- 第6話の曲（アパートと敷金：ローファイ、ゲーム音楽風、管理会社の冷たいテクノ） ---------- */
+Object.assign(TR,{
+ // 引っ越しの日：ローファイのピアノと、ゆるいビート
+ t6move:{bpm:86,f(a,o,s,t,d){const ch=[[52,55,59,62],[57,60,64,67],[50,53,57,60],[55,59,62,65]][s>>3];if(s%8===0||s%8===5)ch.slice(1).forEach(n=>I.vib(a,o,n,t,.011,1.2));if(s%8===0)I.kick(a,o,t,.35);if(s%8===4)I.snare(a,o,t,.05);if(s%2===1)I.hat(a,o,t,.014);
+  if(s%4===0)I.bass(a,o,ch[0]-12,t,d*3,.11);const m={2:74,6:71,10:76,14:74,18:72,22:69,26:71,30:67}[s];if(m)I.piano(a,o,m,t,.04)}},
+ // 赤井とのバトル：8ビット風の電子音
+ t6chip:{bpm:150,f(a,o,s,t,d){const r=[57,57,53,55][s>>3];I.pluck(a,o,r+[0,12,7,12][s%4],t,.05);if(s%2===0)I.bass(a,o,r-24,t,d*.7,.15,1);if(s%4===0)I.kick(a,o,t,.5);if(s%4===2)I.snare(a,o,t,.15);if(s===31)I.whip(a,o,t,.25)}},
+ // 雨漏りの部屋：水滴のような高い音と、ゆっくりしたハープ
+ t6drip:{bpm:72,f(a,o,s,t,d){if([0,5,11].includes(s%16))I.pluck(a,o,[88,91,86][s%3],t,.03);const ch=[[53,57,60],[50,53,57],[48,52,55],[52,55,59]][s>>3];if(s%2===0)I.harp(a,o,ch[(s>>1)%3]+12,t,d*2,.025);if(s%8===0)I.bass(a,o,ch[0]-12,t,d*7,.09)}},
+ // 三上とのバトル：はねるギター風とドラム
+ t6rock:{bpm:144,f(a,o,s,t,d){const r=[40,40,43,45][s>>3];I.bass(a,o,r-12,t,d*.7,.16,1);if(s%2===0)I.twang(a,o,r+12+(s%4===2?7:0),t,.06);if(s%4===0)I.kick(a,o,t,.6);if(s%4===2)I.snare(a,o,t,.24);I.hat(a,o,t,.02);if(s===31)I.whip(a,o,t,.3)}},
+ // 黒鍵ハイツ：管理会社の冷たいテクノ
+ t6office:{bpm:120,f(a,o,s,t,d){if(s%4===0)I.kick(a,o,t,.4);if(s%2===1)I.tick(a,o,t,2400,.025);const r=[45,45,48,43][s>>3];if(s%2===0)I.bass(a,o,r-12,t,d*.9,.12);if(s%8===0)I.pad(a,o,[r+12,r+19,r+24],t,8*d,.02,1400);if(s%8===6)I.pluck(a,o,r+31,t,.03)}},
+ // 猫田とのバトル：速いブレイクビーツ
+ t6break:{bpm:164,f(a,o,s,t,d){const k=[1,0,0,1,0,0,1,0][s%8];if(k)I.kick(a,o,t,.6);if(s%8===4||s%8===7)I.snare(a,o,t,.22);I.hat(a,o,t,.025);const r=[38,38,41,36][s>>3];if(s%2===0)I.bass(a,o,r-12,t,d*.7,.16,1);if(s%8===0)I.brass(a,o,r+24,t,d*1.2,.04);if(s===31)I.whip(a,o,t,.3)}},
+ // 金森の登場：時計の針と、冷たい鐘
+ t6kanain:{bpm:58,f(a,o,s,t,d){I.tick(a,o,t,s%2?1700:2100,.02);if(s%16===0)I.pad(a,o,[45,48,52,55],t,16*d,.024,700);if(s%8===0)I.bell(a,o,[81,80,79,78][s>>3],t,.035,3);if(s===0||s===16)I.taiko(a,o,t,.4)}},
+ // 金森とのボス戦：重いテクノとオーケストラ
+ t6boss:{bpm:148,f(a,o,s,t,d){const bar=s>>3,r=[45,45,41,40][bar];if(s%4===0)I.kick(a,o,t,.65);if(s%4===2)I.snare(a,o,t,.24);I.hat(a,o,t,.025);I.bass(a,o,r-12+(s%2?12:0),t,d*.6,.16,1);
+  if(s%8===0)I.choir(a,o,[[69,72,76],[69,72,76],[65,69,72],[64,68,71]][bar],t,8*d,.03);if(s%2===0)I.cello(a,o,r+12,t,d*.9,.04);const m={0:[76,3],3:[77,1],4:[81,4],8:[79,2],10:[77,2],12:[76,4],16:[72,3],19:[74,1],20:[77,4],24:[76,4],28:[80,4]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d,.07);if(s===31)I.whip(a,o,t,.3)}}
+});
