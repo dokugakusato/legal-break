@@ -400,6 +400,14 @@ b.gold{color:var(--gold)}
 .yk-title small{font-size:.32em;letter-spacing:.3em;color:var(--gold)}
 .yk-title.on{animation:stampIn .5s cubic-bezier(.2,1.6,.4,1) forwards}
 .yk-mini{font-family:var(--display);font-size:24px;color:var(--gold);margin:2px 0 4px}
+.harisen{position:absolute;z-index:7;left:52%;top:26%;width:62%;transform-origin:8% 50%;transform:rotate(-70deg) scale(0);transition:transform .3s cubic-bezier(.2,1.5,.4,1);pointer-events:none}
+.harisen.on{transform:rotate(-70deg) scale(1)}
+.harisen.giant{width:80%;top:18%}
+.harisen.swing{animation:hsSwing .35s ease-out}
+@keyframes hsSwing{0%{transform:rotate(-80deg)}45%{transform:rotate(15deg)}100%{transform:rotate(-70deg)}}
+.spaan{position:absolute;z-index:9;font-family:var(--display);font-size:30px;color:#fff;-webkit-text-stroke:1.5px #c22d22;text-shadow:3px 3px 0 #0b0807;transform:rotate(-12deg);animation:kiaiA .9s forwards;pointer-events:none;white-space:nowrap}
+.fig.r.bonk{animation:bonkA .45s ease-out}
+@keyframes bonkA{0%{transform:none}30%{transform:scaleY(.82) scaleX(1.1) translateY(6%)}60%{transform:scaleY(1.06) scaleX(.96)}100%{transform:none}}
 .tkblade{position:absolute;z-index:7;width:150px;margin-top:-8px;transform-origin:0 50%;animation:tkDraw .45s cubic-bezier(.2,1.4,.4,1) both;filter:drop-shadow(0 0 8px #cfe8ff);pointer-events:none}
 @keyframes tkDraw{0%{transform:rotate(30deg) scaleX(0)}100%{transform:rotate(-14deg) scaleX(1)}}
 .tkword{position:absolute;z-index:9;left:2%;right:2%;top:4%;text-align:center;font-weight:900;font-size:clamp(19px,5.8vw,27px);line-height:1.35;color:#fff6c8;background:linear-gradient(90deg,transparent,rgba(0,0,0,.82) 12%,rgba(0,0,0,.82) 88%,transparent);padding:8px 10px;border-top:2px solid #9fd4ff;border-bottom:2px solid #9fd4ff;text-shadow:0 0 10px #9fd4ff;animation:tkWord 2.3s ease-out forwards;pointer-events:none}
@@ -1191,7 +1199,7 @@ function bossBattle(){
 // 北斗風の決め・エルボーは第3話から（第1・2話は元の演出のまま）。話データで hokuto:true/false を指定すれば上書き
 const hokuto=()=>!!CH&&(CH.hokuto??CH.no>=3);
 const finStyle=()=>!CH?'hokuto':CH.fin||(CH.no>=10&&CH.no<=13?'hyaku':CH.no>=6?'slash':'hokuto');
-function finisher(){if(!hokuto())return finisherClassic();const fs=finStyle();return fs==='tekken'?finisherTekken():fs==='hyaku'?finisherHyaku():fs==='slash'?finisherSlash():finisherHokuto()}
+function finisher(){if(!hokuto())return finisherClassic();const fs=finStyle();return fs==='harisen'?finisherHarisen():fs==='tekken'?finisherTekken():fs==='hyaku'?finisherHyaku():fs==='slash'?finisherSlash():finisherHokuto()}
 function finisherClassic(){
   BGM.stop();closeSheet();stopSay();
   const name=EP.lawName||EP.ougi,ov=$('#ov');ov.hidden=false;ov.classList.add('black');
@@ -1385,6 +1393,39 @@ function finisherTekken(){
     await Promise.all([sayP(TKL(last[1]),'hero'),wait(2000)]);hero.classList.remove('leap');
     line('ぐわあああっ！！',EP.efigName||EP.enemy,'big');say([['ぐわあああっ！',bk]]);await wait(350);
     sliceApart(boss,st,[[-38,.42],[38,.42],[-24,.3]]);sw.remove();$('#fline').innerHTML='';await wait(1700);
+    await ougiTail(ov,name,sayP,wait);
+  })();
+}
+// 大ハリセン（CH.fin='harisen'）：条文を言いながらハリセンでたたき、最後はコミカルにぶっ飛ばす
+function finisherHarisen(){
+  BGM.stop();closeSheet();stopSay();
+  const name=EP.lawName||EP.ougi,ov=$('#ov'),bk=VP[EP.efig]?EP.efig:'boss',L=CH.tekken||[['ハリセン、用意！'],['覚悟しろ――','法は、お前を許さない。'],['これで終わりだ――','法のハリセン！']];ov.hidden=false;ov.classList.add('black');
+  const wait=ms=>new Promise(r=>setTimeout(r,ms)),sayP=(t,k)=>new Promise(r=>say([[t,k]],r));
+  const line=(t,who,cls='')=>{const l=$('#fline');if(l)l.innerHTML=`<div class="fl ${cls}"><b>${who}</b>${t}</div>`};
+  ov.innerHTML=`<div class="finisher hk"><div class="stage fstage" id="fstage">${stageHTML(EP.efig||'boss',EP.enemy,1,EP.efigName)}</div><div class="fline" id="fline"></div></div>`;
+  const st=$('#fstage'),boss=st.querySelector('.fig.r'),hero=st.querySelector('.fig.l');boss.classList.remove('ed1','ed2');
+  const big=t=>{const d=document.createElement('div');d.className='tkword';d.textContent=t;st.appendChild(d);setTimeout(()=>d.remove(),2300)};
+  const HSVG='<svg viewBox="0 0 120 60"><rect x="0" y="24" width="34" height="12" rx="3" fill="#c22d22" stroke="#0b0807" stroke-width="2"/><path d="M32 22L116 2V58L32 38z" fill="#fffdf4" stroke="#0b0807" stroke-width="2"/><path d="M46 19V41M60 16V44M74 12V48M88 9V51M102 6V54" stroke="#9a9488" stroke-width="1.6"/></svg>';
+  const hs=document.createElement('div');hs.className='harisen';hs.innerHTML=HSVG;hero.appendChild(hs);
+  const smack=(txt,p)=>{hs.classList.remove('swing');void hs.offsetWidth;hs.classList.add('swing');
+    setTimeout(()=>{const r=boss.getBoundingClientRect(),sr=st.getBoundingClientRect(),b=document.createElement('div');b.className='spaan';b.textContent=txt;b.style.left=(r.left-sr.left+r.width*.3)+'px';b.style.top=(r.top-sr.top+r.height*.12)+'px';st.appendChild(b);setTimeout(()=>b.remove(),900);
+      punch(p);const a=ac();if(a)I.whip(a,a.destination,a.currentTime,.7);boss.classList.remove('bonk');void boss.offsetWidth;boss.classList.add('bonk')},180)};
+  (async()=>{
+    // 1. 条文を名のり、大ハリセンを構える
+    await wait(400);line(L[0][0],'佐藤','hero');await Promise.all([sayP(TKL(L[0][0]),'hero'),wait(1300)]);
+    hs.classList.add('on');const a=ac();if(a)I.bell(a,a.destination,86,a.currentTime,.1);await wait(700);
+    // 2. 条文ごとに、スパーン！
+    for(let i=1;i<L.length-1;i++){
+      line(L[i][0],'佐藤','hero');await Promise.all([sayP(TKL(L[i][0]),'hero'),wait(1200)]);
+      hero.classList.add('rush');smack('スパーン！',1.4);big(L[i][1]);await Promise.all([sayP(TKL(L[i][1]),'hero'),wait(1700)]);hero.classList.remove('rush');await wait(250)}
+    // 3. 最後は、大きくふりかぶって、ぶっ飛ばす
+    const last=L[L.length-1];line(last[0],'佐藤','hero');await Promise.all([sayP(TKL(last[0]),'hero'),wait(1300)]);
+    hs.classList.add('giant');hero.classList.add('leap');await wait(250);smack('スッパーーン！！',2.6);big(last[1]);
+    await wait(300);boss.classList.remove('bonk');boss.classList.add('flyaway');line('ひえぇぇ〜っ！',EP.efigName||EP.enemy,'big');say([['ひえぇぇ〜っ！',bk]]);
+    await Promise.all([sayP(TKL(last[1]),'hero'),wait(2000)]);hero.classList.remove('leap');
+    const star=document.createElement('div');star.className='kiran';star.textContent='キラーン';st.appendChild(star);
+    const a2=ac();if(a2){I.bell(a2,a2.destination,88,a2.currentTime,.12);I.bell(a2,a2.destination,91,a2.currentTime+.12,.12)}
+    await wait(1500);$('#fline').innerHTML='';hs.remove();
     await ougiTail(ov,name,sayP,wait);
   })();
 }
