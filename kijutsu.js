@@ -90,7 +90,8 @@ function kjJudge(i,ok,picked){
       fb.innerHTML=`<div class="verdict ng">見切られた…（残りの命 ${S.life}）</div><span class="law">ヒント</span><p>${q.hint||'事件の中の言葉をよく読もう。'}</p>`;
       const b=document.createElement('button');b.className='btn';b.type='button';b.textContent='もう一度考える';b.onclick=()=>kjAsk(i);fb.appendChild(b);return}
     opts.forEach(x=>{if(right.includes(+x.dataset.i))x.classList.add('right')});
-    fb.innerHTML=`<div class="verdict ng">正解は、これだ。</div><span class="law">${q.law||''}</span><p>${q.exp}</p>${q.card?kjCardHTML(q.card):''}`;
+    if(q.after)setTimeout(()=>say(q.after.map(([t,k])=>[t,k])),600);
+    fb.innerHTML=`<div class="verdict ng">正解は、これだ。</div>${kjAfter(q)}<span class="law">${q.law||''}</span><p>${q.exp}</p>${q.card?kjCardHTML(q.card):''}`;
     if(q.card&&!KJ.cards.find(x=>x.name===q.card.name))KJ.cards.push(q.card);
     return kjNextBtn(fb,i,false);
   }
@@ -98,9 +99,12 @@ function kjJudge(i,ok,picked){
   const last=i===n-1,dmg=last?S.ehp:Math.min(S.ehp-1,Math.round(100/n));
   attack(()=>{damage(dmg,last?'とどめ！':(q.tech||'命中！')+'');kjCardGet(q.card)},randMove());
   const fb=openSheet(last?2400:1700);
-  fb.innerHTML=`<div class="verdict ok">${['見抜いた！','命中！','見切った！','決まった！'][i%4]}</div><span class="law">${q.law||''}</span><p>${q.exp}</p>${q.card?kjCardHTML(q.card):''}`;
+  fb.innerHTML=`<div class="verdict ok">${['見抜いた！','命中！','見切った！','決まった！'][i%4]}</div>${kjAfter(q)}<span class="law">${q.law||''}</span><p>${q.exp}</p>${q.card?kjCardHTML(q.card):''}`;
+  if(q.after)setTimeout(()=>say(q.after.map(([t,k])=>[t,k])),900);
   kjNextBtn(fb,i,true);
 }
+// 正解のあとの、短いやりとり（step.after：[[せりふ, 話す人], …]）
+function kjAfter(q){return q.after?`<div class="kjafter">${q.after.map(([t,k])=>`<div class="${k==='hero'?'h':''}"><b>${k==='hero'?'佐藤':(NAMES[k]||'')}</b>${t}</div>`).join('')}</div>`:''}
 function kjCardHTML(c){return `<div class="kjcard"><small>法律カード</small><b>${c.name}</b><span class="law">${c.law||''}</span><p>${c.text||''}</p></div>`}
 function kjNextBtn(fb,i,ok){
   const n=CH.steps.length,last=i===n-1,b=document.createElement('button');b.className='btn';b.type='button';
@@ -113,7 +117,11 @@ function kjNextBtn(fb,i,ok){
 }
 
 /* ---------- 記述ボス ---------- */
-function kjBossIntro(){const B=CH.boss;EP={kjBoss:1,chapter:[`第${CH.no}話 ${CH.title}｜記述ボス戦`,B.enemy],wb:B.wb||CH.wb};
+// ボス戦の前に大きな文字（boss.banner）を出す
+function kjBanner(t,then){const d=document.createElement('div');d.className='kjbanner';d.innerHTML=`<span>${t}</span>`;document.body.appendChild(d);
+  const a=ac();if(a){I.taiko(a,a.destination,a.currentTime+.02,1);I.bell(a,a.destination,81,a.currentTime+.05,.1)}
+  let gone=false;const go=()=>{if(gone)return;gone=true;d.remove();then()};d.onclick=go;setTimeout(go,2200)}
+function kjBossIntro(){const B=CH.boss;if(B.banner&&!KJ.bannered){KJ.bannered=1;return kjBanner(B.banner,kjBossIntro)}EP={kjBoss:1,chapter:[`第${CH.no}話 ${CH.title}｜記述ボス戦`,B.enemy],wb:B.wb||CH.wb};
   if(B.panels&&B.panels.length){BGM.play(B.bgm||'k9bossin');story(EP.chapter,B.panels,kjBoss,null,'記述で倒す ▶')}else kjBoss()}
 // 書き方の揺れをそろえる（取り消し→取消し など）
 const kjNorm=t=>String(t||'').normalize('NFKC').replace(/[\s、。，．,.・「」『』（）()]/g,'')
@@ -229,6 +237,11 @@ document.body.insertAdjacentHTML('beforeend',`<style>
 .kjmodel{font-weight:900;font-size:15px;line-height:1.7}.kjmodel mark{background:rgba(217,164,65,.35);color:inherit;padding:0 2px}
 .kjres{gap:10px}.kjres .card{text-align:left;width:100%}
 .kjscore b{font-family:var(--display);font-size:48px;color:var(--gold)}.kjscore small{font-size:16px}
+.kjbanner{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.86)}
+.kjbanner span{font-family:var(--display);white-space:nowrap;font-size:clamp(28px,9.5vw,54px);color:#fff;border-top:4px solid var(--gold);border-bottom:4px solid var(--gold);padding:8px 16px;text-shadow:0 0 18px #9fd4ff,4px 4px 0 var(--blood);animation:kjBan .5s cubic-bezier(.2,1.5,.4,1) both}
+@keyframes kjBan{0%{opacity:0;transform:scale(2.6)}100%{opacity:1;transform:scale(1)}}
+.kjafter{display:grid;gap:5px;margin:4px 0 8px}.kjafter>div{background:#fbf6ec;color:#120c0a;border:2px solid #120c0a;border-radius:12px;padding:6px 10px;font-weight:800;font-size:14px;line-height:1.5}
+.kjafter>div.h{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold)}.kjafter b{display:block;font-size:10px;color:var(--blood)}
 .kjlist{margin:4px 0 0;padding-left:1.3em;font-size:13.5px;line-height:1.6}
 </style>`);
 
@@ -239,6 +252,13 @@ shinsa:mk(`<path d="${B.boss}" fill="#2c3240"/>${SHD(B.boss)}<path d="M36 64L50 
 // 大家・馬場：太った強欲な地主。葉巻、金の指輪、羽織
 ooya:mk(`<path d="M0 160C0 100 14 66 50 58C86 66 100 100 100 160Z" fill="#3a2a4a"/>${SHD('M0 160C0 100 14 66 50 58C86 66 100 100 100 160Z')}<path d="M30 66L50 160L70 66" fill="#1d1a1c"/><path d="M38 70L50 120L62 70" fill="#efe3cf"/><circle cx="24" cy="128" r="6" fill="${SK}"/><circle cx="76" cy="128" r="6" fill="${SK}"/><circle cx="26" cy="124" r="2.4" fill="#d9a441"/><circle cx="74" cy="124" r="2.4" fill="#d9a441"/>${NECK(46,12)}<ellipse cx="50" cy="38" rx="20" ry="19" fill="${SK}"/><path d="M30 34C30 18 40 14 50 14S70 18 70 34C64 26 58 24 50 24S36 26 30 34Z" fill="#2b2b2b"/><path d="M38 34l8 2M62 34l-8 2" stroke-width="2.6" fill="none"/><circle cx="43" cy="38" r="1.9" fill="${O}" stroke="none"/><circle cx="57" cy="38" r="1.9" fill="${O}" stroke="none"/><path d="M40 48q10 6 20 0" fill="none" stroke-width="2"/><path d="M58 50l18 4" stroke="#8a5a32" stroke-width="4" fill="none"/><circle cx="77" cy="54" r="2.4" fill="#ff7a2a" stroke="none"/><path d="M78 50q4-6 0-12" stroke="#bbb" stroke-width="1.2" fill="none"/><ellipse cx="34" cy="44" rx="4" ry="2.5" fill="#e0866a" stroke="none" opacity=".6"/><ellipse cx="66" cy="44" rx="4" ry="2.5" fill="#e0866a" stroke="none" opacity=".6"/>`)
 });
-Object.assign(NAMES,{shinsa:'鉄面',ooya:'馬場'});
+Object.assign(SIL,{
+// 衛生課長・灰原：白衣にマスク、銀ぶち眼鏡、手にはクリップボード
+eisei:mk(`<path d="${B.boss}" fill="#e9e6df"/>${SHD(B.boss)}<path d="M50 62v98" stroke="#b9b4aa" fill="none"/><path d="M36 64l14 26 14-26" fill="#3a4250"/><circle cx="56" cy="104" r="2" fill="#b9b4aa"/><circle cx="56" cy="122" r="2" fill="#b9b4aa"/><rect x="60" y="94" width="26" height="32" rx="2" fill="#8a6a3a" transform="rotate(-10 73 110)"/><rect x="63" y="99" width="20" height="24" fill="#f4efe4" transform="rotate(-10 73 110)" stroke-width="1"/><path d="M66 106h14M66 111h14M66 116h10" stroke="#888" stroke-width="1" fill="none" transform="rotate(-10 73 110)"/>${NECK(46,16)}<ellipse cx="50" cy="38" rx="16" ry="18" fill="${SK}"/><path d="M33 32c0-14 8-20 17-20s17 6 17 20c-4-8-10-10-17-10s-13 2-17 10z" fill="#9a9a9a"/><circle cx="43" cy="36" r="5" fill="#dfe8ee" stroke="#c0c6cc" stroke-width="1.6"/><circle cx="57" cy="36" r="5" fill="#dfe8ee" stroke="#c0c6cc" stroke-width="1.6"/><path d="M48 36h4" stroke="#c0c6cc" stroke-width="1.6" fill="none"/><circle cx="43" cy="37" r="1.5" fill="${O}" stroke="none"/><circle cx="57" cy="37" r="1.5" fill="${O}" stroke="none"/><path d="M38 31l9 2M62 31l-9 2" stroke-width="2.2" fill="none"/><path d="M36 43h28v8c0 6-6 9-14 9s-14-3-14-9z" fill="#f4f6f8" stroke="#9aa4ae" stroke-width="1.4"/><path d="M40 47h20M41 52h18" stroke="#c4ccd4" stroke-width="1" fill="none"/>`),
+// 巡査部長・矢吹（架空の荒野北署）：制帽、紺の制服、細い口ひげ、薄笑い
+junsa:mk(`<path d="${B.slim}" fill="#1e2a44"/>${SHD(B.slim)}<path d="M50 70v90" stroke="#121a2c" fill="none"/><circle cx="50" cy="92" r="2.2" fill="#c9cdd4"/><circle cx="50" cy="110" r="2.2" fill="#c9cdd4"/><circle cx="50" cy="128" r="2.2" fill="#c9cdd4"/><path d="M30 120h40" stroke="#0e1422" stroke-width="5" fill="none"/><path d="M34 82h10v8H34z" fill="#c9cdd4" stroke-width="1"/><path d="M60 80l3 6 6 1-5 4 1 6-5-3-5 3 1-6-5-4 6-1z" fill="#d9a441" stroke-width="1"/>${NECK(50,14)}<ellipse cx="50" cy="40" rx="14" ry="16" fill="${SK}"/><path d="M33 30h34l-3-12c-6-4-22-4-28 0z" fill="#1e2a44"/><path d="M30 31h40" stroke="#0e1422" stroke-width="5" fill="none"/><path d="M33 28h34" stroke="#d9a441" stroke-width="1.6" fill="none"/><path d="M46 21l4-4 4 4-4 4z" fill="#d9a441" stroke-width="1"/><path d="M40 37l7 2M60 37l-7 2" stroke-width="2.4" fill="none"/><circle cx="44" cy="41" r="1.7" fill="${O}" stroke="none"/><circle cx="56" cy="41" r="1.7" fill="${O}" stroke="none"/><path d="M42 47q4-2 8 0q4-2 8 0" stroke-width="1.8" fill="none"/><path d="M44 51q7 4 13-1" fill="none" stroke-width="1.8"/>`)
+});
+Object.assign(NAMES,{shinsa:'鉄面',ooya:'馬場',eisei:'灰原',junsa:'矢吹'});
+Object.assign(VP,{eisei:{p:.9,r:.85,g:'m',i:1},junsa:{p:1.2,r:1.05,g:'m',i:3}});
 Object.assign(VP,{shinsa:{p:.3,r:.72,g:'m',i:2},ooya:{p:.2,r:.75,g:'m',i:0}});
-document.body.insertAdjacentHTML('beforeend','<style>.fig.shinsa,.fig.ooya{height:100%}#koma .fig.shinsa,#koma .fig.ooya{--k:1}</style>');
+document.body.insertAdjacentHTML('beforeend','<style>.fig.shinsa,.fig.ooya,.fig.eisei{height:100%}#koma .fig.shinsa,#koma .fig.ooya,#koma .fig.eisei{--k:1}</style>');

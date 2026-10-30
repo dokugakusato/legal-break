@@ -393,6 +393,18 @@ b.gold{color:var(--gold)}
 .kiran{position:absolute;z-index:8;right:8%;top:16%;font-family:var(--display);font-size:22px;color:#fff6c8;text-shadow:0 0 12px #ffe680,0 0 4px #fff;animation:kiranA 1.4s ease-out forwards;pointer-events:none}
 .kiran::before{content:"";position:absolute;left:-26px;top:2px;width:22px;height:22px;background:radial-gradient(circle,#fff 0 18%,transparent 22%),conic-gradient(from 0deg,#fff6c8 0 4deg,transparent 4deg 86deg,#fff6c8 86deg 94deg,transparent 94deg 176deg,#fff6c8 176deg 184deg,transparent 184deg 266deg,#fff6c8 266deg 274deg,transparent 274deg);border-radius:50%}
 @keyframes kiranA{0%{opacity:0;transform:scale(.3)}25%{opacity:1;transform:scale(1.3)}60%{transform:scale(1)}100%{opacity:0}}
+.yk{min-height:70vh;justify-content:center;gap:18px;padding:20px 16px}
+.yk-tag{font-family:var(--display);font-size:22px;letter-spacing:.4em;color:var(--blood);border-top:2px solid var(--blood);border-bottom:2px solid var(--blood);padding:4px 14px}
+.yk-lines{display:grid;gap:10px;width:100%}.yk-lines p{margin:0;font-size:16px;line-height:1.6;color:var(--bone);text-align:left;animation:panelIn .5s ease-out both}
+.yk-title{font-family:var(--display);font-size:clamp(36px,11vw,56px);color:var(--bone);text-shadow:3px 3px 0 var(--blood),0 0 22px rgba(255,120,40,.8);display:flex;flex-direction:column;align-items:center;opacity:0;transform:scale(2.2)}
+.yk-title small{font-size:.32em;letter-spacing:.3em;color:var(--gold)}
+.yk-title.on{animation:stampIn .5s cubic-bezier(.2,1.6,.4,1) forwards}
+.yk-mini{font-family:var(--display);font-size:24px;color:var(--gold);margin:2px 0 4px}
+.tkblade{position:absolute;z-index:7;width:150px;margin-top:-8px;transform-origin:0 50%;animation:tkDraw .45s cubic-bezier(.2,1.4,.4,1) both;filter:drop-shadow(0 0 8px #cfe8ff);pointer-events:none}
+@keyframes tkDraw{0%{transform:rotate(30deg) scaleX(0)}100%{transform:rotate(-14deg) scaleX(1)}}
+.tkword{position:absolute;z-index:9;left:2%;right:2%;top:4%;text-align:center;font-weight:900;font-size:clamp(19px,5.8vw,27px);line-height:1.35;color:#fff6c8;background:linear-gradient(90deg,transparent,rgba(0,0,0,.82) 12%,rgba(0,0,0,.82) 88%,transparent);padding:8px 10px;border-top:2px solid #9fd4ff;border-bottom:2px solid #9fd4ff;text-shadow:0 0 10px #9fd4ff;animation:tkWord 2.3s ease-out forwards;pointer-events:none}
+@keyframes tkWord{0%{opacity:0;transform:scale(1.8);letter-spacing:.3em}12%{opacity:1;transform:scale(1);letter-spacing:0}85%{opacity:1}100%{opacity:0}}
+.slash.wide{height:8px;margin-top:-4px}
 .ougi2{position:fixed;left:50%;top:70%;transform:translate(-50%,-50%) scale(3);opacity:0;display:flex;flex-direction:column;align-items:center;font-family:var(--display);color:var(--gold);background:rgba(0,0,0,.88);border:5px double var(--gold);padding:10px 20px;white-space:nowrap;text-shadow:0 0 18px rgba(255,190,60,.9),3px 3px 0 var(--blood);z-index:5}
 .ougi2 small{font-size:clamp(14px,4.4vw,20px);letter-spacing:.3em;color:var(--bone)}
 .ougi2 b{font-size:clamp(34px,11vw,56px);line-height:1.15}
@@ -1179,7 +1191,7 @@ function bossBattle(){
 // 北斗風の決め・エルボーは第3話から（第1・2話は元の演出のまま）。話データで hokuto:true/false を指定すれば上書き
 const hokuto=()=>!!CH&&(CH.hokuto??CH.no>=3);
 const finStyle=()=>!CH?'hokuto':CH.fin||(CH.no>=10&&CH.no<=13?'hyaku':CH.no>=6?'slash':'hokuto');
-function finisher(){if(!hokuto())return finisherClassic();const fs=finStyle();return fs==='hyaku'?finisherHyaku():fs==='slash'?finisherSlash():finisherHokuto()}
+function finisher(){if(!hokuto())return finisherClassic();const fs=finStyle();return fs==='tekken'?finisherTekken():fs==='hyaku'?finisherHyaku():fs==='slash'?finisherSlash():finisherHokuto()}
 function finisherClassic(){
   BGM.stop();closeSheet();stopSay();
   const name=EP.lawName||EP.ougi,ov=$('#ov');ov.hidden=false;ov.classList.add('black');
@@ -1327,6 +1339,53 @@ function finisherHyaku(){
     ov.innerHTML=`<div class="finisher"><div class="doka">${EP.ougi2||EP.ougi||'ドカーン！！'}</div><p class="tagline" style="text-align:left">${EP.result}</p><div class="card"><span class="law">${EP.tashi?'判例のポイント':EP.jobun?'条文のポイント':'模範解答'}（${EP.lawRef||''}）</span><div class="model">${EP.model}</div>${wbBox(EP.wb,true)}<p style="margin:0;font-size:13px">${EP.exp}</p></div><button class="btn" type="button" id="toClear">戦いの記録を見る</button></div>`;
     ov.style.overflowY='auto';ov.style.alignItems='flex-start';
     $('#toClear').onclick=()=>{ov.hidden=true;ov.innerHTML='';ov.style.cssText='';nextPart()};
+  })();
+}
+// 佐藤の鉄剣（CH.fin='tekken'）：画面は揺らさず、斬撃・フラッシュ・文字で決める
+function ougiTail(ov,name,sayP,wait){return (async()=>{
+    ov.innerHTML=`<div class="finisher"><div class="fude" id="fude" aria-label="${name}"></div><div class="fude-sub" id="fudeSub">${EP.lawRef||''}</div><div class="ougi-stamp" id="ougiStamp"><small>奥義</small>${EP.ougi||name+'拳'}</div></div>`;
+    const a2=ac();if(a2)I.taiko(a2,a2.destination,a2.currentTime+.05,1);await wait(800);
+    say([[name+'！','hero']]);const fu=$('#fude'),chars=[...name];
+    fu.style.fontSize=Math.min(78,Math.floor((fu.parentElement.clientWidth||320)*.92/chars.length))+'px';fu.style.flexWrap='nowrap';
+    for(let i=0;i<chars.length;i++){const s2=document.createElement('span');s2.textContent=chars[i];fu.appendChild(s2);hit(i===chars.length-1?2:.8);await wait(190)}
+    $('#fudeSub').classList.add('on');await wait(1200);
+    $('#ougiStamp').classList.add('on');punch(2.2);await Promise.all([sayP('奥義、'+(EP.ougi||name+'拳')+'！','hero'),wait(1800)]);
+    if(EP.ougi2){await ougi2Show(sayP,wait)}
+    const wo=$('#wo');wo.classList.remove('on');void wo.offsetWidth;wo.classList.add('on');punch(2.4);ov.classList.remove('black');
+    ov.innerHTML=`<div class="finisher"><div class="doka">${EP.ougi2||EP.ougi||'ドカーン！！'}</div><p class="tagline" style="text-align:left">${EP.result}</p><div class="card"><span class="law">${EP.tashi?'判例のポイント':EP.jobun?'条文のポイント':'模範解答'}（${EP.lawRef||''}）</span><div class="model">${EP.model}</div>${wbBox(EP.wb,true)}<p style="margin:0;font-size:13px">${EP.exp}</p></div><button class="btn" type="button" id="toClear">戦いの記録を見る</button></div>`;
+    ov.style.overflowY='auto';ov.style.alignItems='flex-start';
+    $('#toClear').onclick=()=>{ov.hidden=true;ov.innerHTML='';ov.style.cssText='';nextPart()};
+})()}
+const TKL=t=>t.replace(/――/g,'、').replace(/、$/,'、');
+function finisherTekken(){
+  BGM.stop();closeSheet();stopSay();
+  const name=EP.lawName||EP.ougi,ov=$('#ov'),bk=VP[EP.efig]?EP.efig:'boss',L=CH.tekken||[['鉄剣、抜刀。'],['覚悟しろ――','法は、お前を許さない。'],['これで終わりだ――','法の鉄剣！']];ov.hidden=false;ov.classList.add('black');
+  const wait=ms=>new Promise(r=>setTimeout(r,ms)),sayP=(t,k)=>new Promise(r=>say([[t,k]],r));
+  const line=(t,who,cls='')=>{const l=$('#fline');if(l)l.innerHTML=`<div class="fl ${cls}"><b>${who}</b>${t}</div>`};
+  ov.innerHTML=`<div class="finisher hk"><div class="stage fstage" id="fstage">${stageHTML(EP.efig||'boss',EP.enemy,1,EP.efigName)}</div><div class="fline" id="fline"></div></div>`;
+  const st=$('#fstage'),boss=st.querySelector('.fig.r'),hero=st.querySelector('.fig.l');boss.classList.add('ed1','ed2');
+  const flash=()=>{const w=document.createElement('div');w.className='whiteout-mini';st.appendChild(w);setTimeout(()=>w.remove(),400)};
+  const big=t=>{const d=document.createElement('div');d.className='tkword';d.textContent=t;st.appendChild(d);setTimeout(()=>d.remove(),2300)};
+  const cut=(ang,y,wide)=>{const r=boss.getBoundingClientRect(),sr=st.getBoundingClientRect(),sl=document.createElement('div');sl.className='slash'+(wide?' wide':'');sl.style.left=(r.left-sr.left-r.width*.3)+'px';sl.style.width=(r.width*1.6)+'px';sl.style.top=(r.top-sr.top+r.height*y)+'px';sl.style.transform=`rotate(${ang}deg)`;st.appendChild(sl);
+    const a=ac();if(a)I.whip(a,a.destination,a.currentTime,.6);hit(.9);boss.classList.remove('hit');void boss.offsetWidth;boss.classList.add('hit')};
+  (async()=>{
+    // 1. 条文を名のり、鉄剣を抜く
+    await wait(400);line(L[0][0],'佐藤','hero');await Promise.all([sayP(TKL(L[0][0]),'hero'),wait(1300)]);
+    const sw=document.createElement('div');sw.className='tkblade';sw.innerHTML='<svg viewBox="0 0 160 16"><defs><linearGradient id="tkg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#b9c4d0"/><stop offset="1" stop-color="#6e7884"/></linearGradient></defs><rect x="0" y="5" width="26" height="6" rx="2" fill="#2b1a10"/><rect x="24" y="1" width="6" height="14" rx="1" fill="#d9a441"/><path d="M30 4h118l10 4-10 4H30z" fill="url(#tkg)" stroke="#0b0807" stroke-width="1"/></svg>';
+    sw.style.left='58%';sw.style.top='52%';hero.appendChild(sw);
+    const a=ac();if(a){I.bell(a,a.destination,93,a.currentTime,.1);I.whip(a,a.destination,a.currentTime+.05,.4)}flash();await wait(900);
+    // 2. 斬撃を重ねる
+    const angs=[[-24,.3],[26,.6]];
+    for(let i=1;i<L.length-1;i++){
+      line(L[i][0],'佐藤','hero');await Promise.all([sayP(TKL(L[i][0]),'hero'),wait(1200)]);
+      hero.classList.add('leap');cut(...angs[(i-1)%2]);big(L[i][1]);await Promise.all([sayP(TKL(L[i][1]),'hero'),wait(1700)]);hero.classList.remove('leap');await wait(250)}
+    // 3. 必殺の十字斬り
+    const last=L[L.length-1];line(last[0],'佐藤','hero');await Promise.all([sayP(TKL(last[0]),'hero'),wait(1300)]);
+    hero.classList.add('leap');flash();cut(-38,.42,1);await wait(130);cut(38,.42,1);big(last[1]);
+    await Promise.all([sayP(TKL(last[1]),'hero'),wait(2000)]);hero.classList.remove('leap');
+    line('ぐわあああっ！！',EP.efigName||EP.enemy,'big');say([['ぐわあああっ！',bk]]);await wait(350);
+    sliceApart(boss,st,[[-38,.42],[38,.42],[-24,.3]]);sw.remove();$('#fline').innerHTML='';await wait(1700);
+    await ougiTail(ov,name,sayP,wait);
   })();
 }
 // 奥義中の奥義（EP.ougi2）：奥義の後に、もう一段
@@ -1641,7 +1700,7 @@ let CH=null,EP=null;
 async function playEp(no){
   ac();let e;
   try{e=await loadEp(no)}catch(err){const box=$('#epList');if(box)box.insertAdjacentHTML('afterbegin',`<div class="card err"><p class="qtext">第${no}話を読み込めなかった。通信を確かめて、もう一度押してくれ。</p></div>`);return}
-  CH=e;setWorld(e.world);S.part=0;S.life=3;S.hp=100;S.bossFails=0;S.stats={};S.run={ok:0,n:0,lost:0,died:0,bossMiss:0};
+  CH=e;setWorld(e.world);S.yk=0;S.part=0;S.life=3;S.hp=100;S.bossFails=0;S.stats={};S.run={ok:0,n:0,lost:0,died:0,bossMiss:0};
   if(e.op&&e.op.length)opening(e,beginPart);else beginPart();
 }
 function beginPart(){
@@ -1652,7 +1711,21 @@ function beginPart(){
 function nextPart(){if(S.part<CH.parts.length-1){S.part++;beginPart()}else if(CH.arrest)arrestScene(epClear);else if(CH.epi){if('epiWorld' in CH)setWorld(CH.epiWorld);BGM.play(CH.epibgm);story([`第${CH.no}話 ${CH.title}｜エピローグ`,CH.epiTitle||'その後'],CH.epi,epClear,null,'記録を見る ▶')}else epClear()}
 
 /* ---------- 1話クリア ---------- */
-function epClear(){
+// 次回予告（CH.nextTitle があるとき、クリア画面の前に）
+function yokoku(done){
+  const ov=$('#ov'),L=CH.yokoku||[];ov.hidden=false;ov.className='black';stopSay();BGM.stop();
+  const wait=ms=>new Promise(r=>setTimeout(r,ms)),sayP=(t,k)=>new Promise(r=>say([[t,k]],r));
+  ov.innerHTML=`<div class="finisher yk"><div class="yk-tag">次回予告</div><div class="yk-lines" id="ykL"></div><div class="yk-title" id="ykT"><small>次回　LEGAL BREAK</small>${CH.nextTitle}</div><button class="btn ghost mini" type="button" id="ykSkip">とばす ▶▶</button></div>`;
+  let end=false;const fin=()=>{if(end)return;end=true;stopSay();ov.hidden=true;ov.innerHTML='';ov.className='';done()};$('#ykSkip').onclick=fin;
+  const a=ac();if(a)I.taiko(a,a.destination,a.currentTime+.05,.8);
+  (async()=>{await wait(700);
+    for(const t of L){if(end)return;const p=document.createElement('p');p.innerHTML=t;$('#ykL').appendChild(p);await Promise.all([sayP(t.replace(/<[^>]+>/g,''),'narr'),wait(2200)])}
+    if(end)return;$('#ykT').classList.add('on');const a2=ac();if(a2){I.taiko(a2,a2.destination,a2.currentTime,1);I.taiko(a2,a2.destination,a2.currentTime+.25,1)}
+    await Promise.all([sayP('次回、リーガルブレイク。'+CH.nextTitle+'！','narr'),wait(2600)]);
+    if(end)return;const b=$('#ykSkip');b.textContent='戦いの記録を見る ▶';b.classList.remove('mini','ghost');
+  })();
+}
+function epClear(){if(CH.nextTitle&&!S.yk){S.yk=1;return yokoku(epClear)}
   closeSheet();const e=CH,R=S.run,pct=R.n?Math.round(R.ok/R.n*100):0,g=grade(pct);
   const r0=rankIdx(),first=!P.eps[e.no];
   const rc=P.eps[e.no]||(P.eps[e.no]={best:0,clears:0});const newBest=!first&&pct>rc.best;
@@ -1675,7 +1748,7 @@ function epClear(){
   <div class="card"><span class="qtag">論点ごとの習得率</span><div class="stat">${e.parts.map(x=>{const t=S.stats[x.topic]||{ok:0,n:0},q=t.n?Math.round(t.ok/t.n*100):0;return `<span class="${q<60?'low':''}">${x.topic}${q<60?' ← 要復習':''}</span><b>${q}%</b><div class="t"><i style="width:${q}%"></i></div>`}).join('')}</div></div>
   ${got.length?`<div class="card"><span class="qtag">称号を手に入れた</span><div class="badges">${got.map(b=>`<div class="badge on new"><b>${b.name}</b><small>${b.desc}</small></div>`).join('')}</div></div>`:''}
   ${rankCard()}
-  ${e.next?`<div class="card nextep"><span class="qtag">次回予告</span><p class="qtext">${e.next}</p></div>`:''}
+  ${e.next?`<div class="card nextep"><span class="qtag">次回予告</span>${e.nextTitle?`<div class="yk-mini">次回「${e.nextTitle}」</div>`:''}<p class="qtext">${e.next}</p></div>`:''}
   ${nx?`<button class="btn" type="button" id="goNext">第${nx.no}話「${nx.title.split(' ― ')[0]}」へ</button>`:`<div class="tagline">次の話は近日配信。<br>明日の更新を待て！</div>`}
   <button class="btn ghost" type="button" id="goSel">話を選ぶ</button>
   ${pct<100?'<button class="btn ghost" type="button" id="goAgain">もう一度挑む（正答率を上げる）</button>':''}

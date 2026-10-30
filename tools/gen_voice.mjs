@@ -18,7 +18,7 @@ const CAST={
  okami:['四国めたん','ノーマル',.98,-.03,1],clerk:['剣崎雌雄','ノーマル',1.05,.08,1.1],lumber:['青山龍星','熱血',1,.02,1.1],
  fisher:['玄野武宏','ノーマル',.95,-.06,1],shimizu:['白上虎太郎','おこ',1.12,.06,1.4],shipwright:['剣崎雌雄','ノーマル',.98,-.02,1],
  mayor:['ちび式じい','ノーマル',.95,.03,1],mori:['九州そら','ノーマル',1.02,0,1.1],
- bucho:['雀松朱司','ノーマル',.92,-.06,1.3],shinsa:['剣崎雌雄','ノーマル',.86,-.1,.8],ooya:['麒ヶ島宗麟','ノーマル',.92,.02,1.3], sawa:['雀松朱司','ノーマル',1.05,.04,1.3],nekota:['白上虎太郎','ふつう',1.12,.08,1.4],kanshucho:['麒ヶ島宗麟','ノーマル',.84,-.1,1.15],kurosaki:['麒ヶ島宗麟','ノーマル',.86,-.08,1.25],keiji:['青山龍星','熱血',1,-.04,1.15],
+ bucho:['雀松朱司','ノーマル',.92,-.06,1.3],shinsa:['剣崎雌雄','ノーマル',.86,-.1,.8],ooya:['麒ヶ島宗麟','ノーマル',.92,.02,1.3],eisei:['雀松朱司','ノーマル',1.0,.02,1.2],junsa:['白上虎太郎','ふつう',1.04,.04,1.35], sawa:['雀松朱司','ノーマル',1.05,.04,1.3],nekota:['白上虎太郎','ふつう',1.12,.08,1.4],kanshucho:['麒ヶ島宗麟','ノーマル',.84,-.1,1.15],kurosaki:['麒ヶ島宗麟','ノーマル',.86,-.08,1.25],keiji:['青山龍星','熱血',1,-.04,1.15],
  // 宅建版
  minami:['ずんだもん','ノーマル',1.05,.02,1.2],kyaku:['白上虎太郎','ふつう',1.04,.03,1.1],haruka:['冥鳴ひまり','ノーマル',1.02,.04,1.1],kagi:['麒ヶ島宗麟','ノーマル',.86,-.07,1.25],aya:['四国めたん','ノーマル',1.05,.03,1.1],kito:['雀松朱司','ノーマル',.86,-.08,1.25]};
 
@@ -43,6 +43,8 @@ const enemyKey=f=>VPKEYS.has(f)?f:'boss';
 for(const ep of ctx.LB.eps){
   (ep.op||[]).forEach(L=>add(L.v||L.t,L.c==='say'?'hero':'narr'));
   for(const L of ((ep.arrest||{}).lines||[]))add(L[0],L[1]);
+  for(const st of (ep.steps||[]))for(const [t,k] of (st.after||[]))add(t,k);
+  for(const t of (ep.yokoku||[]))add(t.replace(/<[^>]+>/g,''),'narr');if(ep.nextTitle)add('次回、リーガルブレイク。'+ep.nextTitle+'！','narr');
   for(const P of (ep.epi||[])){add(P.nar,'narr');if(P.say){const sp=(P.figs.find(f=>f[1]===P.say.side)||P.figs[0])[0];add(P.say.text,sp)}}
   // 記述の章（kijutsu:1）は、事件の物語とボスの物語を、ふつうの話と同じ形にして集める
   const parts=ep.kijutsu?[{panels:ep.panels||[],efig:ep.efig},Object.assign({type:'boss'},ep.boss,{panels:(ep.boss&&ep.boss.panels)||[]})]:ep.parts;
@@ -51,7 +53,7 @@ for(const ep of ctx.LB.eps){
     for(const P of p.panels){add(P.nar,'narr');if(P.say){const sp=(P.figs.find(f=>f[1]===P.say.side)||P.figs[0])[0];add(P.say.text,sp)}}
     add(p.kime,'hero');add('わっはっはっはっ、あっはっはっはっ！',enemyKey(p.efig||'boss'));
     if(p.type==='boss'){const bk=p.efig||'boss';add('甘いわ、小僧！',bk);if(p.lawName)add(p.lawName+'！','hero');
-      const FS=ep.fin||(ep.no>=10&&ep.no<=13?'hyaku':ep.no>=6?'slash':'hokuto');if(FS==='hyaku'){const H=Object.assign({taunt:'へっ、そんな拳、効かねえなあ！',reply:'なら、まとめて叩き込んでやる！'},ep.hyaku||{});add('アタタタタタタタタタタタタタタッ！','hero');add(H.taunt,bk);add(H.reply,'hero');add('ほあたぁっ！','hero');add('ぶべらぁっ！',bk)}else if(FS==='slash'){add('しょうっ！','hero');add('な、何をしやがった？',bk);add('お前の主張は、すでに切り裂かれている。','hero');add('ぐわあああっ！',bk)}else{add('ん？なんともねえぞ？',bk);add('ひでぶっ！',bk);add('お前の主張は、もう死んでいる。','hero');}add('奥義、'+(p.ougi||p.lawName+'拳')+'！','hero');if(p.ougi2)add('奥義中の奥義、'+p.ougi2+'！','hero')}
+      const FS=ep.fin||(ep.no>=10&&ep.no<=13?'hyaku':ep.no>=6?'slash':'hokuto');if(FS==='tekken'){const TKL=t=>t.replace(/――/g,'、');for(const L of (ep.tekken||[['鉄剣、抜刀。'],['覚悟しろ――','法は、お前を許さない。'],['これで終わりだ――','法の鉄剣！']]))for(const t of L)add(TKL(t),'hero');add('ぐわあああっ！',bk)}else if(FS==='hyaku'){const H=Object.assign({taunt:'へっ、そんな拳、効かねえなあ！',reply:'なら、まとめて叩き込んでやる！'},ep.hyaku||{});add('アタタタタタタタタタタタタタタッ！','hero');add(H.taunt,bk);add(H.reply,'hero');add('ほあたぁっ！','hero');add('ぶべらぁっ！',bk)}else if(FS==='slash'){add('しょうっ！','hero');add('な、何をしやがった？',bk);add('お前の主張は、すでに切り裂かれている。','hero');add('ぐわあああっ！',bk)}else{add('ん？なんともねえぞ？',bk);add('ひでぶっ！',bk);add('お前の主張は、もう死んでいる。','hero');}add('奥義、'+(p.ougi||p.lawName+'拳')+'！','hero');if(p.ougi2)add('奥義中の奥義、'+p.ougi2+'！','hero')}
   }
 }
 
