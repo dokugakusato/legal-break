@@ -1,0 +1,19 @@
+{
+  "hosting": {
+    "public": "battle",
+    "headers": [
+      { "source": "**/*.@(html|js|css)", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }
+    ]
+  },
+  "functions": {
+    "source": "functions",
+    "ignore": ["node_modules", ".git", "*.log"]
+  },
+  "firestore": {
+    "rules": "battle-firestore.rules",
+    "indexes": "battle-firestore.indexes.json"
+  },
+  "database": {
+    "rules": "battle-database.rules.json"
+  }
+}

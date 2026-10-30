@@ -1,0 +1,4 @@
+{ "indexes": [], "fieldOverrides": [
+  { "collectionGroup": "battleMatches", "fieldPath": "expireAt", "ttl": true, "indexes": [] },
+  { "collectionGroup": "battleSecrets", "fieldPath": "expireAt", "ttl": true, "indexes": [] }
+] }

@@ -1,0 +1,52 @@
+# オンライン対戦（試作）を「試験用の Firebase プロジェクト」に自動で載せる。
+# 本番（legal-break-6882d・legal-break.5ukaku.com）には一切載せない。online-battle ブランチのときだけ動く。
+# 必要なもの（GitHub のリポジトリ設定）：
+#   Secrets  … BATTLE_TEST_SERVICE_ACCOUNT（試験用プロジェクトのサービスアカウントの鍵）
+#   Variables … BATTLE_TEST_PROJECT（試験用プロジェクトのID。例：legal-break-battle-test）
+name: 対戦の試作を試験用に公開
+on:
+  push:
+    branches: [online-battle]
+    paths: ['battle/**', 'functions/**', 'battle-*.json', 'battle-*.rules', '.github/workflows/battle-test.yml']
+  workflow_dispatch:
+concurrency: battle-test
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 鍵と試験用プロジェクトIDがあるか確かめる
+        id: key
+        env:
+          SA: ${{ secrets.BATTLE_TEST_SERVICE_ACCOUNT }}
+          PJ: ${{ vars.BATTLE_TEST_PROJECT }}
+        run: |
+          if [ -z "$SA" ] || [ -z "$PJ" ]; then echo "鍵（BATTLE_TEST_SERVICE_ACCOUNT）か試験用プロジェクトID（BATTLE_TEST_PROJECT）がまだ無いので、公開をとばします"; exit 0; fi
+          if [ "$PJ" = "legal-break-6882d" ]; then echo "::error::本番のプロジェクトIDが入っています。試験用のIDにしてください"; exit 1; fi
+          echo "ok=1" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        if: steps.key.outputs.ok == '1'
+      - uses: actions/setup-node@v4
+        if: steps.key.outputs.ok == '1'
+        with:
+          node-version: 22
+      - name: ルールの確認
+        if: steps.key.outputs.ok == '1'
+        run: node tools/battle-test/logic-test.js
+      - name: サーバー判定の部品を用意
+        if: steps.key.outputs.ok == '1'
+        run: cd functions && npm install --no-audit --no-fund
+      - name: 試験用プロジェクトに公開
+        if: steps.key.outputs.ok == '1'
+        env:
+          SA: ${{ secrets.BATTLE_TEST_SERVICE_ACCOUNT }}
+          PJ: ${{ vars.BATTLE_TEST_PROJECT }}
+        run: |
+          printf '%s' "$SA" > "$RUNNER_TEMP/sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
+          set +e
+          npx -y firebase-tools@latest deploy --config battle-firebase.json --project "$PJ" --non-interactive --force > "$RUNNER_TEMP/out.txt" 2>&1
+          code=$?
+          cat "$RUNNER_TEMP/out.txt"
+          rm -f "$RUNNER_TEMP/sa.json"
+          if [ $code -ne 0 ]; then grep -v '^\s*$' "$RUNNER_TEMP/out.txt" | tail -15 | while IFS= read -r l; do echo "::error::$l"; done; exit $code; fi
+          echo "公開しました： https://$PJ.web.app"

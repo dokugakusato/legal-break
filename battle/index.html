@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<title>ONLINE BATTLE｜LEGAL BREAK 法の拳（試作）</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#120c0a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap">
+<link rel="stylesheet" href="battle.css">
+</head><body>
+<div id="inapp" hidden></div>
+<main id="app">
+  <!-- メニュー -->
+  <section class="scr" id="s-home">
+    <h1 class="logo"><span class="pre">LEGAL BREAK 法の拳</span>ONLINE BATTLE</h1>
+    <p class="beta">試作版</p>
+    <div class="mecard">
+      <div class="rankbig" id="meRank">C</div>
+      <div class="meinfo">
+        <label class="namelab">名前<input id="nameIn" maxlength="12" autocomplete="nickname" placeholder="名前（12文字まで）"></label>
+        <div class="mestat" id="meStat">レート 1500 ・ 0勝0敗</div>
+      </div>
+    </div>
+    <button class="btn" id="findBtn" type="button">対戦相手をさがす</button>
+    <button class="btn ghost" id="rankBtn" type="button">全国ランキング</button>
+    <p class="online" id="onlineN"></p>
+    <p class="note">5択を2人に同時出題。先に正解した方が攻撃。速いほど大ダメージ。<br>相手が見つからないときは修行相手（CPU）と戦う。CPU戦はランクが変わらない。</p>
+    <p class="msg" id="homeMsg"></p>
+    <a class="back" href="https://legal-break.5ukaku.com/">◀ ストーリーモードへ</a>
+  </section>
+
+  <!-- 相手探し -->
+  <section class="scr" id="s-search" hidden>
+    <div class="searching">
+      <div class="radar"><i></i><i></i><i></i></div>
+      <p class="big" id="searchTxt">対戦相手を待っています…</p>
+      <p class="sub" id="searchLeft"></p>
+    </div>
+    <div class="found" id="found" hidden>見つかった！</div>
+    <button class="btn ghost" id="cancelBtn" type="button">やめる</button>
+  </section>
+
+  <!-- 対戦 -->
+  <section class="scr" id="s-battle" hidden>
+    <div class="hud">
+      <div class="pl me"><div class="pn"><b class="rk" id="hMeRank">C</b><span id="hMeName">あなた</span></div><div class="hp"><i id="hMeBar"></i></div><div class="hpn" id="hMeHp">1000</div></div>
+      <div class="qno" id="qNo">VS</div>
+      <div class="pl op"><div class="pn"><span id="hOpName">相手</span><b class="rk" id="hOpRank">C</b></div><div class="hp"><i id="hOpBar"></i></div><div class="hpn" id="hOpHp">1000</div></div>
+    </div>
+    <div class="stage" id="stage">
+      <div class="fig me hero" id="figMe"></div>
+      <div class="fig op hero" id="figOp"></div>
+      <div class="pop" id="pop"></div>
+      <div class="stampbub me" id="bubMe" hidden></div>
+      <div class="stampbub op" id="bubOp" hidden></div>
+    </div>
+    <div class="timer"><i id="timerBar"></i></div>
+    <div class="qarea" id="qarea">
+      <div class="qmeta" id="qMeta"></div>
+      <div class="qtext" id="qText"></div>
+      <div class="choices" id="choices"></div>
+    </div>
+    <div class="layer" id="vs" hidden></div>
+    <div class="layer" id="review" hidden></div>
+    <div class="layer" id="endL" hidden></div>
+    <div class="banner" id="pauseB" hidden></div>
+  </section>
+</main>
+<div class="sheet" id="sheet" hidden><div class="sheet-in" id="sheetIn"></div></div>
+
+<script src="config.js"></script>
+<script src="sato.js"></script>
+<script src="battle.js"></script>
+</body></html>

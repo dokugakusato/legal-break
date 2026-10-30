@@ -1,0 +1,26 @@
+rules_version = '2';
+// オンライン対戦の「試験用プロジェクト」専用のルール（本番の firestore.rules とは別物。本番には使わない）
+// 書き込みはすべてサーバー（Cloud Functions）が行う。スマホからは読むだけ。
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 選手の記録（名前・ランク・勝敗）：ランキングのため誰でも読める。書き換えはサーバーだけ
+    match /battlePlayers/{uid} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+    // 試合：参加している2人だけが読める
+    match /battleMatches/{id} {
+      allow read: if request.auth != null && request.auth.uid in resource.data.uids;
+      allow write: if false;
+    }
+    // 組み合わせのお知らせ：本人だけ
+    match /battleTickets/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+    // 正解・CPUの予定・相手探しの列：誰も読めない（サーバー専用）
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
