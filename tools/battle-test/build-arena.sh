@@ -13,5 +13,6 @@ git show "$REF":index.html > "$OUT/main-index.txt"   # 登場人物の絵を借�
 node tools/battle-test/arena-patch.js "$OUT"
 # 試作で録音した声（arena/audio）。まだなければ空の目次
 mkdir -p "$OUT/online/audio-x"
-if [ -d arena/audio ]; then cp arena/audio/*.mp3 arena/audio/index.js "$OUT/online/audio-x/" 2>/dev/null || true; fi
+# mp3 は試験用サイトに置かず、GitHub（jsDelivr）から読む（Cloud Shell からのアップロードが重いため）
+if [ -f arena/audio/index.js ]; then cp arena/audio/index.js "$OUT/online/audio-x/"; fi
 [ -f "$OUT/online/audio-x/index.js" ] || echo "window.OL_AUDIO2=[];" > "$OUT/online/audio-x/index.js"

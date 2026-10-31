@@ -30,7 +30,7 @@ rep('const ANN={', 'Object.assign(TAUNT,' + J(Object.fromEntries(AC.NEW.map(c =>
   'Object.entries(' + J(lines) + ').forEach(([k,v])=>{CHAR_LINES[k]=Object.assign(CHAR_LINES[k]||{},v)});\nconst ANN={');
 rep('/^(mina)/.test(id)', '/^(mina|girl|oldwoman|okami)/.test(id)');
 // 声：試作で録音した声（arena/audio）を先に探し、なければ本番の声
-rep("function olVoice(id){return (window.OL_AUDIO||[]).includes(id)?", "function olVoice(id){if((window.OL_AUDIO2||[]).includes(id))return 'audio-x/'+id+'.mp3';return (window.OL_AUDIO||[]).includes(id)?");
+rep("function olVoice(id){return (window.OL_AUDIO||[]).includes(id)?", "function olVoice(id){if((window.OL_AUDIO2||[]).includes(id))return 'https://cdn.jsdelivr.net/gh/dokugakusato/legal-break@online-battle/arena/audio/'+id+'.mp3';return (window.OL_AUDIO||[]).includes(id)?");
 rep('<script src="extra-q.js"></script>', '<script src="extra-q.js"></script>\n<script src="audio-x/index.js" onerror=""></script>');
 // やっつけたら、勝った方が笑う（キャラごとの笑い方）。そのあと勝ちゼリフ
 rep("await sleep(300);await cv(W,'win');result(winSide===1);", "await sleep(200);{const wf=$('#F'+winSide);const b=document.createElement('div');b.className='kiai';b.style.fontSize='22px';b.style.whiteSpace='normal';b.style.maxWidth='75%';b.textContent=CHAR_LINES.laugh[W.id]||'ワハハハハ！';b.style.top='8%';b.style[winSide===1?'left':'right']='4%';ar.appendChild(b);setTimeout(()=>b.remove(),2600)}\n  await cv(W,'laugh');await sleep(150);await cv(W,'win');result(winSide===1);");
