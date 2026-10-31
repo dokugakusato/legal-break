@@ -427,6 +427,12 @@
     if (box.dataset.for !== MID) { box.dataset.for = MID; box.innerHTML = k.chips.map((c, i) => `<button type="button" class="chip" data-c="${i}">${esc(c)}</button>`).join(''); box.querySelectorAll('.chip').forEach(b => b.onclick = () => playChip(+b.dataset.c, b)); }
     box.querySelectorAll('.chip').forEach(b => b.classList.toggle('used', kjMine.includes(b.textContent)));
     if (pg.lock > sNow()) lockChips(pg.lock);
+    fitKJ();
+  }
+  // 答案と札がスクロールなしで収まるまで、文字を小さくする
+  function fitKJ() {
+    const a = $('#kjarea'), sc = $('#s-battle'); let k = 1; a.style.setProperty('--kf', 1);
+    for (let i = 0; i < 10 && (a.scrollHeight > a.clientHeight + 1 || sc.scrollHeight > sc.clientHeight + 1) && k > 0.72; i++) { k -= 0.03; a.style.setProperty('--kf', k.toFixed(2)); }
   }
   function lockChips(until) {
     kjLockTo = until; const box = $('#chips'); box.classList.add('locked');

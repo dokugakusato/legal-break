@@ -285,12 +285,12 @@ body.inbattle .soundbtn{top:auto;bottom:calc(4px + env(safe-area-inset-bottom,0)
 .story .soon{text-align:center;color:#b9aa93;font-size:12px;margin-top:8px}
 
 /* 記述の答案づくり */
-.kjarea{flex:0 1 auto;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.kjarea{flex:0 1 auto;min-height:0;display:flex;flex-direction:column;overflow:hidden;--kf:1}
 .kjtop{display:flex;justify-content:space-between;gap:6px;font-size:11px;font-weight:700;color:var(--gold)}
 .kjtop .kjpts{color:var(--bone);white-space:nowrap}
 .kjtop .kjpts b{font-family:var(--display);font-weight:400;font-size:15px;color:#ffd86b}
-.kjq{font-size:13px;line-height:1.5;font-weight:700;padding:5px 8px;background:var(--panel);border:1px solid var(--line);border-radius:6px;margin:2px 0 4px}
-.kjans{font-size:14px;line-height:1.9;padding:6px 8px;background:#f4ead6;color:#1a100a;border-radius:6px;font-weight:700}
+.kjq{font-size:calc(13px * var(--kf));line-height:1.5;font-weight:700;padding:5px 8px;background:var(--panel);border:1px solid var(--line);border-radius:6px;margin:2px 0 4px}
+.kjans{font-size:calc(14px * var(--kf));line-height:1.9;padding:6px 8px;background:#f4ead6;color:#1a100a;border-radius:6px;font-weight:700}
 .kjans .bl{display:inline-block;min-width:3.5em;padding:0 5px;margin:0 1px;border-bottom:2px solid #7a5a3a;color:#1a100a;text-align:center;line-height:1.5}
 .kjans .bl.now{background:#ffe08a;border-bottom-color:#c22d22;animation:blink 1s infinite}
 .kjans .bl.done{background:#cfe9c9;border-bottom-color:#2a7a3a;color:#1a4a1a}
@@ -298,7 +298,7 @@ body.inbattle .soundbtn{top:auto;bottom:calc(4px + env(safe-area-inset-bottom,0)
 .kjhint{font-size:11px;color:#b9aa93;margin:3px 0 3px;min-height:1.3em}
 .kjhint b{color:var(--gold)}
 .chips{display:grid;grid-template-columns:repeat(2,1fr);gap:5px}
-.chip{padding:7px 6px;font-size:14px;font-weight:900;line-height:1.3;border:2px solid #6b5a4a;background:#2a1a12;border-radius:8px;color:var(--bone)}
+.chip{padding:calc(7px * var(--kf)) 6px;font-size:calc(14px * var(--kf));font-weight:900;line-height:1.3;border:2px solid #6b5a4a;background:#2a1a12;border-radius:8px;color:var(--bone)}
 .chip:active{background:#4a2a18}
 .chip.used{opacity:.3}
 .chip.bad{border-color:var(--blood);background:#4a1410;animation:shake .4s}
