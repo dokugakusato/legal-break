@@ -8,7 +8,7 @@ const rep = (a, b) => { if (!s.includes(a)) throw new Error('差し込み場所�
 // 1) 追加の問題を読む
 rep('<script src="decoys.js"></script>', '<script src="decoys.js"></script>\n<script src="extra-q.js"></script>');
 // 2) ストーリーモードの問題を作ったあとに、追加の問題を足す
-rep('/* ---------- 声 ---------- */', "{const _bq=buildQuestions;buildQuestions=function(){_bq();(window.OL_EXTRA||[]).forEach(x=>QS.push(x))}}\n/* ---------- 声 ---------- */");
+rep('/* ---------- 声 ---------- */', "{const _bq=buildQuestions;buildQuestions=function(){_bq();if(/[?&]all\\b/.test(location.search))(window.OL_EXTRA||[]).forEach(x=>QS.push(x))}}\n/* ---------- 声 ---------- */");
 // 3) 紙芝居の見出し（話の番号がない問題は、出典を出す）・コマ数
 rep('`記述ファイト｜第${Q.no}話 ${Q.title}`', '`記述ファイト｜${Q.tag||(\'第\'+Q.no+\'話 \'+Q.title)}`');
 rep('Q.panels.slice(0,3)', 'Q.panels.slice(0,Q.pn||3)');
@@ -91,7 +91,7 @@ body.quake .screen{animation:quake .1s linear infinite}
 @keyframes goP{50%{transform:scale(1.04)}}
 </style>`);
 // 9) 試作の表示
-s = s.replace('試作版・CPUと練習', '試作版・CPUと練習（全論点）');
+s = s.replace('試作版・CPUと練習', '試作版・CPUと練習');
 fs.writeFileSync(F, s);
 // 追加の問題（オンライン版の問題の形に変える）
 const conv = (k, i, tag, pn) => {

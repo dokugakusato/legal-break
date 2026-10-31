@@ -19,7 +19,9 @@ for (const [id, k, text] of lines) {
   const q = await (await fetch(`${ENGINE}/audio_query?speaker=${st.id}&text=${encodeURIComponent(say)}`, { method: 'POST' })).json();
   Object.assign(q, { speedScale: st.c[2], pitchScale: st.c[3], intonationScale: st.c[4], volumeScale: 1.25, prePhonemeLength: .05, postPhonemeLength: .1 });
   const wav = Buffer.from(await (await fetch(`${ENGINE}/synthesis?speaker=${st.id}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(q) })).arrayBuffer());
-  fs.writeFileSync('/tmp/av.wav', wav); execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', '/tmp/av.wav', '-ac', '1', '-ar', '24000', '-b:a', '64k', mp3]);
+  fs.writeFileSync('/tmp/av.wav', wav); // アナウンスは会場に響くように（低音を足して、こだまをかける）
+  const fx = k === 'ann' ? ['-af', 'bass=g=6,aecho=0.8:0.85:110|230|360:0.42|0.28|0.16,apad=pad_dur=0.6,volume=1.3'] : [];
+  execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', '/tmp/av.wav', ...fx, '-ac', '1', '-ar', '24000', '-b:a', '64k', mp3]);
   man[id] = sig; made++; console.log('録音', id, say, '／', st.sig);
 }
 fs.writeFileSync(MAN, JSON.stringify(man));

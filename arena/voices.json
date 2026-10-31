@@ -2,6 +2,56 @@
  "_": "試作（/lb/online/）で録音する声。arena/make-voices.js が作る。変えると GitHub が自動で録音する（.github/workflows/arena-voice.yml）",
  "lines": [
   [
+   "ann_round1",
+   "ann",
+   "ラウンドォォ……、ワンッ！！"
+  ],
+  [
+   "ann_fight",
+   "ann",
+   "ファイッ！！"
+  ],
+  [
+   "ann_ko",
+   "ann",
+   "ケーッ、オーーッ！！"
+  ],
+  [
+   "ann_perfect",
+   "ann",
+   "パーフェクトォーッ！！"
+  ],
+  [
+   "ann_timeup",
+   "ann",
+   "タイム、アーップ！"
+  ],
+  [
+   "ann_win",
+   "ann",
+   "ユー、ウィーンッ！！"
+  ],
+  [
+   "ann_lose",
+   "ann",
+   "ユー、ルーズ……"
+  ],
+  [
+   "ann_vs",
+   "ann",
+   "バーサースッ！！"
+  ],
+  [
+   "ann_select",
+   "ann",
+   "キャラクターを、えらべッ！"
+  ],
+  [
+   "ann_title",
+   "ann",
+   "リーガル、ブレイクッ、オンラインッ！！"
+  ],
+  [
    "old_a1",
    "old",
    "ほいさっ！"

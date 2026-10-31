@@ -1,8 +1,8 @@
 /* arena/voices.json（試作で録音するセリフの一覧）を作る。node arena/make-voices.js
    足したキャラの全セリフと、全キャラの笑い声。本番の online/voices.json とは別 */
 const fs = require('fs'), path = require('path');
-const { NEW, LAUGH, MOVES } = require('../tools/battle-test/arena-chars.js');
-const lines = [];
+const { NEW, LAUGH, MOVES, ANN } = require('../tools/battle-test/arena-chars.js');
+const lines = Object.entries(ANN).map(([id, t]) => [id, 'ann', t]);
 NEW.forEach(c => {
   ['a1', 'a2', 'rush', 'lose', 'groan', 'counter', 'taunt', 'win', 'pick'].forEach(k => lines.push([c.id + '_' + k, c.id, c[k]]));
   lines.push([c.id + '_sp', c.id, c.sp.replace(/・/g, '、') + '！']);
