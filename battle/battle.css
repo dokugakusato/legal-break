@@ -317,3 +317,11 @@ body.inbattle .soundbtn{top:auto;bottom:calc(4px + env(safe-area-inset-bottom,0)
 .story .komaroot .cap{font-size:15px;line-height:1.7}
 .story .komaroot .say{font-size:15px}
 .story .komaroot .fig{height:84%}
+
+/* 記述：当てたキーワードがたまっていく答案 */
+.kjans{display:flex;flex-wrap:wrap;gap:4px;align-items:center;min-height:2.6em}
+.kjans .kjlab{width:100%;font-size:11px;color:#7a1a14;font-weight:900}
+.kjans .kjempty{font-size:calc(12px * var(--kf));color:#7a5a3a}
+.kw-hit{display:inline-flex;align-items:center;gap:3px;background:#cfe9c9;border:2px solid #2a7a3a;border-radius:6px;padding:1px 6px;font-size:calc(13px * var(--kf));color:#1a4a1a;animation:tIn .35s cubic-bezier(.2,1.5,.4,1)}
+.kw-hit i{font-style:normal;font-family:var(--display);font-size:11px;color:#c22d22}
+.chip:disabled{opacity:.25}

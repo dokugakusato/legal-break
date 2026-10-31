@@ -199,7 +199,7 @@
     ['#vs', '#review', '#endL', '#pauseB'].forEach(s => $(s).hidden = true);
     $('#qText').textContent = ''; $('#choices').innerHTML = ''; $('#qMeta').textContent = ''; $('#qNo').textContent = 'VS';
     figsFor = ''; $('#figMe').innerHTML = ''; $('#figOp').innerHTML = '';
-    kjMine = []; kjDrawn = false; storyShown = -1; $('#story').hidden = true; $('#kjarea').hidden = true; $('#qarea').hidden = false;
+    kjMine = {}; kjDrawn = false; storyShown = -1; $('#story').hidden = true; $('#kjarea').hidden = true; $('#qarea').hidden = false;
     unM = API.watchMatch(id, m => { if (MID === id && m) applyMatch(m); }, () => {});
     clearInterval(loopTimer); loopTimer = setInterval(loop, 100);
   }
@@ -347,7 +347,7 @@
     if (!draw) { const loser = win ? '#figOp' : '#figMe', winner = win ? '#figMe' : '#figOp'; emo(winner, 'happy'); emo(loser, 'sad'); if (res.reason === 'ko') $(loser).classList.add('down'); }
     music(null); if (window.LBMusic) LBMusic.jingle(win || draw ? 'win' : 'lose'); speak(draw ? '引き分け' : win ? 'あなたの勝ち！' : '負けてしまった…', 'me');
     let big = draw ? 'DRAW' : win ? (res.reason === 'ko' ? 'K.O.!' : 'WIN!') : 'LOSE…';
-    let sub = draw ? '引き分け' : win ? (res.reason === 'forfeit' ? '相手が戻らなかった（不戦勝）' : res.reason === 'judge' ? '判定勝ち' : m.mode === 'kj' ? '満点答案で一撃！' : 'あなたの勝ち') : (res.reason === 'forfeit' ? '接続が切れて不戦敗' : res.reason === 'judge' ? '判定負け' : 'K.O.された…');
+    let sub = draw ? '引き分け' : win ? (res.reason === 'forfeit' ? '相手が戻らなかった（不戦勝）' : res.reason === 'judge' ? '判定勝ち' : m.mode === 'kj' ? '20点の完成答案でK.O.！' : 'あなたの勝ち') : (res.reason === 'forfeit' ? '接続が切れて不戦敗' : res.reason === 'judge' ? '判定負け' : 'K.O.された…');
     let rate = '';
     if (m.cpu) rate = '<p class="cpunote">CPU戦なので、ランクは変わりません</p>';
     else if (res.delta && res.delta[uid] != null) {
@@ -378,13 +378,13 @@
       if (sNow() - (m.phaseAt + e.at) > 8000 && m.phase !== 'q') return; // 古いものは演出しない
       const mine = e.by === uid, fBy = mine ? '#figMe' : '#figOp', fTo = e.to === uid ? '#figMe' : '#figOp';
       if (e.t === 'kjfin') e.t = 'hit';
-      if (e.t === 'kjhit') { SND.hit(); pop(mine ? `部分点 +${M.kj.pts[e.slot]}点！` : '相手が部分点！', mine ? 'gold small' : 'small');
+      if (e.t === 'kjhit') { SND.hit(); pop(mine ? `キーワード！ +${e.pts || M.kj.pts[e.slot]}点` : `相手 +${e.pts || ''}点`, mine ? 'gold small' : 'small');
         anim(fBy, 'lunge', 260); setTimeout(() => { anim(fTo, 'hit', 450); anim(fTo, 'knock', 500); emo(fTo, 'shock', 900); shake(); dmgNum(e.to === uid ? 'me' : 'op', e.dmg); }, 180); return; }
       if (e.t === 'kjmiss') { SND.miss(); pop(mine ? 'ちがう札！' : '相手がミス！', 'small'); anim(fTo, 'hit', 450); emo(fTo, 'sad', 1200); dmgNum(e.to === uid ? 'me' : 'op', e.dmg); return; }
       if (e.t === 'hit' || e.t === 'counter') {
         const finish = m.phase === 'end' && m.players[e.to].hp <= 0;
         if (e.t === 'counter' || finish) {
-          pop(e.t === 'counter' ? 'COUNTER!' : m.mode === 'kj' ? '満点答案！' : 'とどめ！', 'gold'); special(e.by, e.to);
+          pop(e.t === 'counter' ? 'COUNTER!' : m.mode === 'kj' ? '20点！完成答案！' : 'とどめ！', 'gold'); special(e.by, e.to);
           setTimeout(() => dmgNum(e.to === uid ? 'me' : 'op', e.dmg), 1500);
           if (finish) setTimeout(() => SND.ko(), 1600);
         } else {
@@ -406,7 +406,7 @@
   function dmgNum(side, n) { const d = document.createElement('div'); d.className = 'dmgnum ' + side; d.textContent = '-' + n; $('#stage').appendChild(d); setTimeout(() => d.remove(), 1200); }
 
   // ---------- 記述バトル ----------
-  let kjMine = [], kjDrawn = false, storyShown = -1, kjBusy = false, kjLockTo = 0, kjPending = null;
+  let kjMine = {}, kjDrawn = false, storyShown = -1, kjBusy = false, kjLockTo = 0, kjPending = null;
   // 紙芝居：ストーリーモードの4コマと同じ見た目（登場人物・吹き出し・背景・小道具）
   function komaFig(t) { const S = window.KOMA_SIL || {}; return S[t] || S.hero || ''; }
   function komaProp([k, pos]) { const P = (window.KOMA_PROPS || {})[k]; if (!P) return ''; return `<div class="prop ${pos}" style="--s:${P.s};aspect-ratio:${P.vb[0]}/${P.vb[1]}"><svg viewBox="0 0 ${P.vb[0]} ${P.vb[1]}" aria-hidden="true">${P.svg}</svg></div>`; }
@@ -428,18 +428,21 @@
     speakSeq([[p.nar, 'nar'], p.say ? [typeof p.say === 'string' ? p.say : p.say.text, (p.figs && p.figs.find(f => f[1] === p.say.side) || [])[0] === 'hero' ? 'waza' : 'me'] : null].filter(Boolean));
   }
   function drawKJ(m) {
-    const k = m.kj, pg = k.prog[uid], op = k.prog[opUid()];
-    while (kjMine.length < pg.n) kjMine.push(kjPending && kjPending.slot === kjMine.length ? kjPending.text : '（済）'); // 出した札（読み込み直したときは（済））
+    const k = m.kj, pg = k.prog[uid], op = k.prog[opUid()], got = String(pg.got || '');
+    // 当てたキーワード（空欄の番号→札の文字）。読み込み直したときは（済）
+    const newest = got.slice(-1);
+    for (const ch of got) if (!(ch in kjMine)) { kjMine[ch] = kjPending && ch === newest ? kjPending.text : '（済）'; if (ch === newest) kjPending = null; }
     $('#kjMeta').textContent = `${k.field}｜${k.topic}`;
     $('#kjQ').textContent = k.q;
-    const parts = k.tpl.split('[]'); let h = '';
-    parts.forEach((t, i) => { h += esc(t); if (i < k.n) h += `<span class="bl ${i < pg.n ? 'done' : i === pg.n ? 'now' : ''}">${i < pg.n ? esc(kjMine[i]) : (i === pg.n ? '？' : '　　')}</span>`; });
-    $('#kjAns').innerHTML = h;
-    $('#kjMyPts').textContent = pg.pts; $('#kjOpPts').textContent = `${op.pts}（${op.n}/${k.n}）`;
-    $('#kjHint').innerHTML = pg.n < k.n ? `空欄${pg.n + 1}のヒント：<b>${esc(k.labels[pg.n] || '')}</b>` : '完成！';
+    const hits = got.split('').map(i => `<span class="kw-hit">${esc(kjMine[i])}<i>+${k.pts[i]}</i></span>`).join('');
+    $('#kjAns').innerHTML = `<span class="kjlab">答案のキーワード（${pg.n}/${k.n}）</span>${hits || '<span class="kjempty">正しいキーワードの札を出して攻撃！順番は自由</span>'}`;
+    $('#kjMyPts').textContent = pg.pts; $('#kjOpPts').textContent = `${op.pts}`;
+    const left = k.labels.map((l, i) => got.includes(String(i)) ? '' : `<b>${esc(l)}</b>`).filter(Boolean);
+    $('#kjHint').innerHTML = left.length ? `残りのキーワード：${left.join('・')}` : '20点！';
     const box = $('#chips');
     if (box.dataset.for !== MID) { box.dataset.for = MID; box.innerHTML = k.chips.map((c, i) => `<button type="button" class="chip" data-c="${i}">${esc(c)}</button>`).join(''); box.querySelectorAll('.chip').forEach(b => b.onclick = () => playChip(+b.dataset.c, b)); }
-    box.querySelectorAll('.chip').forEach(b => b.classList.toggle('used', kjMine.includes(b.textContent)));
+    const used = Object.values(kjMine);
+    box.querySelectorAll('.chip').forEach(b => { const u = used.includes(b.textContent); b.classList.toggle('used', u); b.disabled = u; });
     if (pg.lock > sNow()) lockChips(pg.lock);
     fitKJ();
   }
@@ -456,12 +459,12 @@
     if (!M || M.mode !== 'kj' || M.phase !== 'kj' || kjBusy || M.paused) return;
     if (sNow() < kjLockTo) return;
     unlock(); kjBusy = true;
-    const slot = M.kj.prog[uid].n, text = M.kj.chips[i];
-    btn.classList.add('mine'); kjPending = { slot, text };
-    call('kj', { matchId: MID, slot, chip: i }).then(r => {
+    const text = M.kj.chips[i];
+    btn.classList.add('mine'); kjPending = { slot: -1, text };
+    call('kj', { matchId: MID, chip: i }).then(r => {
       kjBusy = false; btn.classList.remove('mine');
-      if (r && r.accepted && r.ok) { if (kjMine.length === slot) kjMine.push(text); if (M) drawKJ(M); }
-      else if (r && r.accepted && !r.ok) { btn.classList.remove('bad'); void btn.offsetWidth; btn.classList.add('bad'); lockChips(sNow() + 2000); toast('ちがう札！ 2秒動けない', 'op'); }
+      if (r && r.accepted && r.ok) { kjMine[r.slot] = text; if (M) drawKJ(M); }
+      else if (r && r.accepted && !r.ok) { btn.classList.remove('bad'); void btn.offsetWidth; btn.classList.add('bad'); lockChips(sNow() + 2000); toast('答案に入らない言葉！ 2秒動けない', 'op'); }
     }).catch(() => { kjBusy = false; btn.classList.remove('mine'); });
   }
 

@@ -16,32 +16,30 @@ function mk(cpu) {
   const { m, s } = L.buildKJ({ uid: 'A', p: P('あ') }, { uid: cpu ? 'cpuX' : 'B', p: cpu ? { name: 'CPU', rating: 0, rank: 'CPU' } : P('い') }, cpu, 0, [K[0]]);
   return { m, s };
 }
-{ // 流れ：VS → 紙芝居 → 答案
+{ // 流れ：VS → 紙芝居 → FIGHT（キーワードは順番自由・1つごとに点と攻撃・20点でK.O.）
   const { m, s } = mk(false);
-  ok(!JSON.stringify(m).includes('"ans"') || !m.kj.ans, '正解の位置は公開側に無い');
   ok(m.kj.pts.reduce((a, b) => a + b, 0) === 20, '20点満点');
   L.advance(m, s, R.VS_MS); ok(m.phase === 'story', '紙芝居へ');
-  ok(L.kjAnswer(m, s, 'A', 0, s.kj.ans[0], R.VS_MS + 100).accepted === false, '紙芝居中は答えられない');
+  ok(L.kjAnswer(m, s, 'A', s.kj.ans[0], R.VS_MS + 100).accepted === false, '紙芝居中は答えられない');
   const t0 = R.VS_MS + K[0].story.length * R.PANEL_MS;
-  L.advance(m, s, t0); ok(m.phase === 'kj', 'FIGHTで答案づくり');
-  // 部分点
-  let r = L.kjAnswer(m, s, 'A', 0, s.kj.ans[0], t0 + 3000);
-  ok(r.ok && m.kj.prog.A.n === 1 && m.kj.prog.A.pts === 5 && m.players.B.hp === 1000 - 150, '1つ正解で5点・150ダメージ');
-  ok(!L.kjAnswer(m, s, 'A', 0, s.kj.ans[0], t0 + 3100).accepted, '同じ空欄は2度出せない');
-  // 間違い
+  L.advance(m, s, t0); ok(m.phase === 'kj', 'FIGHT');
+  let r = L.kjAnswer(m, s, 'A', s.kj.ans[2], t0 + 3000); // 3つ目のキーワードから出してもよい
+  ok(r.ok && m.kj.prog.A.pts === 5 && m.players.B.hp === 1000 - 250 && m.kj.prog.A.got === '2', '順番自由：5点＝250ダメージ');
+  ok(!L.kjAnswer(m, s, 'A', s.kj.ans[2], t0 + 3100).accepted, '同じキーワードは2度出せない');
   const wrong = m.kj.chips.findIndex((c, i) => !s.kj.ans.includes(i));
-  r = L.kjAnswer(m, s, 'B', 0, wrong, t0 + 4000);
-  ok(r.accepted && !r.ok && m.players.B.hp === 850 - 50 && m.kj.prog.B.lock === t0 + 4000 + R.KJ_LOCK, '間違いは自分に50・2秒動けない');
-  ok(!L.kjAnswer(m, s, 'B', 0, s.kj.ans[0], t0 + 5000).accepted, '動けない間は出せない');
-  ok(L.kjAnswer(m, s, 'B', 0, s.kj.ans[0], t0 + 6100).ok, '2秒たてば出せる');
-  // 満点で一撃
-  [1, 2, 3].forEach((i, k) => L.kjAnswer(m, s, 'A', i, s.kj.ans[i], t0 + 7000 + k * 1000));
-  ok(m.phase === 'end' && m.result.winner === 'A' && m.players.B.hp === 0 && m.ev.list.some(e => e.t === 'kjfin'), '満点の完成答案で一撃K.O.');
-  ok(m.rv && m.rv.model === K[0].model, '終わったら解答例を見せる');
+  r = L.kjAnswer(m, s, 'B', wrong, t0 + 4000);
+  ok(r.accepted && !r.ok && m.players.B.hp === 750 - 50 && m.kj.prog.B.lock === t0 + 4000 + R.KJ_LOCK, 'まちがいは自分に50・2秒動けない');
+  ok(!L.kjAnswer(m, s, 'B', s.kj.ans[0], t0 + 5000).accepted, '動けない間は出せない');
+  ok(L.kjAnswer(m, s, 'B', s.kj.ans[0], t0 + 6100).ok, '2秒たてば出せる');
+  [0, 3].forEach((i, k) => L.kjAnswer(m, s, 'A', s.kj.ans[i], t0 + 7000 + k * 1000));
+  ok(m.phase === 'kj' && m.kj.prog.A.pts === 15 && m.players.B.hp === 700 - 500, '15点');
+  L.kjAnswer(m, s, 'A', s.kj.ans[1], t0 + 9000);
+  ok(m.phase === 'end' && m.result.winner === 'A' && m.players.B.hp === 0 && m.ev.list.some(e => e.t === 'kjfin'), '20点でK.O.（必殺技）');
+  ok(m.rv && m.rv.model === K[0].model, '終わったら解答例');
 }
 { // 時間切れは点の高い方
   const { m, s } = mk(false); const t0 = R.VS_MS + K[0].story.length * R.PANEL_MS;
-  L.advance(m, s, t0); L.kjAnswer(m, s, 'B', 0, s.kj.ans[0], t0 + 1000);
+  L.advance(m, s, t0); L.kjAnswer(m, s, 'B', s.kj.ans[1], t0 + 1000);
   L.advance(m, s, t0 + R.KJ_TIME); ok(m.phase === 'end' && m.result.winner === 'B' && m.result.reason === 'judge', '時間切れ：点の高い方の勝ち');
 }
 { // CPU

@@ -123,7 +123,7 @@
     const players = {};
     players[a.uid] = Object.assign(pub(a.p), { hp: R.HP, cpu: false });
     players[b.uid] = Object.assign(pub(b.p), { hp: R.HP, cpu: !!cpu });
-    const prog = {}; [a.uid, b.uid].forEach(u => { prog[u] = { n: 0, pts: 0, lock: 0 }; });
+    const prog = {}; [a.uid, b.uid].forEach(u => { prog[u] = { n: 0, pts: 0, lock: 0, got: '' }; });
     const m = {
       mode: 'kj', uids: [a.uid, b.uid], cpu: !!cpu, players,
       phase: 'vs', phaseAt: t, until: t + R.VS_MS,
@@ -143,36 +143,39 @@
     finish(m, t, reason, winner);
   }
   // 札を1枚出す。slot＝何番目の空欄か、chip＝札の番号
-  function kjPlay(m, s, uid, slot, chip, t) {
+  // 札を1枚出す（ストーリーモードの記述ボスと同じ：正解のキーワードなら順番は自由。1つごとに点が入って攻撃。20点で相手は倒れる）
+  // pg.got＝当てた空欄の番号を並べた文字列（どの札かは公開しない）
+  function kjPlay(m, s, uid, chip, t) {
     const pg = m.kj.prog[uid], op = other(m, uid);
     if (pg.lock > t) return { accepted: false, why: 'lock' };
-    if (slot !== pg.n || pg.n >= m.kj.n) return { accepted: false, why: 'slot' };
-    const at = t - m.phaseAt;
-    if (chip === s.kj.ans[slot]) {
-      pg.n += 1; pg.pts += m.kj.pts[slot];
-      if (pg.n >= m.kj.n) { // 満点の完成答案 → 必殺技で一撃
-        const dmg = m.players[op].hp; m.players[op].hp = 0;
-        m.ev.list.push({ t: 'kjfin', by: uid, to: op, dmg, at, slot });
-        kjEnd(m, s, t, 'ko', uid);
-        return { accepted: true, ok: true, done: true };
-      }
-      const dmg = Math.round(R.KJ_DMG / m.kj.n);
+    if (pg.n >= m.kj.n) return { accepted: false, why: 'done' };
+    const at = t - m.phaseAt, slot = s.kj.ans.indexOf(chip), got = String(pg.got || '');
+    if (slot >= 0 && got.includes(String(slot))) return { accepted: false, why: 'dup' };
+    if (slot >= 0) {
+      pg.n += 1; pg.pts += m.kj.pts[slot]; pg.got = got + slot;
+      const dmg = m.kj.pts[slot] * (R.HP / 20);
       m.players[op].hp = Math.max(0, m.players[op].hp - dmg);
-      m.ev.list.push({ t: 'kjhit', by: uid, to: op, dmg, at, slot });
-      return { accepted: true, ok: true };
+      if (pg.n >= m.kj.n || m.players[op].hp <= 0) { // 20点の完成答案 → 必殺技でとどめ
+        m.players[op].hp = 0;
+        m.ev.list.push({ t: 'kjfin', by: uid, to: op, dmg, at, slot, pts: m.kj.pts[slot] });
+        kjEnd(m, s, t, 'ko', uid);
+        return { accepted: true, ok: true, slot, done: true };
+      }
+      m.ev.list.push({ t: 'kjhit', by: uid, to: op, dmg, at, slot, pts: m.kj.pts[slot] });
+      return { accepted: true, ok: true, slot };
     }
     pg.lock = t + R.KJ_LOCK;
     m.players[uid].hp = Math.max(0, m.players[uid].hp - R.KJ_MISS);
-    m.ev.list.push({ t: 'kjmiss', by: uid, to: uid, dmg: R.KJ_MISS, at, slot });
+    m.ev.list.push({ t: 'kjmiss', by: uid, to: uid, dmg: R.KJ_MISS, at });
     if (m.players[uid].hp <= 0) kjEnd(m, s, t, 'ko', op);
     return { accepted: true, ok: false };
   }
-  function kjAnswer(m, s, uid, slot, chip, t) {
+  function kjAnswer(m, s, uid, chip, t) {
     advance(m, s, t);
     if (m.mode !== 'kj' || m.phase !== 'kj') return { accepted: false, why: 'closed' };
     if (m.paused) return { accepted: false, why: 'paused' };
     if (!Number.isInteger(chip) || chip < 0 || chip >= m.kj.chips.length) return { accepted: false, why: 'chip' };
-    return kjPlay(m, s, uid, slot, chip, t);
+    return kjPlay(m, s, uid, chip, t);
   }
   function kjAdvance(m, s, t) {
     if (m.phase === 'vs' && t >= m.until) { m.phase = 'story'; m.phaseAt = m.until; m.until = m.phaseAt + m.kj.storyN * R.PANEL_MS; m.ev.seq += 1; }
@@ -182,8 +185,9 @@
       const cu = m.uids[1];
       while (m.phase === 'kj' && s.cpuI < s.cpuPlan.length && t - m.phaseAt >= s.cpuPlan[s.cpuI].at) {
         const p = s.cpuPlan[s.cpuI++], pg = m.kj.prog[cu], tt = m.phaseAt + p.at;
-        const right = s.kj.ans[pg.n], wrong = m.kj.chips.findIndex((c, i) => !s.kj.ans.includes(i));
-        pg.lock = 0; kjPlay(m, s, cu, pg.n, p.ok ? right : wrong, tt);
+        const left = s.kj.ans.filter((c, i) => !String(pg.got || '').includes(String(i)));
+        const right = left[Math.floor(Math.random() * left.length)], wrong = m.kj.chips.findIndex((c, i) => !s.kj.ans.includes(i));
+        pg.lock = 0; kjPlay(m, s, cu, p.ok ? right : wrong, tt);
       }
       m.cpuAt = s.cpuI < s.cpuPlan.length ? s.cpuPlan[s.cpuI].at : null;
     }
