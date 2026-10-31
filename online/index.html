@@ -35,11 +35,18 @@ html,body{margin:0;height:100%;background:var(--ink);color:var(--bone);font-fami
 /* キャラ選択 */
 #s-select{gap:10px}
 .shead{font-family:var(--display);font-size:24px;text-align:center;color:#fff;text-shadow:2px 2px 0 var(--blood);margin:4px 0 0}
-.chars{display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:1;min-height:0}
-.char{position:relative;border:2px solid rgba(242,230,208,.25);border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(0,0,0,.3));padding:6px 6px 8px;display:flex;flex-direction:column;align-items:center;cursor:pointer;overflow:hidden;color:var(--bone);font-family:var(--body)}
-.char svg{height:clamp(90px,17vh,150px);width:auto}
-.char b{font-size:15px;margin-top:2px}
-.char small{font-size:11px;color:var(--gold);font-weight:700}
+.chars{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;flex:1;min-height:0;align-content:start;overflow:auto}
+@media (max-width:380px){.chars{grid-template-columns:repeat(4,1fr)}}
+.char.locked{opacity:.3;filter:grayscale(1)}
+.linkbtn{background:none;border:0;color:var(--gold);text-decoration:underline;font:700 12px var(--body);padding:4px;cursor:pointer}
+.rcard{display:flex;gap:10px;align-items:center;background:rgba(10,6,5,.8);border:1px solid rgba(242,182,50,.5);border-radius:10px;padding:8px 10px;font-size:14px;line-height:1.5;text-align:left}
+.rcard small{font-size:11.5px;color:#c9b89a}
+.rbadge{font:900 30px var(--display);width:48px;height:48px;display:flex;align-items:center;justify-content:center;border-radius:8px;background:#333;color:#fff;flex:none}
+.rbadge.rS{background:linear-gradient(135deg,#ffe55a,#f2a612);color:#3a1a00}.rbadge.rA{background:#d42a1e}.rbadge.rB{background:#2a6ad4}.rbadge.rC{background:#3a8a3a}
+.char{position:relative;border:2px solid rgba(242,230,208,.25);border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(0,0,0,.3));padding:4px 2px 6px;display:flex;flex-direction:column;align-items:center;cursor:pointer;overflow:hidden;color:var(--bone);font-family:var(--body)}
+.char svg{height:clamp(64px,11vh,110px);width:auto}
+.char b{font-size:12px;margin-top:2px;white-space:nowrap}
+.char small{font-size:9.5px;color:var(--gold);font-weight:700;line-height:1.25;text-align:center}
 .char.on{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold),0 0 22px rgba(242,182,50,.5);background:linear-gradient(180deg,rgba(242,182,50,.18),rgba(0,0,0,.3))}
 .char .p1tag{position:absolute;left:6px;top:6px;font:900 11px var(--display);background:var(--p1);color:#000;padding:1px 6px;border-radius:4px;display:none}
 .char.on .p1tag{display:block}
@@ -76,9 +83,10 @@ html,body{margin:0;height:100%;background:var(--ink);color:var(--bone);font-fami
 .koma .say.evil{background:#2a0a08;color:#ffd0c8;border-color:var(--blood)}
 .koma .say small{display:block;font-size:11px;color:var(--blood);font-weight:900}
 .koma.anim{animation:komaIn .35s ease-out}
-.koma .quiz{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;gap:12px;padding:18px;background:rgba(10,6,5,.55)}
+.koma.quizbg{background:#000;border-color:#000}
+.koma .quiz{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;gap:16px;padding:22px;background:#000}
 .koma .quiz span{align-self:flex-start;font:900 15px var(--display);letter-spacing:.3em;background:var(--blood);color:#fff;padding:3px 12px;transform:skewX(-10deg)}
-.koma .quiz p{margin:0;font-size:19px;line-height:1.6;font-weight:900;color:#fff;text-shadow:2px 2px 0 #000}
+.koma .quiz p{margin:0;font-size:clamp(19px,5.6vw,24px);line-height:1.7;font-weight:900;color:#fff}
 .koma .quiz small{font:900 14px var(--display);color:var(--gold)}
 @keyframes komaIn{from{opacity:0;transform:scale(1.04)}}
 .sbar{display:flex;gap:8px;align-items:center}
@@ -101,6 +109,14 @@ html,body{margin:0;height:100%;background:var(--ink);color:var(--bone);font-fami
 .arena::before{content:"";position:absolute;left:0;right:0;bottom:29%;height:2px;background:rgba(0,0,0,.4)}
 .fighter{position:absolute;bottom:4%;height:82%;width:34%;display:flex;justify-content:center;transition:transform .12s}
 .fighter svg{height:100%;width:auto}
+.fighter .edmg{position:absolute;height:100%;width:auto;left:50%;transform:translateX(-50%);pointer-events:none}
+.fighter.p2 .edmg{transform:translateX(-50%) scaleX(-1)}
+.dmg,.edmg g{display:none}
+.fighter.hurt1 .dmg1,.fighter.hurt2 .dmg2,.fighter.hurt1 .edmg .e1,.fighter.hurt2 .edmg .e2,.fighter.hurt3 .edmg .e3{display:inline}
+.fighter.hurt2>svg:first-child{filter:sepia(.25) brightness(.9)}
+.fighter.hurt3>svg:first-child{filter:sepia(.4) brightness(.8)}
+.fighter.hurt3.idle{animation:pant 1.4s ease-in-out infinite}
+@keyframes pant{50%{transform:translateY(4%) rotate(-3deg)}}
 .fighter.p1{left:8%}.fighter.p2{right:8%}
 .fighter.p2 svg{transform:scaleX(-1)}
 .fighter .tag{position:absolute;bottom:-2px;font:900 11px var(--display);padding:0 6px;border-radius:3px;color:#000}
@@ -122,6 +138,9 @@ html,body{margin:0;height:100%;background:var(--ink);color:var(--bone);font-fami
 .fighter.rush.p1{animation:rushR .9s steps(8)}.fighter.rush.p2{animation:rushL .9s steps(8)}
 @keyframes rushR{0%,100%{transform:none}10%,30%,50%,70%,90%{transform:translateX(68%)}20%,40%,60%,80%{transform:translateX(58%)}}
 @keyframes rushL{0%,100%{transform:none}10%,30%,50%,70%,90%{transform:translateX(-68%)}20%,40%,60%,80%{transform:translateX(-58%)}}
+.fighter.dash.p1{animation:dashR .75s cubic-bezier(.5,0,.3,1)}.fighter.dash.p2{animation:dashL .75s cubic-bezier(.5,0,.3,1)}
+@keyframes dashR{0%{transform:none}15%{transform:translateX(-12%) scaleX(.9)}45%{transform:translateX(110%) scaleX(1.15)}60%{transform:translateX(95%)}100%{transform:none}}
+@keyframes dashL{0%{transform:none}15%{transform:translateX(12%) scaleX(.9)}45%{transform:translateX(-110%) scaleX(1.15)}60%{transform:translateX(-95%)}100%{transform:none}}
 .fighter.fly.p1{animation:flyL 1.2s cubic-bezier(.3,.1,.6,1) forwards}.fighter.fly.p2{animation:flyR 1.2s cubic-bezier(.3,.1,.6,1) forwards}
 @keyframes flyR{100%{transform:translate(170%,-260%) rotate(900deg) scale(.08)}}
 @keyframes flyL{100%{transform:translate(-170%,-260%) rotate(-900deg) scale(.08)}}
@@ -206,6 +225,7 @@ body.inbattle .mute{display:none}
   <span class="beta">試作版・CPUと練習</span>
   <h1 class="logo"><span class="l1">LEGAL BREAK</span><span class="l2">ONLINE</span><span class="l3">記述ファイト</span></h1>
   <p class="press">TAP TO START</p>
+  <div id="titleRank"></div>
   <button class="btn" id="startBtn" type="button">対戦する</button>
   <p class="note">紙芝居で事件を見て、FIGHT！で答案づくり開始。<br>記述のキーワードを集めて攻撃。満点20点の答案で一撃K.O.。<br>いまはCPUとの練習。オンラインの相手探しは次に作る。</p>
   <p class="note"><a href="../" style="color:#c9b89a">通常版の LEGAL BREAK へ</a></p>
@@ -213,6 +233,7 @@ body.inbattle .mute{display:none}
 
 <section class="screen" id="s-select" hidden>
   <h2 class="shead">キャラクターを選べ</h2>
+  <div id="selInfo"></div>
   <div class="chars" id="chars"></div>
   <button class="btn" id="decideBtn" type="button" disabled>このキャラで戦う</button>
 </section>
@@ -224,7 +245,9 @@ body.inbattle .mute{display:none}
   <h2 class="stitle" id="stTitle"></h2>
   <div class="koma" id="koma"></div>
   <div class="sbar"><span class="kn" id="stN"></span><div class="cbar" style="flex:1;height:10px;border-radius:5px;background:#2a1a14;overflow:hidden;border:1px solid rgba(242,230,208,.3)"><div id="stBar" style="height:100%;width:0;background:linear-gradient(90deg,#f2b632,#ff5a2a)"></div></div><b id="stLeft" style="font:900 13px var(--display);color:var(--gold);min-width:84px;text-align:right"></b></div>
-  <p class="note" style="margin:0">相手も同じ物語を見ている。早送りはできない。何を書かせる問題か、先に読め！</p>
+  <button class="btn" id="stNext" type="button">SKIP ▶▶</button>
+  <p class="note" id="stWait" style="margin:0"></p>
+  <p class="note" style="margin:0;font-size:11px">SKIPしても、相手がそろうまでFIGHTは始まらない。何を書かせる問題か、先に読め！</p>
 </section>
 
 <section class="screen" id="s-battle" hidden>
@@ -260,10 +283,16 @@ let FIG={SIL:{},NAMES:{}};          // 通常版から借りる登場人物の�
 const QS=[];                        // 問題（通常版の章ボスの記述）
 // 選べるキャラ：通常版の絵を使う。sp＝必殺技（一発10点以上で出る）
 const CHARS=[
- {id:'hero',name:'佐藤',sp:'法竜アッパー',spMove:'upper',color:'#38b6ff',cap:'独学を応援する行政書士'},
- {id:'mina',name:'佐々木美奈',sp:'百裂行商キック',spMove:'rush',color:'#6ad46a',cap:'荒野を渡る行商人'},
- {id:'dogra',name:'土倉',sp:'鉄鎖大旋風',spMove:'spin',color:'#b0b8c0',cap:'鉄の鎖の大男'},
- {id:'boss',name:'権田',sp:'地上げ大車輪',spMove:'spin',color:'#d4a24a',cap:'荒野の地上げ王'}
+ {id:'hero',name:'佐藤',sp:'法竜アッパー',spMove:'upper',cap:'独学を応援する行政書士'},
+ {id:'mina',name:'佐々木美奈',sp:'百裂行商キック',spMove:'rush',cap:'荒野を渡る行商人'},
+ {id:'girl',name:'さや',sp:'命の水しぶき',spMove:'spin',cap:'畑を守る少女'},
+ {id:'haru',name:'高橋',sp:'五百樽ローリング',spMove:'dash',cap:'水を売り歩く商人'},
+ {id:'thug',name:'坂東',sp:'モヒカン頭突き',spMove:'dash',cap:'仮装売買の悪党'},
+ {id:'trick',name:'三浦',sp:'幻惑ステッキ',spMove:'upper',cap:'口のうまい詐術師'},
+ {id:'dogra',name:'土倉',sp:'鉄鎖大旋風',spMove:'spin',cap:'鉄の鎖の大男'},
+ {id:'boss',name:'権田',sp:'地上げ大車輪',spMove:'spin',cap:'荒野の地上げ王'},
+ {id:'kurosaki',name:'黒崎',sp:'組長の鉄拳制裁',spMove:'rush',cap:'黒崎組の組長'},
+ {id:'kanshucho',name:'獄門',sp:'鉄格子プレス',spMove:'dash',cap:'監獄の看守長'}
 ];
 
 /* ---------- 通常版のファイルから、絵と問題と声の目次を読む（書きかえはしない） ---------- */
@@ -279,13 +308,14 @@ async function boot(){
     const [html,kj]=await Promise.all([fetch('../index.html').then(r=>r.text()),fetch('../kijutsu.js').then(r=>r.text()).catch(()=>'')]);
     let code='var NAMES={};';for(const b of [...extractFigs(html),...extractFigs(kj).slice(1)]){try{new Function(code+b);code+=b+'\n'}catch(e){}}
     FIG=new Function(code+';return {SIL,NAMES}')();
+    const ei=html.indexOf('<svg class="edmg"');if(ei>0)FIG.EDMG=html.slice(ei,html.indexOf('</svg>',ei)+6);
   }catch(e){console.warn('絵の読み込みに失敗',e)}
   window.LB={eps:[],episode(e){this.eps.push(e)}};
   try{await loadScript('../episodes/list.js');await Promise.all((window.LB_LIST||[]).map(m=>loadScript('../episodes/'+m.file).catch(()=>0)))}catch(e){}
   try{await loadScript('../audio/index.js')}catch(e){}
   try{await loadScript('audio/index.js')}catch(e){}
   buildQuestions();
-  $('#loading').hidden=true;show('s-title');
+  $('#loading').hidden=true;show('s-title');$('#titleRank').innerHTML=rankCard();
 }
 // 章ボスの記述を、キーワード対戦の問題に変える（正解のキーワードの点を合わせて20点）
 function buildQuestions(){
@@ -314,10 +344,16 @@ function lbVoice(text,k){const h=vHash(k+'|'+cleanTxt(text));return window.LB_AU
 function olVoice(id){return (window.OL_AUDIO||[]).includes(id)?'audio/'+id+'.mp3':null}
 let TTSV=null;function tts(text,pitch=1,rate=1.1){return new Promise(res=>{if(S.mute||!('speechSynthesis' in window)){res();return}try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(cleanTxt(text));u.lang='ja-JP';u.pitch=pitch;u.rate=rate;if(!TTSV){TTSV=speechSynthesis.getVoices().find(v=>/ja/i.test(v.lang))}if(TTSV)u.voice=TTSV;u.onend=res;u.onerror=res;speechSynthesis.speak(u);setTimeout(res,4000)}catch(e){res()}})}
 function voice(id,fallbackText){const u=olVoice(id);if(u)return playUrl(u);return tts(fallbackText||'',/^(mina)/.test(id)?1.5:.8,1.2)}
-const CHAR_LINES={a1:{hero:'あちょー！',mina:'えいっ！',dogra:'ぬうん！',boss:'ふんっ！'},a2:{hero:'ほあたぁ！',mina:'やあっ！',dogra:'どりゃあ！',boss:'どすこい！'},rush:{hero:'アタタタタタタッ！',mina:'たたたたたっ！',dogra:'オラオラオラッ！',boss:'ぬおおおおっ！'},lose:{hero:'ぐわあっ！',mina:'きゃあああっ！',dogra:'あべしっ！',boss:'ひでぶっ！'},groan:{hero:'ぐふっ……',mina:'うぅっ……',dogra:'ぐぬぅ……',boss:'ぐおぉ……'},counter:{hero:'甘いぜ！',mina:'甘いわよ！',dogra:'効かんわ！',boss:'甘いわ、小僧！'}};
+const CHAR_LINES={
+ a1:{hero:'あちょー！',mina:'えいっ！',girl:'えいっ！',haru:'せいっ！',thug:'ヒャッハー！',trick:'ほいっ！',dogra:'ぬうん！',boss:'ふんっ！',kurosaki:'ぬんっ！',kanshucho:'喝っ！'},
+ a2:{hero:'ほあたぁ！',mina:'やあっ！',girl:'とりゃー！',haru:'おりゃっ！',thug:'オラァッ！',trick:'それっ！',dogra:'どりゃあ！',boss:'どすこい！',kurosaki:'でやっ！',kanshucho:'ふんぬっ！'},
+ rush:{hero:'アタタタタタタッ！',mina:'たたたたたっ！',girl:'えいえいえいっ！',haru:'そりゃそりゃっ！',thug:'ヒャッハハハハッ！',trick:'ほいほいほいっ！',dogra:'オラオラオラッ！',boss:'ぬおおおおっ！',kurosaki:'無駄無駄無駄っ！',kanshucho:'喝喝喝っ！'},
+ lose:{hero:'ぐわあっ！',mina:'きゃあああっ！',girl:'わああんっ！',haru:'たわばっ！',thug:'あべしっ！',trick:'ぷあーっ！',dogra:'あべしっ！',boss:'ひでぶっ！',kurosaki:'うわらばっ！',kanshucho:'ぐわあああっ！'},
+ groan:{hero:'ぐふっ……',mina:'うぅっ……',girl:'いたたた……',haru:'うぐっ……',thug:'げふっ……',trick:'ぐへぇ……',dogra:'ぐぬぅ……',boss:'ぐおぉ……',kurosaki:'ぐっ……',kanshucho:'ぬぐぅ……'},
+ counter:{hero:'甘いぜ！',mina:'甘いわよ！',girl:'まだまだっ！',haru:'甘いね！',thug:'効かねえよ！',trick:'甘いですな！',dogra:'効かんわ！',boss:'甘いわ、小僧！',kurosaki:'甘いわ！',kanshucho:'甘い！'}};
 function cv(ch,kind){return voice(ch.id+'_'+kind,kind==='sp'?ch.sp+'！':kind==='taunt'?TAUNT[ch.id]:kind==='win'?WINL[ch.id]:(CHAR_LINES[kind]||{})[ch.id]||'')}
-const TAUNT={hero:'独学で戦うお前に、法の拳を教えてやる。',mina:'商売の掟、教えてあげる！',dogra:'この鎖からは、逃げられんぞ。',boss:'ワシが地上げ王、権田だ！'};
-const WINL={hero:'お前の主張は、もう死んでいる。',mina:'まいどあり！',dogra:'鎖の重さを、思い知ったか。',boss:'この土地は、ワシのものだ！'};
+const TAUNT={hero:'独学で戦うお前に、法の拳を教えてやる。',mina:'商売の掟、教えてあげる！',girl:'畑はわたしが守る！',haru:'水の値打ち、教えてやるよ。',thug:'名義はもらったぜ、ヒャッハー！',trick:'口先ひとつで、あなたの負けです。',dogra:'この鎖からは、逃げられんぞ。',boss:'ワシが地上げ王、権田だ！',kurosaki:'黒崎組に逆らうとは、いい度胸だ。',kanshucho:'ここでは、わしが法律だ。'};
+const WINL={hero:'お前の主張は、もう死んでいる。',mina:'まいどあり！',girl:'おじいちゃん、勝ったよ！',haru:'代金は、きっちりもらったぜ。',thug:'ヒャッハー！楽勝だぜ！',trick:'言ったでしょう、口先ひとつだと。',dogra:'鎖の重さを、思い知ったか。',boss:'この土地は、ワシのものだ！',kurosaki:'組の顔に、泥を塗るからだ。',kanshucho:'懲罰房で、頭を冷やせ。'};
 const ANN={round1:'ラウンド、ワン！',fight:'ファイト！',ko:'ケー、オー！',perfect:'パーフェクト！',timeup:'タイム、アップ！',win:'ユー、ウィン！',lose:'ユー、ルーズ',select:'キャラクターを、えらべ！',vs:'バーサス！',title:'リーガル、ブレイク、オンライン！'};
 const ann=k=>voice('ann_'+k,ANN[k]);
 
@@ -384,14 +420,26 @@ document.addEventListener('pointerdown',function first(){document.removeEventLis
 $('#startBtn').onclick=()=>{ac();sfx('decide');openSelect()};
 $('#mute').onclick=()=>{S.mute=!S.mute;$('#mute').textContent=S.mute?'音：OFF':'音：ON';if(S.mute){BGM.stop();try{speechSynthesis.cancel()}catch(e){}if(VO)VO.pause()}};
 
-/* キャラ選択 */
+/* キャラ選択：ランキングを貯めている間はキャラを変えられない。変えるとランキングは最初に戻る */
 let P1=null,P2=null;
+const REC_KEY='lbonline.v1';
+function loadRec(){let r=null;try{r=JSON.parse(localStorage.getItem(REC_KEY)||'null')}catch(e){}return Object.assign({char:null,rp:0,win:0,lose:0,streak:0,best:0},r||{})}
+function saveRec(){try{localStorage.setItem(REC_KEY,JSON.stringify(REC))}catch(e){}}
+let REC=loadRec();
+const RANKS=[['D',0],['C',100],['B',250],['A',450],['S',700]];
+const rankOf=rp=>{let r='D';for(const [n,need] of RANKS)if(rp>=need)r=n;return r};
+const nextRank=rp=>RANKS.find(([n,need])=>need>rp);
+function rankCard(){const c=CHARS.find(x=>x.id===REC.char);if(!c)return '';const nx=nextRank(REC.rp);
+  return `<div class="rcard"><div class="rbadge r${rankOf(REC.rp)}">${rankOf(REC.rp)}</div><div><b>${c.name}</b>　${REC.rp} RP<br><small>${REC.win}勝 ${REC.lose}敗・最高${REC.best}連勝${nx?`・${nx[0]}ランクまで ${nx[1]-REC.rp} RP`:'・頂点'}</small></div></div>`}
 function openSelect(){show('s-select');BGM.play('select');ann('select');
-  $('#chars').innerHTML=CHARS.map(c=>`<button class="char" type="button" data-id="${c.id}"><span class="p1tag">1P</span>${fig(c.id)}<b>${c.name}</b><small>必殺：${c.sp}</small></button>`).join('');
+  const lock=REC.char;if(lock)P1=CHARS.find(c=>c.id===lock);
+  $('#chars').innerHTML=CHARS.map(c=>`<button class="char${lock&&c.id!==lock?' locked':''}" type="button" data-id="${c.id}"><span class="p1tag">1P</span>${fig(c.id)}<b>${c.name}</b><small>${c.sp}</small></button>`).join('');
+  $('#selInfo').innerHTML=lock?`${rankCard()}<p class="note" style="margin:4px 0 0">ランキング中は、このキャラで戦う。<button type="button" id="chgBtn" class="linkbtn">キャラを変える（ランキングは最初に戻る）</button></p>`:'<p class="note" style="margin:0">最初に選んだキャラで、ランキングを貯めていく。途中で変えると、ランキングは最初に戻る。</p>';
   $('#decideBtn').disabled=!P1;if(P1){const b=$(`.char[data-id="${P1.id}"]`);if(b)b.classList.add('on')}
-  document.querySelectorAll('.char').forEach(b=>b.onclick=()=>{sfx('select');document.querySelectorAll('.char').forEach(x=>x.classList.remove('on'));b.classList.add('on');P1=CHARS.find(c=>c.id===b.dataset.id);$('#decideBtn').disabled=false;voice(P1.id+'_pick',P1.name+'だ。')});
+  document.querySelectorAll('.char').forEach(b=>b.onclick=()=>{if(REC.char&&b.dataset.id!==REC.char){sfx('miss');return}sfx('select');document.querySelectorAll('.char').forEach(x=>x.classList.remove('on'));b.classList.add('on');P1=CHARS.find(c=>c.id===b.dataset.id);$('#decideBtn').disabled=false;voice(P1.id+'_pick',P1.name+'だ。')});
+  const cb=$('#chgBtn');if(cb)cb.onclick=()=>{if(!confirm('キャラを変えると、ランキング（'+rankOf(REC.rp)+'ランク・'+REC.rp+' RP・'+REC.win+'勝'+REC.lose+'敗）は最初に戻ります。変えますか？'))return;REC={char:null,rp:0,win:0,lose:0,streak:0,best:0};saveRec();P1=null;openSelect()};
 }
-$('#decideBtn').onclick=()=>{if(!P1)return;sfx('decide');const others=CHARS.filter(c=>c.id!==P1.id);P2=others[Math.floor(Math.random()*others.length)];startMatch()};
+$('#decideBtn').onclick=()=>{if(!P1)return;sfx('decide');if(!REC.char){REC.char=P1.id;saveRec()}const others=CHARS.filter(c=>c.id!==P1.id);P2=others[Math.floor(Math.random()*others.length)];startMatch()};
 
 /* VS → 紙芝居 → FIGHT */
 let Q=null;
@@ -403,29 +451,47 @@ async function startMatch(){
   story();
 }
 let ST=null;
-// 1コマの長さは文字数で決める（2人の画面で同じ長さになる。声の速さには左右されない）
+// 1コマの長さは文字数で決める（2人の画面で同じ長さになる）
 const panelMs=p=>Math.max(4200,Math.round((p.nar||'').length*125+(p.say?p.say.text.length*90:0)+1200));
+// 出題を読む時間：文の長さに合わせて5.5〜11秒
+const quizMs=q=>Math.min(11000,Math.max(5500,Math.round(qShort(q).length*150+2200)));
 function story(){
   show('s-story');BGM.play('story');const run=ST=Symbol();
-  const OS=(window.OL_STORIES||{})[Q.no];const P=OS?OS.panels.slice():Q.panels.slice(0,3);
-  const qPanel={nar:'【出題】'+qShort(Q.q),bg:'red',figs:[],quiz:1};P.push(qPanel);
-  const durs=P.map(p=>p.quiz?5200:panelMs(p)),total=durs.reduce((a,b)=>a+b,0);
+  const OS=(window.OL_STORIES||{})[Q.no];const P=OS?OS.panels.slice():Q.panels.slice(0,3);P.push({quiz:1});
+  const durs=P.map(p=>p.quiz?quizMs(Q.q):panelMs(p)),total=durs.reduce((a,b)=>a+b,0);
   $('#stTag').textContent=`記述ファイト｜第${Q.no}話 ${Q.title}`;$('#stTitle').textContent='今回の論点：？？？';
-  const t0=Date.now();
-  const tick=()=>{if(ST!==run)return;const el=Date.now()-t0;$('#stBar').style.width=Math.min(100,el/total*100)+'%';$('#stLeft').textContent='FIGHTまで '+Math.max(0,Math.ceil((total-el)/1000))+'秒';requestAnimationFrame(tick)};tick();
-  const draw=i=>{const p=P[i];
-    const sp=p.say?((p.figs||[]).find(f=>f[1]===p.say.side)||(p.figs||[])[0]||[]):null;
-    const figs=(p.figs||[]).map(([k,pos])=>`<div class="${pos==='r'?'r':''}">${fig(k)}</div>`).join('');
-    const who=sp?(sp[2]||FIG.NAMES[sp[0]]||''):'';
-    $('#koma').className='koma anim'+(p.bg==='red'?' red':p.bg==='dark'?' dark':'');
-    $('#koma').innerHTML=p.quiz?`<div class="quiz"><span>出題</span><p>${qShort(Q.q)}</p><small>答案のキーワードを選んで戦え！</small></div>`:`<div class="cap">${p.nar}</div><div class="figs">${figs}</div>${p.say?`<div class="say${p.say.evil?' evil':''}"><small>${who}</small>${p.say.text}</div>`:''}`;
+  const t0=Date.now();let i=-1,myReady=false,cpuReady=false,timer=null,quizShown=0,waitFrom=0,cpuWait=1200+Math.random()*1500;
+  // 相手（いまはCPU）：物語の途中でSKIPすることがある。こちらが待っているときは、長く待たせない
+  const cpuAt=t0+total*(.45+Math.random()*.5);
+  const status=()=>{const w=$('#stWait');if(!w)return;w.innerHTML=myReady?(cpuReady?'<b>そろった！</b>':'<b>相手の準備を待っています…</b>'):(cpuReady?'<b>相手は準備OK。</b>出題を読んだら「準備OK」':'相手も物語を見ている')};
+  const tryStart=()=>{if(ST!==run)return;status();if(myReady&&cpuReady){ST=null;clearTimeout(timer);setTimeout(()=>{if(VO)VO.pause();fightStart()},600)}};
+  const tick=()=>{if(ST!==run)return;const now=Date.now(),el=now-t0;
+    if(!cpuReady&&(now>=cpuAt||(myReady&&now>=waitFrom+cpuWait))){cpuReady=true;tryStart();if(ST!==run)return}
+    $('#stBar').style.width=Math.min(100,el/total*100)+'%';$('#stLeft').textContent='最長あと'+Math.max(0,Math.ceil((total-el)/1000))+'秒';
+    if(el>=total){myReady=true;cpuReady=true;tryStart();return}
+    requestAnimationFrame(tick)};
+  const draw=n=>{i=n;const p=P[i];clearTimeout(timer);if(VO)VO.pause();
+    if(p.quiz){quizShown=Date.now();
+      $('#koma').className='koma quizbg anim';
+      $('#koma').innerHTML=`<div class="quiz"><span>出題</span><p>${qShort(Q.q)}</p><small>答案のキーワードを選んで戦え！</small></div>`;
+      if(!myReady)$('#stNext').textContent='準備OK ▶';sfx('gong');voice('q_'+Q.no,'出題。'+qShort(Q.q));
+    }else{
+      const sp=p.say?((p.figs||[]).find(f=>f[1]===p.say.side)||(p.figs||[])[0]||[]):null;
+      const figs=(p.figs||[]).map(([k,pos])=>`<div class="${pos==='r'?'r':''}">${fig(k)}</div>`).join('');
+      const who=sp?(sp[2]||FIG.NAMES[sp[0]]||''):'';
+      $('#koma').className='koma anim'+(p.bg==='red'?' red':p.bg==='dark'?' dark':'');
+      $('#koma').innerHTML=`<div class="cap">${p.nar}</div><div class="figs">${figs}</div>${p.say?`<div class="say${p.say.evil?' evil':''}"><small>${who}</small>${p.say.text}</div>`:''}`;
+      $('#stNext').textContent='SKIP ▶▶';
+      const u=olVoice('n'+Q.no+'_'+(i+1))||lbVoice(p.nar,Q.narr);if(u)playUrl(u);else tts(p.nar,.8,1.15);
+    }
     $('#stN').textContent=`${i+1} / ${P.length}`;
-    if(p.quiz){sfx('gong');voice('q_'+Q.no,'出題。'+qShort(Q.q))}
-    else{const u=olVoice('n'+Q.no+'_'+(i+1))||lbVoice(p.nar,Q.narr);if(u)playUrl(u);else tts(p.nar,.8,1.15)}
+    if(i<P.length-1)timer=setTimeout(()=>{if(ST===run)draw(i+1)},durs[i]);
   };
-  let i=0;draw(0);
-  const next=()=>{if(ST!==run)return;i++;if(i>=P.length){ST=null;if(VO)VO.pause();fightStart();return}draw(i);setTimeout(next,durs[i])};
-  setTimeout(next,durs[0]);
+  // SKIP：物語をとばして出題へ。出題で「準備OK」を押すと、相手がそろった時点でFIGHT
+  $('#stNext').disabled=false;$('#koma').onclick=null;
+  $('#stNext').onclick=()=>{ac();if(ST!==run)return;if(!P[i].quiz){draw(P.length-1);return}
+    if(myReady||Date.now()-quizShown<1500)return;myReady=true;waitFrom=Date.now();$('#stNext').textContent='相手を待っています…';$('#stNext').disabled=true;tryStart()};
+  draw(0);tick();
 }
 
 /* ---------- 対戦 ---------- */
@@ -434,7 +500,7 @@ async function fightStart(){
   ST=null;if(VO)VO.pause();show('s-battle');BGM.stop();
   Object.assign(B,{hp1:20,hp2:20,sel:new Set(),used1:new Set(),used2:new Set(),cpuSel:[],busy:false,over:false,time:90,acted:0});
   $('#n1').textContent=P1.name;$('#n2').textContent=P2.name+'（CPU）';hpDraw();
-  $('#arena').innerHTML=`<div class="fighter p1 idle" id="F1">${fig(P1.id)}<span class="tag">1P</span></div><div class="fighter p2 idle" id="F2">${fig(P2.id)}<span class="tag">CPU</span></div>`;
+  const EDMG=FIG.EDMG||'';$('#arena').innerHTML=`<div class="fighter p1 idle" id="F1">${fig(P1.id)}${EDMG}<span class="tag">1P</span></div><div class="fighter p2 idle" id="F2">${fig(P2.id)}${EDMG}<span class="tag">CPU</span></div>`;
   $('#qtext').textContent=qShort(Q.q);
   B.order=Q.keys.map((_,i)=>i).sort(()=>Math.random()-.5);drawKeys();charge();$('#why').className='why';$('#why').textContent='';
   $('#timer').textContent=B.time;$('#atkBtn').disabled=true;
@@ -443,7 +509,8 @@ async function fightStart(){
   cpuLoop();
 }
 const qShort=q=>String(q).replace(/(理由とともに、)?(答案に書くべき|答案の|記述の|判例の)?キーワードを撃ち抜け！/,'').replace(/40字程度で(記述せよ|記せ)。/,'').trim();
-function hpDraw(){for(const n of [1,2]){const hp=B['hp'+n],w=Math.max(0,hp)/20*100;$('#f'+n).style.width=w+'%';$('#g'+n).style.width=w+'%';$('#f'+n).classList.toggle('low',hp<=6);$('#h'+n).textContent=Math.max(0,hp)}
+function hurtDraw(n){const f=$('#F'+n);if(!f)return;const hp=B['hp'+n];f.classList.toggle('hurt1',hp<=14);f.classList.toggle('hurt2',hp<=8);f.classList.toggle('hurt3',hp<=4)}
+function hpDraw(){for(const n of [1,2]){hurtDraw(n);const hp=B['hp'+n],w=Math.max(0,hp)/20*100;$('#f'+n).style.width=w+'%';$('#g'+n).style.width=w+'%';$('#f'+n).classList.toggle('low',hp<=6);$('#h'+n).textContent=Math.max(0,hp)}
   if(!B.over&&(B.hp1<=6||B.hp2<=6)&&BGM.cur==='battle')BGM.play('pinch')}
 function drawKeys(){
   $('#keys').innerHTML=B.order.map(i=>{const k=Q.keys[i],cl=B.used1.has(i)?' used':B.sel.has(i)?' sel':'';return `<button class="key${cl}" type="button" data-i="${i}"${B.used1.has(i)?' disabled':''}>${k.t}</button>`}).join('');
@@ -500,11 +567,11 @@ async function strike(side,kind,dmg){
   }else{
     if(kind==='super'){pop(CHAR_LINES.rush[me.id]);cv(me,'rush');mf.classList.remove('rush');void mf.offsetWidth;mf.classList.add('rush');for(let i=0;i<6;i++){await sleep(140);hitFx(3)}await sleep(200)}
     BGM.bus&&(BGM.bus.gain.value=.15);await cutin(side,me);BGM.bus&&(BGM.bus.gain.value=.5);
-    const mv=me.spMove;mf.classList.remove('upper','spin','rush','lunge');void mf.offsetWidth;mf.classList.add(mv==='upper'?'upper':mv==='spin'?'spin':'rush');
+    const mv=me.spMove;mf.classList.remove('upper','spin','rush','lunge','dash');void mf.offsetWidth;mf.classList.add(mv);
     for(let i=0;i<(mv==='rush'?5:2);i++){await sleep(mv==='rush'?150:260);hitFx(dmg)}
   }
   const key='hp'+(3-side);B[key]-=dmg;dmgPop(dmg);hpDraw();
-  await sleep(450);mf.classList.remove('lunge','upper','spin','rush');if(!B.over)mf.classList.add('idle');
+  await sleep(450);mf.classList.remove('lunge','upper','spin','rush','dash');if(!B.over)mf.classList.add('idle');
   if(B[key]<=0)await ko(side);
 }
 async function cutin(side,me){
@@ -526,13 +593,15 @@ async function timeUp(){
   const win=B.hp1>B.hp2;const lf=$('#F'+(win?2:1));if(B.hp1!==B.hp2){lf.classList.remove('idle');lf.classList.add('down');cv(win?P2:P1,'lose')}await sleep(900);result(win,B.hp1===B.hp2);
 }
 function result(win,draw){
+  let gain=0;if(!draw){if(win){gain=30+(B.hp1===20?10:0)+Math.min(20,REC.streak*5);REC.win++;REC.streak++;REC.best=Math.max(REC.best,REC.streak)}else{gain=-15;REC.lose++;REC.streak=0}REC.rp=Math.max(0,REC.rp+gain);saveRec()}
   show('s-result');BGM.play(win?'win':'lose');ann(win?'win':'lose');
   const got=[...B.used1].map(i=>Q.keys[i]);const pts=got.reduce((s,k)=>s+k.pt,0);
   $('#s-result').innerHTML=`<h2 class="rhead${win?'':' lose'}">${draw?'DRAW':win?'YOU WIN!':'YOU LOSE'}</h2>
+  ${rankCard()}<p class="note" style="margin:0">${draw?'引き分け（RPの増減なし）':(gain>=0?'+'+gain:gain)+' RP'}</p>
   <div class="card"><span class="lab">あなたの答案　${pts} / 20点</span><p style="margin:4px 0">${got.length?got.map(k=>'「'+(k.label||k.t)+'」').join(''):'（まだ書けていない）'}</p></div>
   <div class="card"><span class="lab">模範解答 ― ${Q.lawName}</span><div class="model">${Q.model}</div><p style="margin:0;font-size:13px">${Q.exp}</p></div>
   <button class="btn" type="button" id="again">もう一戦（同じキャラ）</button>
-  <button class="btn ghost" type="button" id="resel">キャラを選び直す</button>
+  <button class="btn ghost" type="button" id="resel">キャラ選択の画面へ</button>
   <p class="note">いまはCPUとの練習版。次は、全国のプレイヤーとランダムに戦えるようにする。</p>`;
   $('#again').onclick=()=>{ac();sfx('decide');const others=CHARS.filter(c=>c.id!==P1.id);P2=others[Math.floor(Math.random()*others.length)];startMatch()};
   $('#resel').onclick=()=>{ac();sfx('decide');openSelect()};
