@@ -15,14 +15,15 @@ rep('Q.panels.slice(0,3)', 'Q.panels.slice(0,Q.pn||3)');
 // 4) 通常版の index.html はページとして置かず、絵を借りるための文字として読む
 rep("fetch('../index.html')", "fetch('../main-index.txt')");
 // 5) 声は本番のサイトのファイルをそのまま使う
-rep("'../audio/'+h+'.mp3'", "'https://legal-break.5ukaku.com/audio/'+h+'.mp3'");
-rep("'audio/'+id+'.mp3'", "'https://legal-break.5ukaku.com/online/audio/'+id+'.mp3'");
+const RAW = 'https://raw.githubusercontent.com/dokugakusato/legal-break/';
+rep("'../audio/'+h+'.mp3'", "'" + RAW + "main/audio/'+h+'.mp3'");
+rep("'audio/'+id+'.mp3'", "'" + RAW + "main/online/audio/'+id+'.mp3'");
 // 6) 「通常版へ」は本番のサイトへ
 rep('<a href="../"', '<a href="https://legal-break.5ukaku.com/"');
 // 7) キャラを増やす（通常版の登場人物の絵を使う）・勝ったときの笑い声
 const AC = require(path.resolve('tools/battle-test/arena-chars.js'));
 const J = JSON.stringify;
-rep('\n];\n\n/* ---------- 通常版のファイルから', '\n];\nCHARS.push(...' + J(AC.NEW.map(c => ({ id: c.id, name: c.name, sp: c.sp, spMove: c.spMove, cap: c.cap }))) + ');\n\n/* ---------- 通常版のファイルから');
+rep('\n];\n\n/* ---------- 通常版のファイルから', '\n];\nCHARS.push(...' + J(AC.NEW.map(c => ({ id: c.id, name: c.name, sp: c.sp, spMove: c.spMove, cap: c.cap }))) + ');\nCHARS.forEach(c=>{const m=(' + J(AC.MOVES) + ')[c.id];if(m)c.sp=m[1]});\n\n/* ---------- 通常版のファイルから');
 const lines = {}; ['a1', 'a2', 'rush', 'lose', 'groan', 'counter'].forEach(k => { lines[k] = {}; AC.NEW.forEach(c => { lines[k][c.id] = c[k]; }); });
 lines.laugh = AC.LAUGH;
 rep('const ANN={', 'Object.assign(TAUNT,' + J(Object.fromEntries(AC.NEW.map(c => [c.id, c.taunt]))) + ');\n' +
@@ -30,7 +31,7 @@ rep('const ANN={', 'Object.assign(TAUNT,' + J(Object.fromEntries(AC.NEW.map(c =>
   'Object.entries(' + J(lines) + ').forEach(([k,v])=>{CHAR_LINES[k]=Object.assign(CHAR_LINES[k]||{},v)});\nconst ANN={');
 rep('/^(mina)/.test(id)', '/^(mina|girl|oldwoman|okami)/.test(id)');
 // 声：試作で録音した声（arena/audio）を先に探し、なければ本番の声
-rep("function olVoice(id){return (window.OL_AUDIO||[]).includes(id)?", "function olVoice(id){if((window.OL_AUDIO2||[]).includes(id))return 'https://cdn.jsdelivr.net/gh/dokugakusato/legal-break@online-battle/arena/audio/'+id+'.mp3';return (window.OL_AUDIO||[]).includes(id)?");
+rep("function olVoice(id){return (window.OL_AUDIO||[]).includes(id)?", "function olVoice(id){if((window.OL_AUDIO2||[]).includes(id))return 'https://raw.githubusercontent.com/dokugakusato/legal-break/online-battle/arena/audio/'+id+'.mp3';return (window.OL_AUDIO||[]).includes(id)?");
 rep('<script src="extra-q.js"></script>', '<script src="extra-q.js"></script>\n<script src="audio-x/index.js" onerror=""></script>');
 // やっつけたら、勝った方が笑う（キャラごとの笑い方）。そのあと勝ちゼリフ
 rep("await sleep(300);await cv(W,'win');result(winSide===1);", "await sleep(200);{const wf=$('#F'+winSide);const b=document.createElement('div');b.className='kiai';b.style.fontSize='22px';b.style.whiteSpace='normal';b.style.maxWidth='75%';b.textContent=CHAR_LINES.laugh[W.id]||'ワハハハハ！';b.style.top='8%';b.style[winSide===1?'left':'right']='4%';ar.appendChild(b);setTimeout(()=>b.remove(),2600)}\n  await cv(W,'laugh');await sleep(150);await cv(W,'win');result(winSide===1);");
@@ -46,7 +47,7 @@ rep("  }else{\n    if(kind==='super'){", `  }else if(kind==='mid'){
   }else if(kind==='ultra'){
     await ultraFx(side,me,hitFx);
   }else{
-    if(kind==='big'){BGM.bus&&(BGM.bus.gain.value=.15);await cutin(side,me,'大技',((window.MV||{})[me.id]||[])[1]);BGM.bus&&(BGM.bus.gain.value=.5);const mv=me.spMove;mf.classList.remove('upper','spin','rush','lunge','dash');void mf.offsetWidth;mf.classList.add(mv);for(let i=0;i<3;i++){await sleep(mv==='rush'?150:240);hitFx(dmg)}}
+    if(kind==='big'){BGM.bus&&(BGM.bus.gain.value=.15);await cutin(side,me,'大技',((window.MV||{})[me.id]||[])[1],'big');BGM.bus&&(BGM.bus.gain.value=.5);const mv=me.spMove;mf.classList.remove('upper','spin','rush','lunge','dash');void mf.offsetWidth;mf.classList.add(mv);for(let i=0;i<3;i++){await sleep(mv==='rush'?150:240);hitFx(dmg)}}
     else if(kind==='super'){`);
 // big のときは下の「必殺技」部分をとばす
 rep("    BGM.bus&&(BGM.bus.gain.value=.15);await cutin(side,me);BGM.bus&&(BGM.bus.gain.value=.5);\n    const mv=me.spMove;mf.classList.remove('upper','spin','rush','lunge','dash');void mf.offsetWidth;mf.classList.add(mv);\n    for(let i=0;i<(mv==='rush'?5:2);i++){await sleep(mv==='rush'?150:260);hitFx(dmg)}",
@@ -90,7 +91,29 @@ body.quake .screen{animation:quake .1s linear infinite}
 #atkBtn.ultraBtn{background:linear-gradient(#b84aff,#3a0a8a 60%,#ff3a1a);box-shadow:0 0 18px #ffb000;animation:goP .5s infinite}
 @keyframes goP{50%{transform:scale(1.04)}}
 </style>`);
-// 9) 試作の表示
+// 9) 声が出たり消えたりする対策：
+//  ・スマホ（特にiPhone）は、タップの外で new Audio() すると黙って鳴らないことがある → 最初のタップで目覚めた AudioContext で鳴らす（読み込んで覚えておく）
+//  ・アナウンス（ラウンド1・ファイト・K.O.）は別の通り道で鳴らし、キャラの声と打ち消し合わない
+//  ・試合の前に、2人ぶんの声とアナウンスを先に読み込んでおく
+rep("function playUrl(url,vol=1){return new Promise(res=>{if(S.mute){res();return}try{if(VO){VO.pause()}const a=new Audio(url);a.volume=vol;VO=a;a.onended=res;a.onerror=res;a.play().catch(res)}catch(e){res()}})}",
+`const VBUF={},VCH={};
+function loadBuf(url){const a=ac();if(!a)return Promise.reject(0);if(!VBUF[url])VBUF[url]=fetch(url).then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()}).then(b=>new Promise((ok,ng)=>a.decodeAudioData(b,ok,ng))).catch(e=>{delete VBUF[url];throw e});return VBUF[url]}
+function playUrl(url,vol=1,ch='v'){return new Promise(async res=>{if(S.mute){res();return}
+  let done=false,src=null,el=null;const fin=()=>{if(!done){done=true;res()}};
+  const tok={stop(){try{src&&src.stop()}catch(e){}try{el&&el.pause()}catch(e){}fin()}};
+  if(VCH[ch])VCH[ch].stop();VCH[ch]=tok;const guard=setTimeout(fin,7000);if(ch==='v')VO={pause:()=>tok.stop()};
+  try{const a=ac();const buf=await Promise.race([loadBuf(url),new Promise((_,ng)=>setTimeout(()=>ng(0),2500))]);if(VCH[ch]!==tok||S.mute){fin();return}
+    src=a.createBufferSource();src.buffer=buf;const g=a.createGain();g.gain.value=vol*1.15;src.connect(g).connect(a.destination);clearTimeout(guard);src.onended=fin;src.start();setTimeout(fin,buf.duration*1000+600)}
+  catch(e){try{el=new Audio(url);el.volume=vol;el.onended=fin;el.onerror=fin;el.play().catch(fin)}catch(e2){fin()}}})}
+function preloadVoices(ids){ids.forEach(id=>{const u=olVoice(id);if(u)loadBuf(u).catch(()=>{})})}`);
+rep("function voice(id,fallbackText){const u=olVoice(id);if(u)return playUrl(u);", "function voice(id,fallbackText){const u=olVoice(id);if(u)return playUrl(u,1,/^ann_/.test(id)?'ann':'v');");
+// ラウンド1は言い終わってからファイト
+rep("ann('round1');await announce('ROUND 1','',1100);", "await Promise.all([ann('round1'),announce('ROUND 1','',1100)]);");
+// 試合の前に先に読み込む
+rep("async function startMatch(){", "async function startMatch(){\n  try{preloadVoices([P1,P2].flatMap(c=>['a1','a2','rush','sp','mid','ultra','lose','groan','counter','laugh','win','taunt'].map(k=>c.id+'_'+k)).concat(['round1','fight','ko','perfect','win','lose','vs','timeup'].map(k=>'ann_'+k)))}catch(e){}");
+// iPhone の読み上げ（録音がない文）も、最初のタップで目覚めさせる
+rep('/* ---------- 声 ---------- */', "document.addEventListener('pointerdown',function wk(){document.removeEventListener('pointerdown',wk);try{ac();if('speechSynthesis' in window){const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u)}}catch(e){}});\n/* ---------- 声 ---------- */");
+// 10) 試作の表示
 s = s.replace('試作版・CPUと練習', '試作版・CPUと練習');
 fs.writeFileSync(F, s);
 // 追加の問題（オンライン版の問題の形に変える）

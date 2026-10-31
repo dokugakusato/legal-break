@@ -9,6 +9,6 @@ NEW.forEach(c => {
 });
 Object.entries(LAUGH).forEach(([id, t]) => lines.push([id + '_laugh', id, t]));
 const say = t => t.replace(/・/g, '、');
-Object.entries(MOVES).forEach(([id, m]) => { lines.push([id + '_mid', id, '中技！ ' + say(m[0]) + '！']); lines.push([id + '_ultra', id, '超ウルトラ技！ ' + say(m[2]) + '！！']); });
+Object.entries(MOVES).forEach(([id, m]) => { lines.push([id + '_mid', id, '中技！ ' + say(m[0]) + '！']); lines.push([id + '_big', id, '大技！ ' + say(m[1]) + '！']); lines.push([id + '_ultra', id, '超ウルトラ技！ ' + say(m[2]) + '！！']); });
 fs.writeFileSync(path.join(__dirname, 'voices.json'), JSON.stringify({ _: '試作（/lb/online/）で録音する声。arena/make-voices.js が作る。変えると GitHub が自動で録音する（.github/workflows/arena-voice.yml）', lines }, null, 1) + '\n');
 console.log(lines.length, '行');
