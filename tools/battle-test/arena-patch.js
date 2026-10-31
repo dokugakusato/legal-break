@@ -23,7 +23,7 @@ rep('<a href="../"', '<a href="https://legal-break.5ukaku.com/"');
 // 7) キャラを増やす（通常版の登場人物の絵を使う）・勝ったときの笑い声
 const AC = require(path.resolve('tools/battle-test/arena-chars.js'));
 const J = JSON.stringify;
-rep('\n];\n\n/* ---------- 通常版のファイルから', '\n];\nCHARS.push(...' + J(AC.NEW.map(c => ({ id: c.id, name: c.name, sp: c.sp, spMove: c.spMove, cap: c.cap }))) + ');\nCHARS.forEach(c=>{const m=(' + J(AC.MOVES) + ')[c.id];if(m)c.sp=m[1]});\n\n/* ---------- 通常版のファイルから');
+rep('\n];\n\n/* ---------- 通常版のファイルから', '\n];\nCHARS.push(...' + J(AC.NEW.map(c => ({ id: c.id, name: c.name, sp: c.sp, spMove: c.spMove, cap: c.cap }))) + ');\nCHARS.forEach(c=>{const m=(' + J(AC.MOVES) + ')[c.id];if(m)c.sp=m[1]});\n{const keep=' + J(AC.ROSTER) + ';const pick=keep.map(id=>CHARS.find(c=>c.id===id)).filter(Boolean);CHARS.splice(0,CHARS.length,...pick)}\n\n/* ---------- 通常版のファイルから');
 const lines = {}; ['a1', 'a2', 'rush', 'lose', 'groan', 'counter'].forEach(k => { lines[k] = {}; AC.NEW.forEach(c => { lines[k][c.id] = c[k]; }); });
 lines.laugh = AC.LAUGH;
 rep('const ANN={', 'Object.assign(TAUNT,' + J(Object.fromEntries(AC.NEW.map(c => [c.id, c.taunt]))) + ');\n' +
@@ -113,6 +113,8 @@ rep("ann('round1');await announce('ROUND 1','',1100);", "await Promise.all([ann(
 rep("async function startMatch(){", "async function startMatch(){\n  try{preloadVoices([P1,P2].flatMap(c=>['a1','a2','rush','sp','mid','ultra','lose','groan','counter','laugh','win','taunt'].map(k=>c.id+'_'+k)).concat(['round1','fight','ko','perfect','win','lose','vs','timeup'].map(k=>'ann_'+k)))}catch(e){}");
 // iPhone の読み上げ（録音がない文）も、最初のタップで目覚めさせる
 rep('/* ---------- 声 ---------- */', "document.addEventListener('pointerdown',function wk(){document.removeEventListener('pointerdown',wk);try{ac();if('speechSynthesis' in window){const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u)}}catch(e){}});\n/* ---------- 声 ---------- */");
+// 前に選んだキャラが今はいないときは、選び直し（ランキングは最初から）
+rep("const lock=REC.char;", "if(REC.char&&!CHARS.some(c=>c.id===REC.char)){REC={char:null,rp:0,win:0,lose:0,streak:0,best:0};saveRec()}const lock=REC.char;");
 // 10) 試作の表示
 s = s.replace('試作版・CPUと練習', '試作版・CPUと練習');
 fs.writeFileSync(F, s);

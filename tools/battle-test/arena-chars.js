@@ -50,6 +50,8 @@ const MOVES = { // 法律ネタ×格闘技。[中技, 大技, 超ウルトラ技
   ronanushi: ['牢名主ヘッドバット', '自力救済ボディプレス', '雑居房総出・人間ピラミッド落とし'],
   junsa: ['職務質問チョップ', '即時強制ラリアット', '行政代執行・交通大渋滞']
 };
+// 使うキャラ（まず10人。それぞれに個性と技を作り込む。ストーリー版で人気が出たキャラをあとから足す）
+const ROSTER = ['hero', 'old', 'mina', 'girl', 'thug', 'trick', 'dogra', 'boss', 'kurosaki', 'kanshucho'];
 // 試合のアナウンス（K-1風：低く、ためて、会場に響く。録音のときにエコーをかける）
 const ANN = {
   ann_round1: 'ラウンドォォ……、ワンッ！！', ann_fight: 'ファイッ！！', ann_ko: 'ケーッ、オーーッ！！', ann_perfect: 'パーフェクトォーッ！！',
@@ -65,4 +67,4 @@ const CAST = {
   old: ['ちび式じい', 'ノーマル', .95, 0, 1.3], oldwoman: ['春日部つむぎ', 'ノーマル', .95, -.08, 1.3], okami: ['四国めたん', 'ノーマル', 1, -.02, 1.3],
   keiji: ['白上虎太郎', 'ノーマル', 1.02, -.06, 1.3], kuroda: ['雀松朱司', 'ノーマル', 1.05, .03, 1.35], ronanushi: ['麒ヶ島宗麟', 'ノーマル', .9, -.1, 1.35], junsa: ['玄野武宏', 'ノーマル', 1.1, .04, 1.3]
 };
-if (typeof module !== 'undefined') module.exports = { NEW, LAUGH, CAST, MOVES, ANN };
+if (typeof module !== 'undefined') module.exports = { NEW, LAUGH, CAST, MOVES, ANN, ROSTER };
