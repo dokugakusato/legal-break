@@ -435,6 +435,176 @@
    "junsa_laugh",
    "junsa",
    "あははははっ！ 本官の勝利であります！"
+  ],
+  [
+   "hero_mid",
+   "hero",
+   "中技！ 独学ダブルパンチ！"
+  ],
+  [
+   "hero_ultra",
+   "hero",
+   "超ウルトラ技！ 超、独学一発合格 法竜昇天波！！"
+  ],
+  [
+   "mina_mid",
+   "mina",
+   "中技！ 行商ステップ蹴り！"
+  ],
+  [
+   "mina_ultra",
+   "mina",
+   "超ウルトラ技！ 荒野横断、大売り出し百万脚！！"
+  ],
+  [
+   "girl_mid",
+   "girl",
+   "中技！ じょうろアタック！"
+  ],
+  [
+   "girl_ultra",
+   "girl",
+   "超ウルトラ技！ 大洪水、恵みの雨あられ！！"
+  ],
+  [
+   "haru_mid",
+   "haru",
+   "中技！ 樽転がし！"
+  ],
+  [
+   "haru_ultra",
+   "haru",
+   "超ウルトラ技！ 千樽雪崩、水商人大行進！！"
+  ],
+  [
+   "thug_mid",
+   "thug",
+   "中技！ モヒカンチョップ！"
+  ],
+  [
+   "thug_ultra",
+   "thug",
+   "超ウルトラ技！ ヒャッハー仮装売買大爆発！！"
+  ],
+  [
+   "trick_mid",
+   "trick",
+   "中技！ ステッキ突き！"
+  ],
+  [
+   "trick_ultra",
+   "trick",
+   "超ウルトラ技！ 詐術大魔術、消える契約書！！"
+  ],
+  [
+   "dogra_mid",
+   "dogra",
+   "中技！ 鎖しばり！"
+  ],
+  [
+   "dogra_ultra",
+   "dogra",
+   "超ウルトラ技！ 鉄鎖地獄、十万トンの錨！！"
+  ],
+  [
+   "boss_mid",
+   "boss",
+   "中技！ 地上げ張り手！"
+  ],
+  [
+   "boss_ultra",
+   "boss",
+   "超ウルトラ技！ 荒野まるごと地上げ大地震！！"
+  ],
+  [
+   "kurosaki_mid",
+   "kurosaki",
+   "中技！ 組長ビンタ！"
+  ],
+  [
+   "kurosaki_ultra",
+   "kurosaki",
+   "超ウルトラ技！ 黒崎組総出、百人組手！！"
+  ],
+  [
+   "kanshucho_mid",
+   "kanshucho",
+   "中技！ 警棒乱打！"
+  ],
+  [
+   "kanshucho_ultra",
+   "kanshucho",
+   "超ウルトラ技！ 獄門大圧殺、監獄まるごと落下！！"
+  ],
+  [
+   "old_mid",
+   "old",
+   "中技！ 杖ツンツン！"
+  ],
+  [
+   "old_ultra",
+   "old",
+   "超ウルトラ技！ 百年時効、入れ歯ロケット！！"
+  ],
+  [
+   "oldwoman_mid",
+   "oldwoman",
+   "中技！ うわさ話ビンタ！"
+  ],
+  [
+   "oldwoman_ultra",
+   "oldwoman",
+   "超ウルトラ技！ 町内会総出、井戸端大会議！！"
+  ],
+  [
+   "okami_mid",
+   "okami",
+   "中技！ お盆スマッシュ！"
+  ],
+  [
+   "okami_ultra",
+   "okami",
+   "超ウルトラ技！ 大宴会、お膳百枚投げ！！"
+  ],
+  [
+   "keiji_mid",
+   "keiji",
+   "中技！ 手錠フック！"
+  ],
+  [
+   "keiji_ultra",
+   "keiji",
+   "超ウルトラ技！ 緊急配備、パトカー百台突撃！！"
+  ],
+  [
+   "kuroda_mid",
+   "kuroda",
+   "中技！ 偽委任状ビンタ！"
+  ],
+  [
+   "kuroda_ultra",
+   "kuroda",
+   "超ウルトラ技！ 表見代理、分身百人フィーバー！！"
+  ],
+  [
+   "ronanushi_mid",
+   "ronanushi",
+   "中技！ 房内ヘッドバット！"
+  ],
+  [
+   "ronanushi_ultra",
+   "ronanushi",
+   "超ウルトラ技！ 雑居房総出、人間ピラミッド落とし！！"
+  ],
+  [
+   "junsa_mid",
+   "junsa",
+   "中技！ 職務質問チョップ！"
+  ],
+  [
+   "junsa_ultra",
+   "junsa",
+   "超ウルトラ技！ 笛吹き百連発、交通大渋滞！！"
   ]
  ]
 }

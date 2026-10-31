@@ -6,7 +6,7 @@ const ROOT = new URL('./', import.meta.url).pathname, ENGINE = process.env.VOICE
 const { CAST } = require('../tools/battle-test/arena-chars.js');
 const yomi = t => t.replace(/荒野/g, 'こうや').replace(/土倉/g, 'どくら').replace(/権田/g, 'ごんだ').replace(/鬼瓦/g, 'おにがわら').replace(/鬼塚/g, 'おにづか').replace(/矢吹/g, 'やぶき')
   .replace(/本官/g, 'ほんかん').replace(/百裂/g, 'ひゃくれつ').replace(/百烈/g, 'ひゃくれつ').replace(/井戸端/g, 'いどばた').replace(/牢名主/g, 'ろうなぬし').replace(/無権代理/g, 'むけんだいり')
-  .replace(/影分身/g, 'かげぶんしん').replace(/懲罰房/g, 'ちょうばつぼう').replace(/杖杖杖杖/g, 'つえつえつえつえ').replace(/女将/g, 'おかみ').replace(/時効/g, 'じこう').replace(/〜/g, 'ー');
+  .replace(/影分身/g, 'かげぶんしん').replace(/懲罰房/g, 'ちょうばつぼう').replace(/杖杖杖杖/g, 'つえつえつえつえ').replace(/女将/g, 'おかみ').replace(/時効/g, 'じこう').replace(/〜/g, 'ー').replace(/中技/g, 'ちゅうわざ').replace(/大技/g, 'おおわざ').replace(/超ウルトラ技/g, 'ちょうウルトラわざ').replace(/法竜/g, 'ほうりゅう').replace(/昇天波/g, 'しょうてんぱ').replace(/百万脚/g, 'ひゃくまんきゃく').replace(/千樽/g, 'せんだる').replace(/鉄鎖/g, 'てっさ').replace(/獄門/g, 'ごくもん').replace(/圧殺/g, 'あっさつ').replace(/組手/g, 'くみて').replace(/お膳/g, 'おぜん').replace(/房内/g, 'ぼうない').replace(/雑居房/g, 'ざっきょぼう').replace(/偽委任状/g, 'にせいにんじょう').replace(/仮装売買/g, 'かそうばいばい').replace(/詐術/g, 'さじゅつ').replace(/地上げ/g, 'じあげ').replace(/表見代理/g, 'ひょうけんだいり');
 const { lines } = JSON.parse(fs.readFileSync(ROOT + 'voices.json', 'utf8'));
 const speakers = await (await fetch(ENGINE + '/speakers')).json();
 const style = k => { const c = CAST[k] || CAST.hero; const sp = speakers.find(s => s.name === c[0]) || speakers[0]; const st = sp.styles.find(s => s.name === c[1]) || sp.styles[0]; return { id: st.id, sig: [sp.name, st.name, c[2], c[3], c[4]].join('|'), c }; };
