@@ -64,7 +64,7 @@ html,body{margin:0;height:100%;background:var(--ink);color:var(--bone);font-fami
 @keyframes inR{from{transform:translateX(120%) scaleX(-1)}to{transform:scaleX(-1)}}
 .vsrow.bot .vsfig{transform:scaleX(-1)}
 .vsname{position:absolute;font-family:var(--display);font-size:26px;color:#fff;text-shadow:3px 3px 0 #000}
-.vsrow.top .vsname{right:18px;bottom:18px}.vsrow.bot .vsname{left:18px;top:18px}
+.vsrow.top .vsname{right:12px;top:24%;text-align:right}.vsrow.bot .vsname{left:12px;top:24%}
 .vsline{position:absolute;font-size:14px;font-weight:700;background:rgba(0,0,0,.6);padding:6px 10px;border-radius:8px;max-width:70%}
 .vsrow.top .vsline{left:14px;top:14px}.vsrow.bot .vsline{right:14px;bottom:14px}
 .vsmark{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-8deg);font-family:var(--display);font-size:72px;color:var(--gold);text-shadow:4px 4px 0 var(--blood),0 0 30px #ff8a2a;z-index:3;animation:vsIn .5s .5s cubic-bezier(.2,1.8,.4,1) both}
@@ -99,6 +99,8 @@ html,body{margin:0;height:100%;background:var(--ink);color:var(--bone);font-fami
 .hp{display:flex;flex-direction:column;gap:2px}
 .hp .nm{font:900 13px var(--display);letter-spacing:.05em;display:flex;justify-content:space-between}
 .hp.p2 .nm{flex-direction:row-reverse}
+.hp .nm em.rk{font-style:normal;display:inline-block;min-width:16px;padding:0 4px;margin:0 2px;border-radius:4px;background:#333;color:#fff;font-size:11px;text-align:center}.hp .nm small.rt{font-size:10px;color:var(--gold);font-weight:700}
+.hp .nm em.rS{background:linear-gradient(135deg,#ffe28a,#c98a12);color:#2a1800}.hp .nm em.rA{background:#c0392b}.hp .nm em.rB{background:#2d6cdf}.hp .nm em.rC{background:#2e9e5b}
 .hp .bar{height:16px;border:2px solid #fff;background:#300;position:relative;overflow:hidden;transform:skewX(-14deg)}
 .hp.p2 .bar{transform:skewX(14deg)}
 .hp .fill{position:absolute;top:0;bottom:0;left:0;width:100%;background:linear-gradient(180deg,#ffe55a,#f2a612);transition:width .35s ease}
@@ -373,7 +375,7 @@ body.quake .screen{animation:quake .1s linear infinite}
   <div class="sbar"><span class="kn" id="stN"></span><div class="cbar" style="flex:1;height:10px;border-radius:5px;background:#2a1a14;overflow:hidden;border:1px solid rgba(242,230,208,.3)"><div id="stBar" style="height:100%;width:0;background:linear-gradient(90deg,#f2b632,#ff5a2a)"></div></div><b id="stLeft" style="font:900 13px var(--display);color:var(--gold);min-width:84px;text-align:right"></b></div>
   <button class="btn" id="stNext" type="button">SKIP ▶▶</button>
   <p class="note" id="stWait" style="margin:0"></p>
-  <p class="note" style="margin:0;font-size:11px">SKIPしても、相手がそろうまでFIGHTは始まらない。何を書かせる問題か、先に読め！</p>
+  <p class="note" id="stHint" style="margin:0;font-size:11px">SKIPしても、相手がそろうまでFIGHTは始まらない。何を書かせる問題か、先に読め！</p>
 </section>
 
 <section class="screen" id="s-battle" hidden>
@@ -610,7 +612,7 @@ async function startMatch(){
   try{preloadVoices([P1,P2].flatMap(c=>['a1','a2','rush','sp','mid','ultra','lose','groan','counter','laugh','win','taunt'].map(k=>c.id+'_'+k)).concat(['round1','round2','round3','fight','ko','perfect','win','lose','vs','timeup'].map(k=>'ann_'+k)))}catch(e){}
   if(!NM)Q=pickQ();
   show('s-vs');BGM.stop();sfx('gong');
-  $('#s-vs').innerHTML=`<div class="vsrow top"><div class="vsfig">${fig(P1.id)}</div><div class="vsname">${P1.name}</div><div class="vsline">「${TAUNT[P1.id]}」</div></div><div class="vsmark">VS</div><div class="vsrow bot"><div class="vsfig">${fig(P2.id)}</div><div class="vsname">${P2.name}<br><small style="font-size:12px;color:var(--gold)">${NM?rt(NM.m.players[NM.op].rank)+'（'+(NM.m.players[NM.op].rank||'D')+'）':'CPU'}</small></div><div class="vsline">「${TAUNT[P2.id]}」</div></div><div style="position:absolute;left:0;right:0;bottom:44%;z-index:5">${stampBar(['pre'],k=>NM?null:cpuReply('pre'))}</div>`;
+  $('#s-vs').innerHTML=`<div class="vsrow top"><div class="vsfig">${fig(P1.id)}</div><div class="vsname">${NM?myName().replace(/[<>&]/g,'')+'<br><small style="font-size:15px;color:var(--gold)">'+P1.name+'・'+rt((NM.m.players[NET.uid]||{}).rank)+'（'+((NM.m.players[NET.uid]||{}).rank||'D')+'）</small>':P1.name}</div><div class="vsline">「${TAUNT[P1.id]}」</div></div><div class="vsmark">VS</div><div class="vsrow bot"><div class="vsfig">${fig(P2.id)}</div><div class="vsname">${NM?String(P2.name).replace(/[<>&]/g,''):P2.name}<br><small style="font-size:${NM?15:12}px;color:var(--gold)">${NM?CHARS.find(c=>c.id===P2.id).name+'・'+rt(NM.m.players[NM.op].rank)+'（'+(NM.m.players[NM.op].rank||'D')+'）<br><b style="color:#7fe08a">オンライン対戦</b>':'CPU'}</small></div><div class="vsline">「${TAUNT[P2.id]}」</div></div><div style="position:absolute;left:0;right:0;bottom:44%;z-index:5">${stampBar(['pre'],k=>NM?null:cpuReply('pre'))}</div>`;
   await sleep(500);ann('vs');await sleep(900);await cv(P1,'taunt');await sleep(150);await cv(P2,'taunt');await sleep(400);
   story(false);
 }
@@ -626,6 +628,8 @@ function story(inter){
   $('#stTag').textContent=`ROUND ${M3.round}｜${Q.tag||('第'+Q.no+'話 '+Q.title)}`;$('#stTitle').textContent='今回の論点：？？？';
   // オンライン：2人とも、サーバーが決めた同じ時刻から、同じ速さで見る（SKIPなし）。遅れて入った人は、その時点のコマから
   const sync=!!NM,startS=sync?(inter?NM.m.phaseAt:(NM.m.storyAt||NM.m.phaseAt)):0;
+  $('#stHint').textContent=sync?'オンライン対戦：2人とも同じ物語を同時に見る。出題が出たら「準備OK」。そろったらFIGHT！':'SKIPしても、相手がそろうまでFIGHTは始まらない。何を書かせる問題か、先に読め！';
+  if(sync){$('#stNext').textContent='まもなく物語が始まります…';$('#stNext').disabled=true;$('#koma').className='koma';$('#koma').innerHTML='<div class="quiz"><p>2人そろって、物語を同時に見ます</p></div>';$('#stN').textContent=''}
   const t0=sync?startS-NET.skew:Date.now();let i=-1,myReady=false,cpuReady=false,timer=null,quizShown=0,waitFrom=0,cpuWait=1200+Math.random()*1500;
   // 相手（いまはCPU）：物語の途中でSKIPすることがある。こちらが待っているときは、長く待たせない
   const cpuAt=NM?Infinity:t0+total*(.45+Math.random()*.5);
@@ -680,7 +684,9 @@ const B={};
 async function fightStart(){
   ST=null;if(VO)VO.pause();show('s-battle');BGM.stop();
   Object.assign(B,{hp1:20,hp2:20,sel:new Set(),used1:new Set(),used2:new Set(),cpuSel:[],busy:false,over:false,time:90,acted:0});
-  $('#n1').textContent=NM?myName():P1.name;$('#n2').textContent=NM?P2.name:P2.name+'（CPU）';drawRounds();hpDraw();
+  {const esc=x=>String(x||'').replace(/[<>&]/g,''),rb=r=>`<em class="rk r${r||'D'}">${r||'D'}</em><small class="rt">${rt(r)}</small>`;
+   if(NM){const me=NM.m.players[NET.uid]||{},op=NM.m.players[NM.op]||{};$('#n1').innerHTML=`${esc(myName())} ${rb(me.rank)}`;$('#n2').innerHTML=`${esc(op.name)} ${rb(op.rank)}`}
+   else{$('#n1').textContent=P1.name;$('#n2').textContent=P2.name+'（CPU）'}}drawRounds();hpDraw();
   const EDMG=FIG.EDMG||'';$('#arena').innerHTML=`<div class="fighter p1 idle" id="F1">${fig(P1.id)}${EDMG}<span class="tag">1P</span></div><div class="fighter p2 idle" id="F2">${fig(P2.id)}${EDMG}<span class="tag">${NM?'相手':'CPU'}</span></div>`;
   $('#qtext').textContent=qShort(Q.q);
   B.order=Q.keys.map((_,i)=>i).sort(()=>Math.random()-.5);drawKeys();charge();$('#why').className='why';$('#why').textContent='';
