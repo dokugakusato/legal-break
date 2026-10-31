@@ -215,14 +215,14 @@ const OPS = {
   async ping() { return {}; },
 
   // ===================== 記述ファイト・オンライン版（/lb/online/） =====================
-  // 自分の記録（キャラ固定のランキング。キャラを変えるとポイントは最初から）
+  // 自分の記録（キャラを変えてもポイントはそのまま）
   async arMe(uid, d) {
     const name = d.name != null ? needName(d.name) : null, char = d.char != null ? AL.cleanChar(d.char) : null;
     const p = await db.runTransaction(async tx => {
       const doc = await tx.get(apRef(uid)); let p = doc.exists ? doc.data() : null, ch = false;
       if (!p) { if (!name || !char) return null; p = newAP(name, char); ch = true; }
       if (name && name !== p.name) { p.name = name; ch = true; }
-      if (char && char !== p.char) { Object.assign(p, newAP(p.name, char)); ch = true; }
+      if (char && char !== p.char) { p.char = char; ch = true; }
       if (ch) { p.updated = now(); tx.set(apRef(uid), p); }
       return p;
     });
@@ -243,7 +243,7 @@ const OPS = {
       Object.keys(pool).forEach(u => { if (t - pool[u].at >= AL.A.QUEUE_FRESH) delete pool[u]; }); // 古い人は外す
       let p = me.exists ? me.data() : newAP(name, char), meCh = !me.exists;
       if (p.name !== name) { p.name = name; meCh = true; }
-      if (p.char !== char) { Object.assign(p, newAP(name, char)); meCh = true; }
+      if (p.char !== char) { p.char = char; meCh = true; }
       if (pick && pool[pick]) {
         const w = pool[pick];
         const od = await tx.get(apRef(pick)); const op = od.exists ? od.data() : newAP(w.name, w.char);

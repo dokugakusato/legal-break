@@ -571,17 +571,17 @@ let REC=loadRec();
 const RANKS=[['D',0],['C',100],['B',250],['A',450],['S',700]];
 const rankOf=rp=>{let r='D';for(const [n,need] of RANKS)if(rp>=need)r=n;return r};
 const nextRank=rp=>RANKS.find(([n,need])=>need>rp);
-function rankCard(){const R0=NET.me?{char:NET.me.char,rp:NET.me.rp||0,win:NET.me.w||0,lose:NET.me.l||0,best:REC.best||0}:REC;const c=CHARS.find(x=>x.id===R0.char);if(!c)return '';const nx=nextRank(R0.rp);const REC_=REC;{const REC=R0;
-  return `<div class="rcard"><div class="rbadge r${rankOf(REC.rp)}">${rankOf(REC.rp)}</div><div><b>${c.name}</b>　${REC.rp} RP<br><small>${REC.win}勝 ${REC.lose}敗・最高${REC.best}連勝${nx?`・${nx[0]}ランクまで ${nx[1]-REC.rp} RP`:'・頂点'}</small></div></div>`}}
+const RTITLE={S:'独学の神',A:'独学王',B:'独学マスター',C:'独学見習い',D:'エセ独学'};const rt=r=>RTITLE[r]||RTITLE.D;
+function rankCard(ch){const R0=NET.me?{char:ch||NET.me.char,rp:NET.me.rp||0,win:NET.me.w||0,lose:NET.me.l||0,best:REC.best||0}:REC;const c=CHARS.find(x=>x.id===(ch||R0.char));if(!c)return '';const nx=nextRank(R0.rp);const REC_=REC;{const REC=R0;
+  return `<div class="rcard"><div class="rbadge r${rankOf(REC.rp)}">${rankOf(REC.rp)}</div><div><b>${rt(rankOf(REC.rp))}</b>　${c.name}　${REC.rp} RP<br><small>${REC.win}勝 ${REC.lose}敗・最高${REC.best}連勝${nx?`・${rt(nx[0])}（${nx[0]}）まで ${nx[1]-REC.rp} RP`:'・頂点'}</small></div></div>`}}
 function openSelect(){lobbyStop();show('s-select');BGM.play('select');ann('select');
-  if(REC.char&&!CHARS.some(c=>c.id===REC.char)){REC={char:null,rp:0,win:0,lose:0,streak:0,best:0};saveRec()}const lock=REC.char;if(lock)P1=CHARS.find(c=>c.id===lock);
-  $('#chars').innerHTML=CHARS.map(c=>`<button class="char${lock&&c.id!==lock?' locked':''}" type="button" data-id="${c.id}"><span class="p1tag">1P</span>${fig(c.id)}<b>${c.name}</b><small>${c.sp}</small></button>`).join('');
-  $('#selInfo').innerHTML=lock?`${rankCard()}<p class="note" style="margin:4px 0 0">ランキング中は、このキャラで戦う。<button type="button" id="chgBtn" class="linkbtn">キャラを変える（ランキングは最初に戻る）</button></p>`:'<p class="note" style="margin:0">最初に選んだキャラで、ランキングを貯めていく。途中で変えると、ランキングは最初に戻る。</p>';
+  if(REC.char&&!CHARS.some(c=>c.id===REC.char)){REC.char=null;saveRec()}if(!P1&&REC.char)P1=CHARS.find(c=>c.id===REC.char);
+  $('#chars').innerHTML=CHARS.map(c=>`<button class="char" type="button" data-id="${c.id}"><span class="p1tag">1P</span>${fig(c.id)}<b>${c.name}</b><small>${c.sp}</small></button>`).join('');
+  $('#selInfo').innerHTML=`${REC.char?rankCard():''}<p class="note" style="margin:4px 0 0">キャラはいつでも変えられる。ポイントと称号はそのまま引き継ぐ。</p>`;
   $('#decideBtn').disabled=!P1;if(P1){const b=$(`.char[data-id="${P1.id}"]`);if(b)b.classList.add('on')}
-  document.querySelectorAll('.char').forEach(b=>b.onclick=()=>{if(REC.char&&b.dataset.id!==REC.char){sfx('miss');return}sfx('select');document.querySelectorAll('.char').forEach(x=>x.classList.remove('on'));b.classList.add('on');P1=CHARS.find(c=>c.id===b.dataset.id);$('#decideBtn').disabled=false;voice(P1.id+'_pick',P1.name+'だ。')});
-  const cb=$('#chgBtn');if(cb)cb.onclick=()=>{if(!confirm('キャラを変えると、ランキング（'+rankOf(REC.rp)+'ランク・'+REC.rp+' RP・'+REC.win+'勝'+REC.lose+'敗）は最初に戻ります。変えますか？'))return;REC={char:null,rp:0,win:0,lose:0,streak:0,best:0};saveRec();P1=null;openSelect()};
+  document.querySelectorAll('.char').forEach(b=>b.onclick=()=>{sfx('select');document.querySelectorAll('.char').forEach(x=>x.classList.remove('on'));b.classList.add('on');P1=CHARS.find(c=>c.id===b.dataset.id);$('#decideBtn').disabled=false;const rc=$('#selInfo .rcard');if(rc)rc.outerHTML=rankCard(P1.id);voice(P1.id+'_pick',P1.name+'だ。')});
 }
-$('#decideBtn').onclick=()=>{if(!P1)return;sfx('decide');if(!REC.char){REC.char=P1.id;saveRec()}findMatch()};
+$('#decideBtn').onclick=()=>{if(!P1)return;sfx('decide');REC.char=P1.id;saveRec();if(NET.me)NET.me.char=P1.id;findMatch()};
 function cpuMatch(){NM=null;lobbyStart();const others=CHARS.filter(c=>c.id!==P1.id);P2=others[Math.floor(Math.random()*others.length)];startMatch()}
 
 /* VS → 紙芝居 → FIGHT */
@@ -600,7 +600,7 @@ async function startMatch(){
   try{preloadVoices([P1,P2].flatMap(c=>['a1','a2','rush','sp','mid','ultra','lose','groan','counter','laugh','win','taunt'].map(k=>c.id+'_'+k)).concat(['round1','round2','round3','fight','ko','perfect','win','lose','vs','timeup'].map(k=>'ann_'+k)))}catch(e){}
   if(!NM)Q=pickQ();
   show('s-vs');BGM.stop();sfx('gong');
-  $('#s-vs').innerHTML=`<div class="vsrow top"><div class="vsfig">${fig(P1.id)}</div><div class="vsname">${P1.name}</div><div class="vsline">「${TAUNT[P1.id]}」</div></div><div class="vsmark">VS</div><div class="vsrow bot"><div class="vsfig">${fig(P2.id)}</div><div class="vsname">${P2.name}<br><small style="font-size:12px;color:var(--gold)">${NM?'ランク '+(NM.m.players[NM.op].rank||'D'):'CPU'}</small></div><div class="vsline">「${TAUNT[P2.id]}」</div></div><div style="position:absolute;left:0;right:0;bottom:44%;z-index:5">${stampBar(['pre'],k=>NM?null:cpuReply('pre'))}</div>`;
+  $('#s-vs').innerHTML=`<div class="vsrow top"><div class="vsfig">${fig(P1.id)}</div><div class="vsname">${P1.name}</div><div class="vsline">「${TAUNT[P1.id]}」</div></div><div class="vsmark">VS</div><div class="vsrow bot"><div class="vsfig">${fig(P2.id)}</div><div class="vsname">${P2.name}<br><small style="font-size:12px;color:var(--gold)">${NM?rt(NM.m.players[NM.op].rank)+'（'+(NM.m.players[NM.op].rank||'D')+'）':'CPU'}</small></div><div class="vsline">「${TAUNT[P2.id]}」</div></div><div style="position:absolute;left:0;right:0;bottom:44%;z-index:5">${stampBar(['pre'],k=>NM?null:cpuReply('pre'))}</div>`;
   await sleep(500);ann('vs');await sleep(900);await cv(P1,'taunt');await sleep(150);await cv(P2,'taunt');await sleep(400);
   story(false);
 }
@@ -967,8 +967,8 @@ async function showRanking(ch){
   if(!NET.on){$('#rlist').innerHTML='<p class="note">オンラインにつながっていません</p>';return}
   try{let q=NET.db.collection('arenaPlayers');if(ch)q=q.where('char','==',ch);const docs=(await q.orderBy('rp','desc').limit(100).get()).docs.map(d=>Object.assign({uid:d.id},d.data())).filter(p=>(p.games||0)>0);
     let mine='';if(NET.me&&(!ch||NET.me.char===ch)){let pos=docs.findIndex(p=>p.uid===NET.uid)+1;if(!pos){try{let cq=NET.db.collection('arenaPlayers');if(ch)cq=cq.where('char','==',ch);const c=await cq.where('rp','>',NET.me.rp||0).count().get();pos=c.data().count+1}catch(e){pos=0}}
-      const c=CHARS.find(x=>x.id===NET.me.char);mine=`<p class="note">あなたの順位：<b>${pos?pos+'位':'—'}</b>（${c?c.name:''}・${NET.me.rank||'D'}ランク・${NET.me.rp||0} ポイント）</p>`}
-    const row=(p,i)=>{const c=CHARS.find(x=>x.id===p.char);return `<div class="rrow${p.uid===NET.uid?' me':''}"><span class="no">${i+1}</span><span class="face">${c?fig(c.id):''}</span><span class="nm">${(p.name||'').replace(/[<>&]/g,'')}<br><small>${c?c.name:''}</small></span><span class="rk r${p.rank}">${p.rank||'D'}</span><span class="pt">${p.rp||0}</span></div>`};
+      const c=CHARS.find(x=>x.id===NET.me.char);mine=`<p class="note">あなたの順位：<b>${pos?pos+'位':'—'}</b>（${c?c.name:''}・${rt(NET.me.rank)}（${NET.me.rank||'D'}）・${NET.me.rp||0} ポイント）</p>`}
+    const row=(p,i)=>{const c=CHARS.find(x=>x.id===p.char);return `<div class="rrow${p.uid===NET.uid?' me':''}"><span class="no">${i+1}</span><span class="face">${c?fig(c.id):''}</span><span class="nm">${(p.name||'').replace(/[<>&]/g,'')}<br><small>${rt(p.rank)}・${c?c.name:''}</small></span><span class="rk r${p.rank}">${p.rank||'D'}</span><span class="pt">${p.rp||0}</span></div>`};
     $('#rlist').innerHTML=mine+(docs.length?docs.map(row).join(''):'<p class="note">まだ誰もいません</p>')}
   catch(e){$('#rlist').innerHTML='<p class="note">読み込めませんでした</p>'}}
 
