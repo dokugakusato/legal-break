@@ -10,7 +10,7 @@ const { setGlobalOptions } = require('firebase-functions/v2');
 const admin = require('firebase-admin');
 const L = require('./logic');
 const Q = require('./questions');
-const K = require('./kijutsu').concat(require('./story-kj')); // ノートの論点＋ストーリーモードの章ボス
+const K = require('./kijutsu').concat(require('./kakomon'), require('./story-kj')); // ノートの論点＋本試験の過去問（令和5〜7年）＋ストーリーモードの章ボス
 
 admin.initializeApp();
 const db = admin.firestore();

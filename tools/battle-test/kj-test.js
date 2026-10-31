@@ -1,5 +1,5 @@
 // 記述バトルのルールの確認。 node tools/battle-test/kj-test.js
-const L = require('../../functions/logic'), K = require('../../functions/kijutsu').concat(require('../../functions/story-kj')), assert = require('assert');
+const L = require('../../functions/logic'), K = require('../../functions/kijutsu').concat(require('../../functions/kakomon'), require('../../functions/story-kj')), assert = require('assert');
 let pass = 0; const ok = (c, m) => { assert(c, m); pass++; };
 const P = n => L.newPlayer(n, 0), R = L.R;
 // データの形

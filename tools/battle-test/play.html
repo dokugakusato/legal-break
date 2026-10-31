@@ -21,6 +21,10 @@
 <script>
   window.LB_K = module.exports; window.module = { exports: {} };
 </script>
+<script src="../../functions/kakomon.js"></script>
+<script>
+  window.LB_K = window.LB_K.concat(module.exports); window.module = { exports: {} };
+</script>
 <script src="../../functions/story-kj.js"></script>
 <script>
   window.LB_K = window.LB_K.concat(module.exports); delete window.module;
