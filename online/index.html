@@ -76,6 +76,10 @@ html,body{margin:0;height:100%;background:var(--ink);color:var(--bone);font-fami
 .koma .say.evil{background:#2a0a08;color:#ffd0c8;border-color:var(--blood)}
 .koma .say small{display:block;font-size:11px;color:var(--blood);font-weight:900}
 .koma.anim{animation:komaIn .35s ease-out}
+.koma .quiz{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;gap:12px;padding:18px;background:rgba(10,6,5,.55)}
+.koma .quiz span{align-self:flex-start;font:900 15px var(--display);letter-spacing:.3em;background:var(--blood);color:#fff;padding:3px 12px;transform:skewX(-10deg)}
+.koma .quiz p{margin:0;font-size:19px;line-height:1.6;font-weight:900;color:#fff;text-shadow:2px 2px 0 #000}
+.koma .quiz small{font:900 14px var(--display);color:var(--gold)}
 @keyframes komaIn{from{opacity:0;transform:scale(1.04)}}
 .sbar{display:flex;gap:8px;align-items:center}
 .sbar .kn{font:700 13px var(--body);color:#c9b89a;min-width:46px}
@@ -93,7 +97,7 @@ html,body{margin:0;height:100%;background:var(--ink);color:var(--bone);font-fami
 .hp .ghost{position:absolute;top:0;bottom:0;left:0;background:#fff;opacity:.8;transition:width .9s ease .35s}
 .hp.p2 .ghost{left:auto;right:0}
 .timer{font:900 30px var(--display);color:#fff;text-shadow:2px 2px 0 var(--blood);min-width:52px;text-align:center}
-.arena{position:relative;height:clamp(150px,27vh,230px);border:2px solid rgba(242,230,208,.6);border-radius:8px;overflow:hidden;background:linear-gradient(180deg,#2a0f0a 0%,#8a3b1c 58%,#c97a32 70%,#3a1a10 71%,#140906 100%)}
+.arena{position:relative;height:clamp(104px,19vh,170px);border:2px solid rgba(242,230,208,.6);border-radius:8px;overflow:hidden;background:linear-gradient(180deg,#2a0f0a 0%,#8a3b1c 58%,#c97a32 70%,#3a1a10 71%,#140906 100%)}
 .arena::before{content:"";position:absolute;left:0;right:0;bottom:29%;height:2px;background:rgba(0,0,0,.4)}
 .fighter{position:absolute;bottom:4%;height:82%;width:34%;display:flex;justify-content:center;transition:transform .12s}
 .fighter svg{height:100%;width:auto}
@@ -124,6 +128,18 @@ html,body{margin:0;height:100%;background:var(--ink);color:var(--bone);font-fami
 .fighter.down{animation:none;transform:rotate(-80deg) translateY(30%);transition:transform .4s}
 .kiai{position:absolute;z-index:6;font-family:var(--display);font-size:30px;color:#fff;-webkit-text-stroke:1.5px var(--blood);text-shadow:3px 3px 0 #000;white-space:nowrap;pointer-events:none;animation:kiaiA 1s ease-out forwards}
 @keyframes kiaiA{0%{transform:scale(.3) rotate(-8deg);opacity:0}15%{transform:scale(1.25) rotate(-8deg);opacity:1}70%{opacity:1}100%{transform:scale(1) rotate(-8deg) translateY(-20px);opacity:0}}
+.kiai.self{color:#bfe;-webkit-text-stroke:1.5px #2a4a8a}
+.dmgnum.self{color:#8fd0ff}
+.fighter.charge{animation:chargeA .65s linear}
+@keyframes chargeA{0%{transform:none}20%,60%{transform:translateY(6%) scaleY(.92) translateX(-2%)}40%,80%{transform:translateY(6%) scaleY(.92) translateX(2%)}100%{transform:translateY(4%) scaleY(.95)}}
+.fighter.charge svg{filter:drop-shadow(0 0 10px #ffd84a) drop-shadow(0 0 22px #ff7a2a)}
+.fighter.blown.p1{animation:blownL 1.2s ease-out}.fighter.blown.p2{animation:blownR 1.2s ease-out}
+@keyframes blownL{0%{transform:none}25%{transform:translate(-28%,-22%) rotate(-25deg)}55%{transform:translate(-34%,0) rotate(-12deg)}100%{transform:none}}
+@keyframes blownR{0%{transform:none}25%{transform:translate(28%,-22%) rotate(25deg)}55%{transform:translate(34%,0) rotate(12deg)}100%{transform:none}}
+.fighter.blown svg{filter:brightness(.25) sepia(1) saturate(.5)}
+.boom{position:absolute;z-index:6;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;background:radial-gradient(circle,#fff 0 12%,#ffe55a 22%,#ff7a2a 40%,rgba(80,40,30,.85) 60%,transparent 72%);animation:boomA .8s ease-out forwards;pointer-events:none}
+@keyframes boomA{0%{transform:scale(.1)}30%{transform:scale(1.2)}100%{transform:scale(1.7);opacity:0;filter:blur(4px)}}
+.kiai.boomtx{color:#ffe55a;-webkit-text-stroke:1.5px #6a1a08;font-size:26px}
 .dmgnum{position:absolute;z-index:7;font:900 34px var(--display);color:var(--gold);text-shadow:3px 3px 0 #000;pointer-events:none;animation:dmgA .9s ease-out forwards}
 @keyframes dmgA{0%{transform:scale(2);opacity:0}20%{transform:scale(1);opacity:1}100%{transform:translateY(-40px);opacity:0}}
 .spark{position:absolute;z-index:5;width:70px;height:70px;margin:-35px 0 0 -35px;border-radius:50%;background:radial-gradient(circle,#fff 0 18%,#ffe55a 30%,rgba(255,120,30,.8) 50%,transparent 70%);animation:sparkA .3s ease-out forwards;pointer-events:none}
@@ -151,21 +167,25 @@ body.shake .screen{animation:shakeA .4s}
 #announce b.gold{color:var(--gold)}
 @keyframes annA{from{transform:scale(3.5);opacity:0}}
 /* 問題と答案 */
-.qbox{background:rgba(10,6,5,.85);border:1px solid rgba(242,230,208,.3);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;flex:1;min-height:0}
-.qtext{font-size:13.5px;line-height:1.5;font-weight:700;margin:0}
+.qbox{background:rgba(10,6,5,.85);border:1px solid rgba(242,230,208,.3);border-radius:10px;padding:8px 9px;display:flex;flex-direction:column;gap:5px;flex:1;min-height:0;overflow:hidden}
+.keys{flex:1}
+body.inbattle .mute{display:none}
+.atk{flex:none}
+.qtext{font-size:13px;line-height:1.45;font-weight:700;margin:0}
 .charge{display:flex;align-items:center;gap:8px}
 .charge .cbar{flex:1;height:12px;border-radius:6px;background:#2a1a14;overflow:hidden;border:1px solid rgba(242,230,208,.3)}
 .charge .cfill{height:100%;width:0;background:linear-gradient(90deg,#f2b632,#ff5a2a);transition:width .2s}
 .charge b{font:900 14px var(--display);color:var(--gold);min-width:64px;text-align:right}
 .keys{display:grid;grid-template-columns:1fr 1fr;gap:6px;overflow:auto;min-height:0}
-.key{appearance:none;border:2px solid rgba(242,182,50,.55);background:rgba(255,255,255,.04);color:var(--bone);border-radius:9px;padding:6px 8px;font:700 12.5px/1.35 var(--body);text-align:left;min-height:2.8em;cursor:pointer}
+.key{appearance:none;border:2px solid rgba(242,182,50,.55);background:rgba(255,255,255,.04);color:var(--bone);border-radius:9px;padding:5px 7px;font:700 12px/1.3 var(--body);text-align:left;min-height:2.7em;cursor:pointer}
 .key.sel{border-color:#fff;background:rgba(242,182,50,.3);box-shadow:0 0 12px rgba(242,182,50,.6)}
 .key.used{opacity:.25;border-style:dashed}
 .key.bad{border-color:var(--blood);background:rgba(212,42,30,.25)}
 .atk{font-size:20px;padding:12px}
 .atk.ready{animation:atkP .8s ease-in-out infinite}
 @keyframes atkP{50%{box-shadow:0 4px 0 #4a0905,0 0 30px rgba(255,180,40,.9)}}
-.why{font-size:12px;line-height:1.5;color:#ffb8a8;min-height:1.5em;margin:0}
+.why{font-size:11.5px;line-height:1.45;color:#ffb8a8;margin:0}
+.why:empty{display:none}
 .why.ok{color:#ffe08a}
 /* 結果 */
 #s-result{gap:10px;overflow:auto}
@@ -203,8 +223,8 @@ body.shake .screen{animation:shakeA .4s}
   <div class="stag" id="stTag">記述ファイト</div>
   <h2 class="stitle" id="stTitle"></h2>
   <div class="koma" id="koma"></div>
-  <div class="sbar"><span class="kn" id="stN"></span><button class="btn" id="stNext" type="button">次 ▶</button></div>
-  <button class="btn ghost" id="stSkip" type="button" style="padding:8px">とばしてFIGHT ▶▶</button>
+  <div class="sbar"><span class="kn" id="stN"></span><div class="cbar" style="flex:1;height:10px;border-radius:5px;background:#2a1a14;overflow:hidden;border:1px solid rgba(242,230,208,.3)"><div id="stBar" style="height:100%;width:0;background:linear-gradient(90deg,#f2b632,#ff5a2a)"></div></div><b id="stLeft" style="font:900 13px var(--display);color:var(--gold);min-width:84px;text-align:right"></b></div>
+  <p class="note" style="margin:0">相手も同じ物語を見ている。早送りはできない。何を書かせる問題か、先に読め！</p>
 </section>
 
 <section class="screen" id="s-battle" hidden>
@@ -217,7 +237,7 @@ body.shake .screen{animation:shakeA .4s}
   <div class="qbox">
     <p class="qtext" id="qtext"></p>
     <div class="charge"><div class="cbar"><div class="cfill" id="cfill"></div></div><b id="cnum">0点</b></div>
-    <p class="why" id="why">キーワードを選んで、攻撃！ 2つ以上まとめて当てると必殺技。</p>
+    <p class="why" id="why"></p>
     <div class="keys" id="keys"></div>
   </div>
   <button class="btn atk" id="atkBtn" type="button" disabled>攻撃！</button>
@@ -230,6 +250,7 @@ body.shake .screen{animation:shakeA .4s}
 <div id="announce" hidden></div>
 <button class="mute" id="mute" type="button">音：ON</button>
 
+<script src="stories.js"></script>
 <script>
 /* ================== 下ごしらえ ================== */
 const $=s=>document.querySelector(s);
@@ -293,7 +314,7 @@ function lbVoice(text,k){const h=vHash(k+'|'+cleanTxt(text));return window.LB_AU
 function olVoice(id){return (window.OL_AUDIO||[]).includes(id)?'audio/'+id+'.mp3':null}
 let TTSV=null;function tts(text,pitch=1,rate=1.1){return new Promise(res=>{if(S.mute||!('speechSynthesis' in window)){res();return}try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(cleanTxt(text));u.lang='ja-JP';u.pitch=pitch;u.rate=rate;if(!TTSV){TTSV=speechSynthesis.getVoices().find(v=>/ja/i.test(v.lang))}if(TTSV)u.voice=TTSV;u.onend=res;u.onerror=res;speechSynthesis.speak(u);setTimeout(res,4000)}catch(e){res()}})}
 function voice(id,fallbackText){const u=olVoice(id);if(u)return playUrl(u);return tts(fallbackText||'',/^(mina)/.test(id)?1.5:.8,1.2)}
-const CHAR_LINES={a1:{hero:'あちょー！',mina:'えいっ！',dogra:'ぬうん！',boss:'ふんっ！'},a2:{hero:'ほあたぁ！',mina:'やあっ！',dogra:'どりゃあ！',boss:'どすこい！'},rush:{hero:'アタタタタタタッ！',mina:'たたたたたっ！',dogra:'オラオラオラッ！',boss:'ぬおおおおっ！'},lose:{hero:'ぐわあっ！',mina:'きゃあああっ！',dogra:'あべしっ！',boss:'ひでぶっ！'},counter:{hero:'甘いぜ！',mina:'甘いわよ！',dogra:'効かんわ！',boss:'甘いわ、小僧！'}};
+const CHAR_LINES={a1:{hero:'あちょー！',mina:'えいっ！',dogra:'ぬうん！',boss:'ふんっ！'},a2:{hero:'ほあたぁ！',mina:'やあっ！',dogra:'どりゃあ！',boss:'どすこい！'},rush:{hero:'アタタタタタタッ！',mina:'たたたたたっ！',dogra:'オラオラオラッ！',boss:'ぬおおおおっ！'},lose:{hero:'ぐわあっ！',mina:'きゃあああっ！',dogra:'あべしっ！',boss:'ひでぶっ！'},groan:{hero:'ぐふっ……',mina:'うぅっ……',dogra:'ぐぬぅ……',boss:'ぐおぉ……'},counter:{hero:'甘いぜ！',mina:'甘いわよ！',dogra:'効かんわ！',boss:'甘いわ、小僧！'}};
 function cv(ch,kind){return voice(ch.id+'_'+kind,kind==='sp'?ch.sp+'！':kind==='taunt'?TAUNT[ch.id]:kind==='win'?WINL[ch.id]:(CHAR_LINES[kind]||{})[ch.id]||'')}
 const TAUNT={hero:'独学で戦うお前に、法の拳を教えてやる。',mina:'商売の掟、教えてあげる！',dogra:'この鎖からは、逃げられんぞ。',boss:'ワシが地上げ王、権田だ！'};
 const WINL={hero:'お前の主張は、もう死んでいる。',mina:'まいどあり！',dogra:'鎖の重さを、思い知ったか。',boss:'この土地は、ワシのものだ！'};
@@ -352,7 +373,7 @@ function sfx(kind){const a=ac();if(!a)return;const t=a.currentTime,o=a.destinati
 }
 
 /* ---------- 画面 ---------- */
-function show(id){document.querySelectorAll('.screen').forEach(s=>s.hidden=s.id!==id)}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.hidden=s.id!==id);document.body.classList.toggle('inbattle',id==='s-battle'||id==='s-story')}
 const fig=k=>FIG.SIL[k]||FIG.SIL.hero||'<svg viewBox="0 0 100 160"><rect x="30" y="20" width="40" height="140" fill="#000"/></svg>';
 async function announce(text,cls,ms=900){const el=$('#announce');el.hidden=false;el.innerHTML=`<b class="${cls||''}">${text}</b>`;await sleep(ms);el.hidden=true}
 function flash(){const f=$('#flash');f.classList.remove('on');void f.offsetWidth;f.classList.add('on')}
@@ -382,21 +403,29 @@ async function startMatch(){
   story();
 }
 let ST=null;
+// 1コマの長さは文字数で決める（2人の画面で同じ長さになる。声の速さには左右されない）
+const panelMs=p=>Math.max(4200,Math.round((p.nar||'').length*125+(p.say?p.say.text.length*90:0)+1200));
 function story(){
-  show('s-story');BGM.play('story');const P=Q.panels;let i=0;
-  $('#stTag').textContent=`記述ファイト｜第${Q.no}話 ${Q.title}`;$('#stTitle').textContent=Q.lawName?`今回の論点：？？？`:'';
-  const draw=()=>{const p=P[i];if(!p){fightStart();return}
+  show('s-story');BGM.play('story');const run=ST=Symbol();
+  const OS=(window.OL_STORIES||{})[Q.no];const P=OS?OS.panels.slice():Q.panels.slice(0,3);
+  const qPanel={nar:'【出題】'+qShort(Q.q),bg:'red',figs:[],quiz:1};P.push(qPanel);
+  const durs=P.map(p=>p.quiz?5200:panelMs(p)),total=durs.reduce((a,b)=>a+b,0);
+  $('#stTag').textContent=`記述ファイト｜第${Q.no}話 ${Q.title}`;$('#stTitle').textContent='今回の論点：？？？';
+  const t0=Date.now();
+  const tick=()=>{if(ST!==run)return;const el=Date.now()-t0;$('#stBar').style.width=Math.min(100,el/total*100)+'%';$('#stLeft').textContent='FIGHTまで '+Math.max(0,Math.ceil((total-el)/1000))+'秒';requestAnimationFrame(tick)};tick();
+  const draw=i=>{const p=P[i];
     const sp=p.say?((p.figs||[]).find(f=>f[1]===p.say.side)||(p.figs||[])[0]||[]):null;
-    const figs=(p.figs||[]).map(([k,pos,nm])=>`<div class="${pos==='r'?'r':''}">${fig(k)}</div>`).join('');
+    const figs=(p.figs||[]).map(([k,pos])=>`<div class="${pos==='r'?'r':''}">${fig(k)}</div>`).join('');
     const who=sp?(sp[2]||FIG.NAMES[sp[0]]||''):'';
     $('#koma').className='koma anim'+(p.bg==='red'?' red':p.bg==='dark'?' dark':'');
-    $('#koma').innerHTML=`<div class="cap">${p.nar||''}</div><div class="figs">${figs}</div>${p.say?`<div class="say${p.say.evil?' evil':''}"><small>${who}</small>${p.say.text}</div>`:''}`;
-    $('#stN').textContent=`${i+1} / ${P.length}`;$('#stNext').textContent=i<P.length-1?'次 ▶':'FIGHT！ ▶';
-    const run=ST=Symbol();(async()=>{const u=lbVoice(p.nar,Q.narr);if(u)await playUrl(u);if(ST!==run)return;if(p.say&&sp){const k=FIG.SIL[sp[0]]?sp[0]:'narr';const u2=lbVoice(p.say.text,k)||lbVoice(p.say.text,'hero')||lbVoice(p.say.text,'boss');if(u2)await playUrl(u2)}})();
+    $('#koma').innerHTML=p.quiz?`<div class="quiz"><span>出題</span><p>${qShort(Q.q)}</p><small>答案のキーワードを選んで戦え！</small></div>`:`<div class="cap">${p.nar}</div><div class="figs">${figs}</div>${p.say?`<div class="say${p.say.evil?' evil':''}"><small>${who}</small>${p.say.text}</div>`:''}`;
+    $('#stN').textContent=`${i+1} / ${P.length}`;
+    if(p.quiz){sfx('gong');voice('q_'+Q.no,'出題。'+qShort(Q.q))}
+    else{const u=olVoice('n'+Q.no+'_'+(i+1))||lbVoice(p.nar,Q.narr);if(u)playUrl(u);else tts(p.nar,.8,1.15)}
   };
-  $('#stNext').onclick=()=>{ac();if(VO)VO.pause();i++;draw()};$('#koma').onclick=$('#stNext').onclick;
-  $('#stSkip').onclick=()=>{ac();if(VO)VO.pause();ST=null;fightStart()};
-  draw();
+  let i=0;draw(0);
+  const next=()=>{if(ST!==run)return;i++;if(i>=P.length){ST=null;if(VO)VO.pause();fightStart();return}draw(i);setTimeout(next,durs[i])};
+  setTimeout(next,durs[0]);
 }
 
 /* ---------- 対戦 ---------- */
@@ -406,13 +435,14 @@ async function fightStart(){
   Object.assign(B,{hp1:20,hp2:20,sel:new Set(),used1:new Set(),used2:new Set(),cpuSel:[],busy:false,over:false,time:90,acted:0});
   $('#n1').textContent=P1.name;$('#n2').textContent=P2.name+'（CPU）';hpDraw();
   $('#arena').innerHTML=`<div class="fighter p1 idle" id="F1">${fig(P1.id)}<span class="tag">1P</span></div><div class="fighter p2 idle" id="F2">${fig(P2.id)}<span class="tag">CPU</span></div>`;
-  $('#qtext').textContent=Q.q.replace(/答案に書くべきキーワードを撃ち抜け！|答案のキーワードを撃ち抜け！|40字程度で記述せよ。/,'').trim()+'　答案のキーワードを選べ！';
-  B.order=Q.keys.map((_,i)=>i).sort(()=>Math.random()-.5);drawKeys();charge();$('#why').className='why';$('#why').textContent='キーワードを選んで、攻撃！ 2つ以上まとめて当てると必殺技。';
+  $('#qtext').textContent=qShort(Q.q);
+  B.order=Q.keys.map((_,i)=>i).sort(()=>Math.random()-.5);drawKeys();charge();$('#why').className='why';$('#why').textContent='';
   $('#timer').textContent=B.time;$('#atkBtn').disabled=true;
   await sleep(300);sfx('riser');ann('round1');await announce('ROUND 1','',1100);ann('fight');BGM.play('battle');await announce('FIGHT!','gold',800);
   B.clock=setInterval(()=>{if(B.over||B.busy)return;B.time--;$('#timer').textContent=B.time;if(B.time<=0)timeUp()},1000);
   cpuLoop();
 }
+const qShort=q=>String(q).replace(/(理由とともに、)?(答案に書くべき|答案の|記述の|判例の)?キーワードを撃ち抜け！/,'').replace(/40字程度で(記述せよ|記せ)。/,'').trim();
 function hpDraw(){for(const n of [1,2]){const hp=B['hp'+n],w=Math.max(0,hp)/20*100;$('#f'+n).style.width=w+'%';$('#g'+n).style.width=w+'%';$('#f'+n).classList.toggle('low',hp<=6);$('#h'+n).textContent=Math.max(0,hp)}
   if(!B.over&&(B.hp1<=6||B.hp2<=6)&&BGM.cur==='battle')BGM.play('pinch')}
 function drawKeys(){
@@ -430,9 +460,9 @@ async function attack(side,picks){
   const bad=picks.filter(i=>!Q.keys[i].pt),good=picks.filter(i=>Q.keys[i].pt&&!used.has(i));
   if(side===1)drawKeys();
   if(bad.length){ // ひっかけが混ざっていた → 見切られて反撃される
-    sfx('miss');if(side===1){$('#why').className='why';$('#why').innerHTML='<b>見切られた！</b>'+(Q.keys[bad[0]].why||'答案に入れてはいけない言葉だ。');
+    sfx('miss');if(side===1){$('#why').className='why';$('#why').innerHTML='<b>自爆！ ひっかけだ。</b>'+(Q.keys[bad[0]].why||'答案に入れてはいけない言葉だ。');
       document.querySelectorAll('.key').forEach(b=>{if(bad.includes(+b.dataset.i))b.classList.add('bad')})}
-    cv(foe,'counter');await sleep(250);await strike(3-side,'a1',3,false);
+    await selfHit(side,SELF_DMG);
     B.busy=false;charge();return;
   }
   const dmg=good.reduce((s,i)=>s+Q.keys[i].pt,0);good.forEach(i=>used.add(i));
@@ -440,6 +470,23 @@ async function attack(side,picks){
   const kind=dmg>=20?'super':dmg>=10?'sp':'a'+(1+Math.floor(Math.random()*2));
   await strike(side,kind,dmg,true);
   B.busy=false;charge();
+}
+// ひっかけのキーワードで攻撃すると、自爆してダメージを受け、うめき声が出る
+const SELF_DMG=4;
+async function selfHit(side,dmg){
+  // 自爆アクション：相手には向かわず、その場で技をためる → 手元で暴発 → 黒こげで後ろへ吹っ飛ぶ
+  const me=side===1?P1:P2,mf=$('#F'+side),ar=$('#arena');
+  mf.classList.remove('idle','lunge','hit');void mf.offsetWidth;mf.classList.add('charge');sfx('riser');
+  const k=document.createElement('div');k.className='kiai self';k.textContent=CHAR_LINES.a2[me.id];k.style.left=side===1?'6%':'auto';k.style.right=side===2?'6%':'auto';k.style.top='4%';ar.appendChild(k);setTimeout(()=>k.remove(),900);
+  await sleep(650);
+  const r=mf.getBoundingClientRect(),a=ar.getBoundingClientRect();
+  const bm=document.createElement('div');bm.className='boom';bm.style.left=(r.left-a.left+r.width/2)+'px';bm.style.top=(r.top-a.top+r.height*.4)+'px';ar.appendChild(bm);setTimeout(()=>bm.remove(),900);
+  const tx=document.createElement('div');tx.className='kiai boomtx';tx.textContent='ドカーン！';tx.style.left=(r.left-a.left)+'px';tx.style.top='30%';ar.appendChild(tx);setTimeout(()=>tx.remove(),1100);
+  mf.classList.remove('charge');void mf.offsetWidth;mf.classList.add('blown');flash();shake();sfx('big');
+  const d=document.createElement('div');d.className='dmgnum self';d.textContent='自爆 -'+dmg;d.style.left=side===1?'10%':'58%';d.style.top='14%';ar.appendChild(d);setTimeout(()=>d.remove(),900);
+  B['hp'+side]-=dmg;hpDraw();await sleep(250);cv(me,'groan');
+  await sleep(1100);mf.classList.remove('blown');if(!B.over)mf.classList.add('idle');
+  if(B['hp'+side]<=0)await ko(3-side);
 }
 async function strike(side,kind,dmg){
   const me=side===1?P1:P2,mf=$('#F'+side),ff=$('#F'+(3-side)),ar=$('#arena');

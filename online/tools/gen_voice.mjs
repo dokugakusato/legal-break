@@ -3,8 +3,8 @@
 import fs from 'node:fs';import {execFileSync} from 'node:child_process';
 const ROOT=new URL('../',import.meta.url).pathname,ENGINE=process.env.VOICEVOX_URL||'http://127.0.0.1:50021';
 // 話す人：[VOICEVOXのキャラ名, スタイル名, 速さ, 高さ, 抑揚]
-const CAST={ann:['青山龍星','熱血',1,-.02,1.4],hero:['玄野武宏','ノーマル',1,-.03,1.25],mina:['冥鳴ひまり','ノーマル',1.05,.02,1.3],dogra:['剣崎雌雄','ノーマル',.95,-.08,1.25],boss:['麒ヶ島宗麟','ノーマル',.92,-.04,1.3]};
-const yomi=t=>t.replace(/荒野/g,'こうや').replace(/土倉/g,'どくら').replace(/権田/g,'ごんだ').replace(/鉄鎖/g,'てっさ').replace(/法竜/g,'ほうりゅう').replace(/百裂/g,'ひゃくれつ').replace(/行商/g,'ぎょうしょう').replace(/地上げ/g,'じあげ').replace(/大車輪/g,'だいしゃりん').replace(/大旋風/g,'だいせんぷう').replace(/独学/g,'どくがく');
+const CAST={narr:['青山龍星','ノーマル',1.0,-.03,1.15],ann:['青山龍星','熱血',1,-.02,1.4],hero:['玄野武宏','ノーマル',1,-.03,1.25],mina:['冥鳴ひまり','ノーマル',1.05,.02,1.3],dogra:['剣崎雌雄','ノーマル',.95,-.08,1.25],boss:['麒ヶ島宗麟','ノーマル',.92,-.04,1.3]};
+const yomi=t=>t.replace(/荒野/g,'こうや').replace(/土倉/g,'どくら').replace(/権田/g,'ごんだ').replace(/鉄鎖/g,'てっさ').replace(/法竜/g,'ほうりゅう').replace(/百裂/g,'ひゃくれつ').replace(/行商/g,'ぎょうしょう').replace(/地上げ/g,'じあげ').replace(/大車輪/g,'だいしゃりん').replace(/大旋風/g,'だいせんぷう').replace(/独学/g,'どくがく').replace(/(?<![一-龯々])金(?![一-龯々])/g,'カネ').replace(/取消(?!し)/g,'取り消し').replace(/31条/g,'さんじゅういちじょう').replace(/1条1項/g,'いちじょういっこう');
 const {lines}=JSON.parse(fs.readFileSync(ROOT+'voices.json','utf8'));
 const speakers=await (await fetch(ENGINE+'/speakers')).json();
 const style=k=>{const c=CAST[k];const sp=speakers.find(s=>s.name===c[0])||speakers[0];const st=sp.styles.find(s=>s.name===c[1])||sp.styles[0];return {id:st.id,sig:[sp.name,st.name,c[2],c[3],c[4]].join('|'),c}};
