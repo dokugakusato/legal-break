@@ -746,7 +746,7 @@ async function timeUp(){
 async function nextRound(){M3.round++;await sleep(400);if(NM){for(let i=0;i<40&&NM.m.round<M3.round&&NM.m.phase!=='end';i++)await sleep(250);if(NM.m.phase==='end')return result()}nextQ();story(true)}
 async function result(win,draw){
   let gain=0;const net=!!NM;
-  if(net){for(let i=0;i<40&&NM.m.phase!=='end';i++){if(i%8===7)netTick();await sleep(250)}const R=NM.m.result||{};if(R.winner!==undefined&&NM.m.phase==='end'){win=R.winner===NET.uid;draw=!R.winner;gain=(R.delta||{})[NET.uid]||0;const af=(R.after||{})[NET.uid];if(af&&NET.me){NET.me.rp=af.rp;NET.me.rank=af.rank;if(win)NET.me.w=(NET.me.w||0)+1;else if(!draw)NET.me.l=(NET.me.l||0)+1}}netLeave(false)}
+  if(net){for(let i=0;i<40&&NM.m.phase!=='end';i++){if(i%8===7)netTick();await sleep(250)}const R=NM.m.result||{};if(R.winner!==undefined&&NM.m.phase==='end'){win=R.winner===NET.uid;draw=!R.winner;gain=(R.delta||{})[NET.uid]||0;const af=(R.after||{})[NET.uid];}try{const r=await netCall('arMe',{});if(r.player)NET.me=r.player}catch(e){}netLeave(false)}
   show('s-result');BGM.play(win?'win':'lose');ann(win?'win':'lose');
   
   $('#s-result').innerHTML=`<h2 class="rhead${win?'':' lose'}">${draw?'DRAW':win?'YOU WIN!':'YOU LOSE'}</h2>
