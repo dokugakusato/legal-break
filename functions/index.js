@@ -53,13 +53,14 @@ async function amutate(matchId, uid, fn) {
     if (!md.exists || !sd.exists) throw new HttpsError('not-found', '試合が見つかりません');
     const m = md.data(), s = sd.data();
     if (!m.uids.includes(uid)) throw new HttpsError('permission-denied', 'この試合の参加者ではありません');
-    const t = now(), wasEnd = m.phase === 'end';
+    const t = now(), wasEnd = m.phase === 'end', prevSeen = (m.players[uid] && m.players[uid].seen) || 0;
     const before = JSON.stringify([m.phase, m.round, m.players, m.ev.length, m.stamps]);
     const out = fn(m, s, t) || {};
     const after = JSON.stringify([m.phase, m.round, m.players, m.ev.length, m.stamps]);
-    // 「いる」の合図だけのときは、5秒に1回だけ書く（費用の節約）
+    // 「いる」の合図だけのときは、その人の記録が5秒以上前のときだけ書く（費用の節約）。
+    // ※試合全体で5秒に1回にすると、片方の合図ばかり捨てられて「逃げた」と誤判定されるため、人ごとに数える
     const onlySeen = before.replace(/"seen":\d+/g, '') === after.replace(/"seen":\d+/g, '');
-    if (before === after || (onlySeen && t - (m.wrote || 0) < 5000)) return Object.assign({ now: t, match: clean(m) }, out);
+    if (before === after || (onlySeen && t - prevSeen < 5000)) return Object.assign({ now: t, match: clean(m) }, out);
     m.v = (m.v || 0) + 1; m.wrote = t;
     let pw = null;
     if (!wasEnd && m.phase === 'end') {
