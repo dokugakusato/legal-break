@@ -29,11 +29,11 @@
     <p class="sec">キャラクターを選ぶ</p>
     <div class="charas" id="charas"></div>
     <p class="charainfo" id="charaInfo"></p>
-    <button class="btn" id="findKjBtn" type="button">記述バトル<small>正解キーワードで攻撃、20点でK.O.</small></button>
+    <button class="btn" id="findKjBtn" type="button">記述バトル<small>キーワードをつなげて大技、全部一発で天変地異！</small></button>
     <button class="btn sub" id="findBtn" type="button">択一バトル<small>5択の早押し</small></button>
     <button class="btn ghost" id="rankBtn" type="button">全国ランキング</button>
     <p class="online" id="onlineN"></p>
-    <p class="note"><b>記述バトル</b>：紙芝居で事件を見たら、FIGHT！で記述の正解キーワードの札を出して攻撃。キーワード1つごとに点が入り（順番は自由）、先に20点取ったら必殺技でK.O.！<br><b>択一バトル</b>：5択の早押し。先に正解した方が攻撃。<br>相手が見つからないときは修行相手（CPU）と戦う。CPU戦はランクが変わらない。</p>
+    <p class="note"><b>記述バトル</b>：紙芝居で事件を見たら、FIGHT！ 答案に入る正解キーワードの札を選んで「攻撃発動」。1枚なら単発攻撃、2枚以上つなげると大技、最初の一撃で全部そろえると<b>天変地異</b>で一撃K.O.＆経験値2倍！ 1枚でも間違いが混じると点はもらえず自爆ダメージ。時間切れなし、どちらかが倒れるまで続く。<br><b>択一バトル</b>：5択の早押し。先に正解した方が攻撃。<br>相手が見つからないときは修行相手（CPU）と戦う。CPU戦はランクが変わらない。</p>
     <p class="msg" id="homeMsg"></p>
     <a class="back" href="https://legal-break.5ukaku.com/">◀ ストーリーモードへ</a>
   </section>
@@ -69,6 +69,7 @@
       <div class="kjq" id="kjQ"></div>
       <div class="kjans" id="kjAns"></div>
       <div class="kjhint" id="kjHint"></div>
+      <div class="kjbar"><span class="kjsel" id="kjSel">札を選んで「攻撃発動」</span><button type="button" class="kjclr" id="kjClr" hidden>選び直す</button><button type="button" class="kjgo" id="kjGo" disabled>攻撃発動！</button></div>
       <div class="chips" id="chips"></div>
     </div>
     <div class="qarea" id="qarea">

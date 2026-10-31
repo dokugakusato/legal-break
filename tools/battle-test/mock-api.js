@@ -46,7 +46,7 @@
     st.tt = setTimeout(() => api.call('tick', { matchId: id }, BOT), Math.max(30, m.until - now() + 300));
     if (m.phase === 'vs' && !st.hello) { st.hello = 1; setTimeout(() => api.call('stamp', { matchId: id, id: 0 }, BOT).catch(() => {}), 1200); }
     if (m.mode === 'kj' && m.phase === 'kj') { // 記述：6〜12秒ごとに札を出す（3割まちがう）
-      const pg = m.kj.prog[BOT]; if (pg.n < m.kj.n && !st.kjt) st.kjt = setTimeout(() => { st.kjt = null; const ok = Math.random() > 0.3; api.call('kj', { matchId: id, chip: ok ? x.s.kj.ans.find((c, i) => !String(pg.got || '').includes(String(i))) : m.kj.chips.findIndex((c, i) => !x.s.kj.ans.includes(i)) }, BOT).catch(() => {}); }, 6000 + Math.random() * 6000);
+      const pg = m.kj.prog[BOT]; if (pg.n < m.kj.n && !st.kjt) st.kjt = setTimeout(() => { st.kjt = null; const ok = Math.random() > 0.3, left = x.s.kj.ans.filter((c, i) => !String(pg.got || '').includes(String(i))), two = Math.random() < 0.4 ? 2 : 1; api.call('kj', { matchId: id, chips: ok ? left.slice(0, two) : left.slice(0, two - 1).concat([m.kj.chips.findIndex((c, i) => !x.s.kj.ans.includes(i))]) }, BOT).catch(() => {}); }, 6000 + Math.random() * 6000);
     }
     if (m.phase === 'q' && !m.ans[BOT] && st.q !== m.qi) {
       st.q = m.qi;
@@ -94,7 +94,7 @@
         const on = {}; m.uids.filter(x => !m.players[x].cpu).forEach(x => on[x] = status[x] !== 'offline');
         L.presence(m, t, on); L.advance(m, s, t, Q);
       }));
-      if (name === 'kj') return wait(mutate(d.matchId, u, (m, s, t) => L.kjAnswer(m, s, u, d.chip, t)));
+      if (name === 'kj') return wait(mutate(d.matchId, u, (m, s, t) => L.kjAnswer(m, s, u, d.chips || d.chip, t)));
       if (name === 'stamp') return wait(mutate(d.matchId, u, (m, s, t) => L.stamp(m, u, d.id, t)));
       throw err('not-found', name);
     },

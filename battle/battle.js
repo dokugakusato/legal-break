@@ -117,15 +117,32 @@
   }
 
   // ---------- 必殺技（カットイン → 技名を読み上げ → キャラごとの動き） ----------
-  function special(byUid, toUid) {
+  function special(byUid, toUid, o) {
+    o = o || {};
     const p = M.players[byUid], F = FIG(p.chara), mine = byUid === uid;
     const fBy = mine ? '#figMe' : '#figOp', fTo = toUid === uid ? '#figMe' : '#figOp';
     const ci = $('#cutin'); ci.className = 'cutin ' + (mine ? 'me' : 'op');
-    ci.innerHTML = `<div class="band"><span class="art${(!mine && M.players[uid].chara === p.chara) ? ' alt' : ''}">${F.svg}</span><div class="wz"><small>${esc(p.name)}の必殺技</small><b>${esc(F.waza)}！</b></div></div>`;
+    ci.innerHTML = `<div class="band"><span class="art${(!mine && M.players[uid].chara === p.chara) ? ' alt' : ''}">${F.svg}</span><div class="wz"><small>${esc(o.sub || p.name + 'の必殺技')}</small><b>${esc(o.w || F.waza + '！')}</b></div></div>`;
     ci.hidden = false; void ci.offsetWidth; ci.classList.add('go');
-    speak(F.waza, 'waza'); SND.counter();
+    speak(o.say || F.waza, 'waza'); SND.counter();
     setTimeout(() => { ci.hidden = true; ci.classList.remove('go'); anim(fBy, 'sp-' + F.move, 1100); }, 1100);
     setTimeout(() => { anim(fTo, 'hit', 450); anim(fTo, F.move === 'upper' || F.move === 'throw' ? 'launch' : 'blown', 1000); emo(fTo, 'shock', 1400); shake(); SND.hit(); }, 1100 + 380);
+  }
+
+  // ---------- 天変地異（全部のキーワードを一撃で） ----------
+  function tenpen(byUid, toUid) {
+    const mine = byUid === uid, fTo = toUid === uid ? '#figMe' : '#figOp', fBy = mine ? '#figMe' : '#figOp';
+    let d = document.getElementById('tenpen');
+    if (!d) { d = document.createElement('div'); d.id = 'tenpen'; document.body.appendChild(d); }
+    const bolt = x => `<svg class="bolt" style="left:${x}%" viewBox="0 0 40 200"><path d="M24 0 6 92h14L8 200 36 78H21L32 0z"/></svg>`;
+    d.className = 'tenpen ' + (mine ? 'me' : 'op');
+    d.innerHTML = `${bolt(8)}${bolt(46)}${bolt(80)}<div class="tp-t"><small>${mine ? 'あなた' : esc(M.players[byUid].name)}の完成答案</small><b>天変地異</b><em>全キーワード 一撃！</em></div><div class="rocks"><i></i><i></i><i></i><i></i><i></i><i></i></div>`;
+    d.hidden = false; void d.offsetWidth; d.classList.add('go');
+    document.body.classList.remove('quake'); void document.body.offsetWidth; document.body.classList.add('quake');
+    speak('天変地異！', 'waza'); SND.counter(); setTimeout(() => SND.counter(), 350); setTimeout(() => SND.ko(), 900);
+    setTimeout(() => { anim(fBy, 'sp-' + FIG(M.players[byUid].chara).move, 1100); }, 1400);
+    setTimeout(() => { anim(fTo, 'hit', 450); anim(fTo, 'launch', 1000); emo(fTo, 'shock', 2000); shake(); SND.hit(); }, 1700);
+    setTimeout(() => { d.hidden = true; d.classList.remove('go'); document.body.classList.remove('quake'); }, 2600);
   }
 
   // ---------- メニュー ----------
@@ -199,7 +216,7 @@
     ['#vs', '#review', '#endL', '#pauseB'].forEach(s => $(s).hidden = true);
     $('#qText').textContent = ''; $('#choices').innerHTML = ''; $('#qMeta').textContent = ''; $('#qNo').textContent = 'VS';
     figsFor = ''; $('#figMe').innerHTML = ''; $('#figOp').innerHTML = '';
-    kjMine = {}; kjDrawn = false; storyShown = -1; $('#story').hidden = true; $('#kjarea').hidden = true; $('#qarea').hidden = false;
+    kjMine = {}; kjSel = []; kjDrawn = false; storyShown = -1; $('#story').hidden = true; $('#kjarea').hidden = true; $('#qarea').hidden = false;
     unM = API.watchMatch(id, m => { if (MID === id && m) applyMatch(m); }, () => {});
     clearInterval(loopTimer); loopTimer = setInterval(loop, 100);
   }
@@ -347,12 +364,14 @@
     if (!draw) { const loser = win ? '#figOp' : '#figMe', winner = win ? '#figMe' : '#figOp'; emo(winner, 'happy'); emo(loser, 'sad'); if (res.reason === 'ko') $(loser).classList.add('down'); }
     music(null); if (window.LBMusic) LBMusic.jingle(win || draw ? 'win' : 'lose'); speak(draw ? '引き分け' : win ? 'あなたの勝ち！' : '負けてしまった…', 'me');
     let big = draw ? 'DRAW' : win ? (res.reason === 'ko' ? 'K.O.!' : 'WIN!') : 'LOSE…';
-    let sub = draw ? '引き分け' : win ? (res.reason === 'forfeit' ? '相手が戻らなかった（不戦勝）' : res.reason === 'judge' ? '判定勝ち' : m.mode === 'kj' ? '20点の完成答案でK.O.！' : 'あなたの勝ち') : (res.reason === 'forfeit' ? '接続が切れて不戦敗' : res.reason === 'judge' ? '判定負け' : 'K.O.された…');
+    let sub = draw ? '引き分け' : win ? (res.reason === 'forfeit' ? '相手が戻らなかった（不戦勝）' : res.reason === 'judge' ? '判定勝ち' : m.mode === 'kj' ? (res.fin === 'tenpen' ? '天変地異！ 全キーワード一撃でK.O.！' : res.fin === 'combo' ? '大技で完成答案、K.O.！' : '完成答案でK.O.！') : 'あなたの勝ち') : (res.reason === 'forfeit' ? '接続が切れて不戦敗' : res.reason === 'judge' ? '判定負け' : res.fin === 'self' ? '自爆でK.O.…' : res.fin === 'tenpen' ? '天変地異をくらった…' : 'K.O.された…');
     let rate = '';
     if (m.cpu) rate = '<p class="cpunote">CPU戦なので、ランクは変わりません</p>';
     else if (res.delta && res.delta[uid] != null) {
       const d = res.delta[uid], a = res.after[uid];
-      rate = `<p class="rchange">レート ${a.rating - d} → <b class="${d >= 0 ? 'up' : 'dn'}">${a.rating}（${d >= 0 ? '+' : ''}${d}）</b></p><div class="newrank r${esc(a.rank)}">${esc(a.rank)}</div><p class="cpunote">ランク</p>`;
+      if (win && res.fin === 'tenpen') rate = '<p class="expbonus">天変地異ボーナス：経験値2倍！</p>';
+      else if (win && res.fin === 'combo') rate = '<p class="expbonus">大技ボーナス：経験値1.3倍</p>';
+      rate += `<p class="rchange">レート ${a.rating - d} → <b class="${d >= 0 ? 'up' : 'dn'}">${a.rating}（${d >= 0 ? '+' : ''}${d}）</b></p><div class="newrank r${esc(a.rank)}">${esc(a.rank)}</div><p class="cpunote">ランク</p>`;
       player = Object.assign({}, player || {}, { rating: a.rating, rank: a.rank });
     }
     let model = '';
@@ -377,14 +396,17 @@
       const key = m.qi + ':' + i; if (seen[key]) return; seen[key] = 1;
       if (sNow() - (m.phaseAt + e.at) > 8000 && m.phase !== 'q') return; // 古いものは演出しない
       const mine = e.by === uid, fBy = mine ? '#figMe' : '#figOp', fTo = e.to === uid ? '#figMe' : '#figOp';
+      if (e.t === 'kjfin' && e.kind === 'tenpen') { pop('天変地異！！', 'gold'); tenpen(e.by, e.to); setTimeout(() => dmgNum(e.to === uid ? 'me' : 'op', e.dmg), 1800); return; }
       if (e.t === 'kjfin') e.t = 'hit';
-      if (e.t === 'kjhit') { SND.hit(); pop(mine ? `キーワード！ +${e.pts || M.kj.pts[e.slot]}点` : `相手 +${e.pts || ''}点`, mine ? 'gold small' : 'small');
+      if (e.t === 'kjhit' && e.kind === 'combo') { pop(mine ? `大技！ ${e.k}連 +${e.pts}点` : `相手の大技 ${e.k}連`, 'gold');
+        special(e.by, e.to, { sub: '大技', w: `${e.k}連コンボ！`, say: `${e.k}連コンボ！` }); setTimeout(() => dmgNum(e.to === uid ? 'me' : 'op', e.dmg), 1500); return; }
+      if (e.t === 'kjhit') { SND.hit(); pop(mine ? `キーワード！ +${e.pts}点` : `相手 +${e.pts}点`, mine ? 'gold small' : 'small');
         anim(fBy, 'lunge', 260); setTimeout(() => { anim(fTo, 'hit', 450); anim(fTo, 'knock', 500); emo(fTo, 'shock', 900); shake(); dmgNum(e.to === uid ? 'me' : 'op', e.dmg); }, 180); return; }
-      if (e.t === 'kjmiss') { SND.miss(); pop(mine ? 'ちがう札！' : '相手がミス！', 'small'); anim(fTo, 'hit', 450); emo(fTo, 'sad', 1200); dmgNum(e.to === uid ? 'me' : 'op', e.dmg); return; }
+      if (e.t === 'kjmiss') { SND.miss(); SND.hit(); pop(mine ? `自爆！ 間違いが混じってた` : '相手が自爆！', mine ? '' : 'gold small'); anim(fTo, 'hit', 450); anim(fTo, 'knock', 500); emo(fTo, 'sad', 1200); shake(); dmgNum(e.to === uid ? 'me' : 'op', e.dmg); return; }
       if (e.t === 'hit' || e.t === 'counter') {
         const finish = m.phase === 'end' && m.players[e.to].hp <= 0;
         if (e.t === 'counter' || finish) {
-          pop(e.t === 'counter' ? 'COUNTER!' : m.mode === 'kj' ? '20点！完成答案！' : 'とどめ！', 'gold'); special(e.by, e.to);
+          pop(e.t === 'counter' ? 'COUNTER!' : m.mode === 'kj' ? (e.kind === 'combo' ? `大技${e.k}連で完成答案！` : '20点！完成答案！') : 'とどめ！', 'gold'); special(e.by, e.to);
           setTimeout(() => dmgNum(e.to === uid ? 'me' : 'op', e.dmg), 1500);
           if (finish) setTimeout(() => SND.ko(), 1600);
         } else {
@@ -406,7 +428,7 @@
   function dmgNum(side, n) { const d = document.createElement('div'); d.className = 'dmgnum ' + side; d.textContent = '-' + n; $('#stage').appendChild(d); setTimeout(() => d.remove(), 1200); }
 
   // ---------- 記述バトル ----------
-  let kjMine = {}, kjDrawn = false, storyShown = -1, kjBusy = false, kjLockTo = 0, kjPending = null;
+  let kjMine = {}, kjDrawn = false, storyShown = -1, kjBusy = false, kjLockTo = 0, kjSel = [];
   // 紙芝居：ストーリーモードの4コマと同じ見た目（登場人物・吹き出し・背景・小道具）
   function komaFig(t) { const S = window.KOMA_SIL || {}; return S[t] || S.hero || ''; }
   function komaProp([k, pos]) { const P = (window.KOMA_PROPS || {})[k]; if (!P) return ''; return `<div class="prop ${pos}" style="--s:${P.s};aspect-ratio:${P.vb[0]}/${P.vb[1]}"><svg viewBox="0 0 ${P.vb[0]} ${P.vb[1]}" aria-hidden="true">${P.svg}</svg></div>`; }
@@ -430,21 +452,63 @@
   function drawKJ(m) {
     const k = m.kj, pg = k.prog[uid], op = k.prog[opUid()], got = String(pg.got || '');
     // 当てたキーワード（空欄の番号→札の文字）。読み込み直したときは（済）
-    const newest = got.slice(-1);
-    for (const ch of got) if (!(ch in kjMine)) { kjMine[ch] = kjPending && ch === newest ? kjPending.text : '（済）'; if (ch === newest) kjPending = null; }
+    for (const ch of got) if (!(ch in kjMine)) kjMine[ch] = kjBusy ? '…' : '（済）';
     $('#kjMeta').textContent = `${k.field}｜${k.topic}`;
     $('#kjQ').textContent = k.q;
     const hits = got.split('').map(i => `<span class="kw-hit">${esc(kjMine[i])}<i>+${k.pts[i]}</i></span>`).join('');
-    $('#kjAns').innerHTML = `<span class="kjlab">答案のキーワード（${pg.n}/${k.n}）</span>${hits || '<span class="kjempty">正しいキーワードの札を出して攻撃！順番は自由</span>'}`;
+    $('#kjAns').innerHTML = `<span class="kjlab">答案のキーワード（${pg.n}/${k.n}）</span>${hits || '<span class="kjempty">札を選んで攻撃発動！ つなげるほど大技、全部一発で天変地異</span>'}`;
     $('#kjMyPts').textContent = pg.pts; $('#kjOpPts').textContent = `${op.pts}`;
-    const left = k.labels.map((l, i) => got.includes(String(i)) ? '' : `<b>${esc(l)}</b>`).filter(Boolean);
+    const left = k.labels.map((l, i) => got.includes(String(i)) ? '' : `<b>${esc(l)}</b><i class="pt">${k.pts[i]}点</i>`).filter(Boolean);
     $('#kjHint').innerHTML = left.length ? `残りのキーワード：${left.join('・')}` : '20点！';
     const box = $('#chips');
-    if (box.dataset.for !== MID) { box.dataset.for = MID; box.innerHTML = k.chips.map((c, i) => `<button type="button" class="chip" data-c="${i}">${esc(c)}</button>`).join(''); box.querySelectorAll('.chip').forEach(b => b.onclick = () => playChip(+b.dataset.c, b)); }
+    if (box.dataset.for !== MID) {
+      box.dataset.for = MID; kjSel = [];
+      box.innerHTML = k.chips.map((c, i) => `<button type="button" class="chip" data-c="${i}">${esc(c)}</button>`).join('');
+      box.querySelectorAll('.chip').forEach(b => b.onclick = () => pickChip(+b.dataset.c));
+      $('#kjGo').onclick = fireKJ; $('#kjClr').onclick = () => { kjSel = []; drawSel(); };
+    }
     const used = Object.values(kjMine);
-    box.querySelectorAll('.chip').forEach(b => { const u = used.includes(b.textContent); b.classList.toggle('used', u); b.disabled = u; });
+    box.querySelectorAll('.chip').forEach(b => { const u = used.includes(b.textContent); b.classList.toggle('used', u); b.disabled = u; if (u) kjSel = kjSel.filter(x => x !== +b.dataset.c); });
     if (pg.lock > sNow()) lockChips(pg.lock);
+    drawSel();
     fitKJ();
+  }
+  // 選んだ札と「攻撃発動」ボタン（何枚つなげたかで技の名前が変わる）
+  function moveName(n) {
+    const pg = M && M.kj.prog[uid]; if (!n) return '';
+    if (pg && pg.n === 0 && n === M.kj.n && n >= 2) return '天変地異';
+    return n >= 2 ? `大技 ${n}連` : '単発攻撃';
+  }
+  function drawSel() {
+    const box = $('#chips'), n = kjSel.length;
+    box.querySelectorAll('.chip').forEach(b => { const i = kjSel.indexOf(+b.dataset.c); b.classList.toggle('sel', i >= 0); b.dataset.no = i >= 0 ? i + 1 : ''; });
+    const nm = moveName(n), go = $('#kjGo');
+    $('#kjSel').innerHTML = n ? `${n}枚選択 → <b class="${nm === '天変地異' ? 'tp' : ''}">${nm}</b>` : '札を選んで「攻撃発動」';
+    go.disabled = !n || kjBusy; go.textContent = nm === '天変地異' ? '天変地異 発動！！' : n >= 2 ? '大技 発動！' : '攻撃発動！';
+    go.classList.toggle('big', n >= 2); go.classList.toggle('tp', nm === '天変地異');
+    $('#kjClr').hidden = !n;
+  }
+  function pickChip(i) {
+    if (!M || M.phase !== 'kj' || kjBusy) return;
+    unlock(); SND.tick();
+    kjSel = kjSel.includes(i) ? kjSel.filter(x => x !== i) : kjSel.concat([i]);
+    drawSel();
+  }
+  function fireKJ() {
+    if (!M || M.mode !== 'kj' || M.phase !== 'kj' || kjBusy || M.paused || !kjSel.length) return;
+    if (sNow() < kjLockTo) { toast('まだ動けない！'); return; }
+    unlock(); kjBusy = true;
+    const pick = kjSel.slice(), texts = pick.map(i => M.kj.chips[i]), box = $('#chips');
+    pick.forEach(i => box.querySelector(`[data-c="${i}"]`).classList.add('mine'));
+    drawSel();
+    call('kj', { matchId: MID, chips: pick }).then(r => {
+      kjBusy = false; box.querySelectorAll('.chip').forEach(b => b.classList.remove('mine'));
+      if (r && r.accepted && r.ok) { (r.slots || []).forEach((sl, j) => kjMine[sl] = texts[j]); kjSel = []; if (M) drawKJ(M); }
+      else if (r && r.accepted && !r.ok) {
+        pick.forEach(i => { const b = box.querySelector(`[data-c="${i}"]`); b.classList.remove('bad'); void b.offsetWidth; b.classList.add('bad'); setTimeout(() => b.classList.remove('bad'), 700); });
+        kjSel = []; lockChips(sNow() + 2000); toast(`自爆！ 答案に入らない札が混じってた（-${r.dmg || ''}）2秒動けない`, 'op'); drawSel();
+      } else drawSel();
+    }).catch(() => { kjBusy = false; box.querySelectorAll('.chip').forEach(b => b.classList.remove('mine')); drawSel(); });
   }
   // 答案と札がスクロールなしで収まるまで、文字を小さくする
   function fitKJ() {
@@ -455,19 +519,6 @@
     kjLockTo = until; const box = $('#chips'); box.classList.add('locked');
     clearTimeout(box._t); box._t = setTimeout(() => { if (sNow() >= kjLockTo) box.classList.remove('locked'); }, Math.max(0, until - sNow()) + 30);
   }
-  function playChip(i, btn) {
-    if (!M || M.mode !== 'kj' || M.phase !== 'kj' || kjBusy || M.paused) return;
-    if (sNow() < kjLockTo) return;
-    unlock(); kjBusy = true;
-    const text = M.kj.chips[i];
-    btn.classList.add('mine'); kjPending = { slot: -1, text };
-    call('kj', { matchId: MID, chip: i }).then(r => {
-      kjBusy = false; btn.classList.remove('mine');
-      if (r && r.accepted && r.ok) { kjMine[r.slot] = text; if (M) drawKJ(M); }
-      else if (r && r.accepted && !r.ok) { btn.classList.remove('bad'); void btn.offsetWidth; btn.classList.add('bad'); lockChips(sNow() + 2000); toast('答案に入らない言葉！ 2秒動けない', 'op'); }
-    }).catch(() => { kjBusy = false; btn.classList.remove('mine'); });
-  }
-
   // 毎0.1秒：残り時間・カウントダウン
   let lastSec = -1;
   function loop() {
@@ -479,8 +530,8 @@
     }
     if (M.phase === 'story') { const i = Math.min(storyOf(M.kj).length - 1, Math.floor((t - M.phaseAt) / 8000)); if (i !== storyShown && i >= 0) { storyShown = i; drawStory(M, i); } }
     const bar = $('#timerBar');
-    if (M.phase === 'q' || M.phase === 'kj') {
-      const left = M.paused ? M.until - M.paused.since : M.until - t, tot = M.phase === 'kj' ? 120000 : QTIME;
+    if (M.phase === 'q') {
+      const left = M.paused ? M.until - M.paused.since : M.until - t, tot = QTIME;
       bar.style.transform = `scaleX(${Math.max(0, Math.min(1, left / tot))})`; bar.classList.toggle('hurry', left < 10000);
       const sec = Math.ceil(left / 1000); if (sec !== lastSec && sec <= 5 && sec > 0 && !M.paused) SND.tick(); lastSec = sec;
     } else bar.style.transform = 'scaleX(0)';

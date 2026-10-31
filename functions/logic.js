@@ -19,9 +19,12 @@
     K: 32, INIT: 1500,
     // 記述バトル
     PANEL_MS: 8000,        // 紙芝居1枚の時間
-    KJ_TIME: 120000,       // 答案づくりの制限時間
-    KJ_DMG: 600,           // 部分点のダメージの合計（満点の最後の1つは必殺技で一撃K.O.）
-    KJ_MISS: 50, KJ_LOCK: 2000
+    KJ_TIME: 20 * 60000,   // 時間切れなし（相手を倒すまで続く）。放置されたときだけの安全装置：20分
+    KJ_PT: 40,             // 1点あたりのダメージ（単発）
+    KJ_MULT: [1, 1, 1.5, 2], // つなげた数ごとの倍率（2個＝大技×1.5、3個以上＝×2）
+    KJ_MISS: 60,           // 自爆：出した札1枚あたり
+    KJ_LOCK: 2000,
+    KJ_EXP: { single: 1, combo: 1.3, tenpen: 2 } // 勝ち方ごとの経験値（レート）の倍率
   };
   const STAMPS = ['よろしく！', 'ナイス！', '参った！', 'もう1戦！', 'ありがとう！', 'くっ…！'];
   const CHARAS = ['sato', 'bando', 'sasaki', 'tanaka', 'gonda', 'miura'];
@@ -132,50 +135,60 @@
       paused: null, result: null, stamps: {}, created: t, v: 1
     };
     let cpuPlan = null;
-    if (cpu) { // CPU：1つの空欄に8〜20秒、ときどき間違える
+    if (cpu) { // CPU：9〜18秒ごとに攻撃。1〜2枚、ときどき間違える。まれに天変地異
       cpuPlan = []; let at = 0;
-      for (let i = 0; i < n; i++) { at += 8000 + Math.round(rnd() * 12000); if (rnd() < 0.3) { cpuPlan.push({ at, ok: false }); at += 3000 + Math.round(rnd() * 3000); } cpuPlan.push({ at, ok: true }); }
+      for (let i = 0; i < 40; i++) { at += 9000 + Math.round(rnd() * 9000); cpuPlan.push({ at, ok: rnd() >= 0.25, k: rnd() < 0.35 ? 2 : 1, all: i === 0 && rnd() < 0.04 }); }
     }
     return { m, s: { kj: { ans, model: k.model, exp: k.exp, keys: k.keys || [], note: k.note || '' }, cpuPlan, cpuI: 0 } };
   }
-  function kjEnd(m, s, t, reason, winner) {
+  function kjEnd(m, s, t, reason, winner, fin) {
     m.rv = { model: s.kj.model, exp: s.kj.exp, keys: s.kj.keys, note: s.kj.note, ans: s.kj.ans };
     finish(m, t, reason, winner);
+    if (fin) m.result.fin = fin;
   }
-  // 札を1枚出す。slot＝何番目の空欄か、chip＝札の番号
-  // 札を1枚出す（ストーリーモードの記述ボスと同じ：正解のキーワードなら順番は自由。1つごとに点が入って攻撃。20点で相手は倒れる）
+  // 攻撃発動：選んだキーワードの札をまとめて出す（順番は自由）。
+  //  1枚＝単発攻撃、2枚以上＝大技（倍率アップ）、最初の一撃で全部＝天変地異（一撃K.O.・経験値大幅アップ）
+  //  1枚でも答案に入らない札が混じっていたら、点はもらえず自爆ダメージ（枚数が多いほど大きい）
+  //  全部のキーワードがそろった（20点）ら、その一撃がとどめ。時間切れはなく、どちらかが倒れるまで続く
   // pg.got＝当てた空欄の番号を並べた文字列（どの札かは公開しない）
-  function kjPlay(m, s, uid, chip, t) {
+  function kjPlay(m, s, uid, chips, t) {
     const pg = m.kj.prog[uid], op = other(m, uid);
     if (pg.lock > t) return { accepted: false, why: 'lock' };
     if (pg.n >= m.kj.n) return { accepted: false, why: 'done' };
-    const at = t - m.phaseAt, slot = s.kj.ans.indexOf(chip), got = String(pg.got || '');
-    if (slot >= 0 && got.includes(String(slot))) return { accepted: false, why: 'dup' };
-    if (slot >= 0) {
-      pg.n += 1; pg.pts += m.kj.pts[slot]; pg.got = got + slot;
-      const dmg = m.kj.pts[slot] * (R.HP / 20);
-      m.players[op].hp = Math.max(0, m.players[op].hp - dmg);
-      if (pg.n >= m.kj.n || m.players[op].hp <= 0) { // 20点の完成答案 → 必殺技でとどめ
-        m.players[op].hp = 0;
-        m.ev.list.push({ t: 'kjfin', by: uid, to: op, dmg, at, slot, pts: m.kj.pts[slot] });
-        kjEnd(m, s, t, 'ko', uid);
-        return { accepted: true, ok: true, slot, done: true };
-      }
-      m.ev.list.push({ t: 'kjhit', by: uid, to: op, dmg, at, slot, pts: m.kj.pts[slot] });
-      return { accepted: true, ok: true, slot };
+    const at = t - m.phaseAt, got = String(pg.got || ''), slots = chips.map(c => s.kj.ans.indexOf(c));
+    if (slots.some(x => x >= 0 && got.includes(String(x)))) return { accepted: false, why: 'dup' };
+    if (slots.some(x => x < 0)) { // 自爆
+      const dmg = R.KJ_MISS * chips.length;
+      pg.lock = t + R.KJ_LOCK;
+      m.players[uid].hp = Math.max(0, m.players[uid].hp - dmg);
+      m.ev.list.push({ t: 'kjmiss', by: uid, to: uid, dmg, at, k: chips.length });
+      if (m.players[uid].hp <= 0) kjEnd(m, s, t, 'ko', op, 'self');
+      return { accepted: true, ok: false, dmg };
     }
-    pg.lock = t + R.KJ_LOCK;
-    m.players[uid].hp = Math.max(0, m.players[uid].hp - R.KJ_MISS);
-    m.ev.list.push({ t: 'kjmiss', by: uid, to: uid, dmg: R.KJ_MISS, at });
-    if (m.players[uid].hp <= 0) kjEnd(m, s, t, 'ko', op);
-    return { accepted: true, ok: false };
+    const pts = slots.reduce((a, x) => a + m.kj.pts[x], 0), k = slots.length;
+    const tenpen = pg.n === 0 && k === m.kj.n && k >= 2;
+    const kind = tenpen ? 'tenpen' : k >= 2 ? 'combo' : 'single';
+    pg.n += k; pg.pts += pts; pg.got = got + slots.join('');
+    let dmg = Math.round(pts * R.KJ_PT * R.KJ_MULT[Math.min(k, R.KJ_MULT.length - 1)]);
+    if (tenpen) dmg = m.players[op].hp;
+    m.players[op].hp = Math.max(0, m.players[op].hp - dmg);
+    if (pg.n >= m.kj.n || m.players[op].hp <= 0) { // 完成答案（20点）か、HPが0 → とどめ
+      m.players[op].hp = 0;
+      m.ev.list.push({ t: 'kjfin', by: uid, to: op, dmg, at, pts, k, kind });
+      kjEnd(m, s, t, 'ko', uid, kind);
+      return { accepted: true, ok: true, slots, kind, done: true };
+    }
+    m.ev.list.push({ t: 'kjhit', by: uid, to: op, dmg, at, pts, k, kind });
+    return { accepted: true, ok: true, slots, kind };
   }
-  function kjAnswer(m, s, uid, chip, t) {
+  function kjAnswer(m, s, uid, chips, t) {
     advance(m, s, t);
     if (m.mode !== 'kj' || m.phase !== 'kj') return { accepted: false, why: 'closed' };
     if (m.paused) return { accepted: false, why: 'paused' };
-    if (!Number.isInteger(chip) || chip < 0 || chip >= m.kj.chips.length) return { accepted: false, why: 'chip' };
-    return kjPlay(m, s, uid, chip, t);
+    if (Number.isInteger(chips)) chips = [chips];
+    if (!Array.isArray(chips) || !chips.length || chips.length > m.kj.chips.length) return { accepted: false, why: 'chip' };
+    if (chips.some(c => !Number.isInteger(c) || c < 0 || c >= m.kj.chips.length) || new Set(chips).size !== chips.length) return { accepted: false, why: 'chip' };
+    return kjPlay(m, s, uid, chips, t);
   }
   function kjAdvance(m, s, t) {
     if (m.phase === 'vs' && t >= m.until) { m.phase = 'story'; m.phaseAt = m.until; m.until = m.phaseAt + m.kj.storyN * R.PANEL_MS; m.ev.seq += 1; }
@@ -185,13 +198,15 @@
       const cu = m.uids[1];
       while (m.phase === 'kj' && s.cpuI < s.cpuPlan.length && t - m.phaseAt >= s.cpuPlan[s.cpuI].at) {
         const p = s.cpuPlan[s.cpuI++], pg = m.kj.prog[cu], tt = m.phaseAt + p.at;
-        const left = s.kj.ans.filter((c, i) => !String(pg.got || '').includes(String(i)));
-        const right = left[Math.floor(Math.random() * left.length)], wrong = m.kj.chips.findIndex((c, i) => !s.kj.ans.includes(i));
-        pg.lock = 0; kjPlay(m, s, cu, p.ok ? right : wrong, tt);
+        const left = shuffle(s.kj.ans.filter((c, i) => !String(pg.got || '').includes(String(i))));
+        const wrong = m.kj.chips.findIndex((c, i) => !s.kj.ans.includes(i));
+        let pick = p.all ? left : left.slice(0, Math.min(p.k, left.length));
+        if (!p.ok) pick = pick.slice(0, p.k - 1).concat([wrong]);
+        pg.lock = 0; kjPlay(m, s, cu, pick, tt);
       }
       m.cpuAt = s.cpuI < s.cpuPlan.length ? s.cpuPlan[s.cpuI].at : null;
     }
-    if (m.phase === 'kj' && t >= m.until) { // 時間切れ：点の高い方、同点ならHPの多い方
+    if (m.phase === 'kj' && t >= m.until) { // 安全装置（20分放置）：点の高い方、同点ならHPの多い方
       const [a, b] = m.uids, pa = m.kj.prog[a].pts, pb = m.kj.prog[b].pts, ha = m.players[a].hp, hb = m.players[b].hp;
       const w = pa !== pb ? (pa > pb ? a : b) : ha !== hb ? (ha > hb ? a : b) : null;
       kjEnd(m, s, t, 'judge', w);
@@ -261,7 +276,10 @@
   function settle(m, pa, pb, t) {
     const [a, b] = m.uids;
     const sa = m.result.winner === a ? 1 : m.result.winner === b ? 0 : 0.5;
-    const xa = eloDelta(pa.rating, pb.rating, sa), xb = eloDelta(pb.rating, pa.rating, 1 - sa);
+    let xa = eloDelta(pa.rating, pb.rating, sa), xb = eloDelta(pb.rating, pa.rating, 1 - sa);
+    // 記述バトル：勝ち方で経験値アップ（天変地異は2倍）。相手のランクが高いほど元の値も大きい
+    const mul = (R.KJ_EXP || {})[m.result.fin] || 1;
+    if (m.result.winner === a && xa > 0) xa = Math.round(xa * mul); else if (m.result.winner === b && xb > 0) xb = Math.round(xb * mul);
     const up = (p, x, sc) => {
       p.rating = Math.max(100, p.rating + x); p.rank = rankOf(p.rating); p.games = (p.games || 0) + 1;
       if (sc === 1) p.w = (p.w || 0) + 1; else if (sc === 0) p.l = (p.l || 0) + 1; else p.d = (p.d || 0) + 1;

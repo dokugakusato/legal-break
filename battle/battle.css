@@ -325,3 +325,43 @@ body.inbattle .soundbtn{top:auto;bottom:calc(4px + env(safe-area-inset-bottom,0)
 .kw-hit{display:inline-flex;align-items:center;gap:3px;background:#cfe9c9;border:2px solid #2a7a3a;border-radius:6px;padding:1px 6px;font-size:calc(13px * var(--kf));color:#1a4a1a;animation:tIn .35s cubic-bezier(.2,1.5,.4,1)}
 .kw-hit i{font-style:normal;font-family:var(--display);font-size:11px;color:#c22d22}
 .chip:disabled{opacity:.25}
+
+/* ===== 記述バトル：札を選んで攻撃発動・大技・天変地異 ===== */
+.kjhint .pt{font-style:normal;font-size:10px;color:#ff9f8f;margin-left:2px}
+.kjbar{display:flex;align-items:center;gap:6px;margin:0 0 5px}
+.kjsel{flex:1;font-size:calc(12px * var(--kf));color:#d8c8b0;font-weight:700;line-height:1.3}
+.kjsel b{color:var(--gold)}
+.kjsel b.tp{color:#ff6a4a;text-shadow:0 0 8px #ffb000}
+.kjclr{flex:none;font:inherit;font-size:11px;font-weight:700;padding:6px 8px;border-radius:6px;border:1px solid #6b5a4a;background:transparent;color:#b9aa93}
+.kjgo{flex:none;font-family:var(--display);font-size:calc(16px * var(--kf));padding:calc(8px * var(--kf)) 14px;border-radius:10px;border:2px solid #fff;background:linear-gradient(#e0402e,#8a160e);color:#fff;text-shadow:0 2px 0 #000;box-shadow:0 3px 0 #4a0a06}
+.kjgo:disabled{opacity:.35;filter:grayscale(.6)}
+.kjgo.big{background:linear-gradient(#ffcf4a,#c2600e);animation:goPulse .9s infinite}
+.kjgo.tp{background:linear-gradient(#b84aff,#3a0a8a 60%,#ff3a1a);animation:goPulse .5s infinite;box-shadow:0 0 16px #ffb000}
+@keyframes goPulse{50%{transform:scale(1.07)}}
+.chip{position:relative}
+.chip.sel{border-color:var(--gold);background:#5a3a14;color:#fff;box-shadow:0 0 0 2px rgba(255,200,80,.4)}
+.chip.sel::after{content:attr(data-no);position:absolute;top:-7px;right:-5px;width:18px;height:18px;border-radius:50%;background:var(--gold);color:#1a100a;font-size:11px;line-height:18px;font-weight:900}
+.chip.mine{border-color:#fff;animation:blink .4s infinite}
+.expbonus{font-family:var(--display);font-size:20px;color:#ffd24a;text-shadow:0 2px 0 #000,0 0 14px #ff8a00;margin:6px 0;animation:slam .6s cubic-bezier(.2,1.5,.4,1)}
+
+.tenpen{position:fixed;inset:0;z-index:70;pointer-events:none;overflow:hidden;background:radial-gradient(circle at 50% 45%,rgba(255,240,180,.0),rgba(40,0,60,.85) 70%)}
+.tenpen.go{animation:tpBg 2.6s forwards}
+@keyframes tpBg{0%{background-color:#fff}6%{background-color:rgba(255,255,255,0)}12%{background-color:rgba(255,255,255,.8)}18%{background-color:rgba(255,255,255,0)}85%{opacity:1}100%{opacity:0}}
+.tenpen .bolt{position:absolute;top:-5%;width:14%;height:70%;fill:#fff7a8;filter:drop-shadow(0 0 12px #ffe000) drop-shadow(0 0 30px #b84aff);opacity:0}
+.tenpen.go .bolt{animation:bolt .5s steps(2) 3}
+.tenpen.go .bolt:nth-child(2){animation-delay:.25s}.tenpen.go .bolt:nth-child(3){animation-delay:.5s}
+@keyframes bolt{0%,100%{opacity:0}50%{opacity:1}}
+.tenpen .tp-t{position:absolute;left:0;right:0;top:32%;text-align:center}
+.tenpen .tp-t small{display:block;color:#fff;font-weight:900;font-size:14px;text-shadow:0 1px 0 #000}
+.tenpen .tp-t b{display:block;font-family:var(--display);font-weight:400;font-size:clamp(54px,19vw,110px);line-height:1.05;color:#fff;text-shadow:0 5px 0 #8a0a0a,0 0 30px #ffb000,0 0 60px #b84aff;letter-spacing:.05em}
+.tenpen.go .tp-t b{animation:tpTxt 2.6s cubic-bezier(.2,1.5,.4,1) forwards}
+@keyframes tpTxt{0%{transform:scale(3);opacity:0}15%{transform:scale(1);opacity:1}80%{transform:scale(1.05)}100%{transform:scale(1.4);opacity:0}}
+.tenpen .tp-t em{display:block;font-style:normal;font-weight:900;color:#ffe08a;font-size:16px;text-shadow:0 2px 0 #000}
+.tenpen .rocks i{position:absolute;bottom:-40px;width:26px;height:20px;background:#6b4a2a;border:2px solid #2a1a0a;border-radius:30% 50% 40% 60%}
+.tenpen.go .rocks i{animation:rock 1.6s ease-out .3s forwards}
+.tenpen .rocks i:nth-child(1){left:10%}.tenpen .rocks i:nth-child(2){left:25%;animation-delay:.4s}.tenpen .rocks i:nth-child(3){left:42%;animation-delay:.35s}
+.tenpen .rocks i:nth-child(4){left:60%;animation-delay:.5s}.tenpen .rocks i:nth-child(5){left:76%;animation-delay:.3s}.tenpen .rocks i:nth-child(6){left:90%;animation-delay:.45s}
+@keyframes rock{0%{transform:translateY(0) rotate(0)}60%{transform:translateY(-55vh) rotate(260deg)}100%{transform:translateY(-35vh) rotate(400deg);opacity:0}}
+body.quake #app{animation:quake .12s linear 18}
+@keyframes quake{0%{transform:translate(0,0)}25%{transform:translate(-9px,5px)}50%{transform:translate(8px,-6px)}75%{transform:translate(-6px,-4px)}100%{transform:translate(0,0)}}
+@media (prefers-reduced-motion:reduce){body.quake #app{animation:none}.tenpen.go .bolt{animation:none}}

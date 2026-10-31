@@ -16,36 +16,63 @@ function mk(cpu) {
   const { m, s } = L.buildKJ({ uid: 'A', p: P('あ') }, { uid: cpu ? 'cpuX' : 'B', p: cpu ? { name: 'CPU', rating: 0, rank: 'CPU' } : P('い') }, cpu, 0, [K[0]]);
   return { m, s };
 }
-{ // 流れ：VS → 紙芝居 → FIGHT（キーワードは順番自由・1つごとに点と攻撃・20点でK.O.）
+const T0 = R.VS_MS + K[0].story.length * R.PANEL_MS;
+function fight(cpu) { const x = mk(cpu); L.advance(x.m, x.s, T0); return x; }
+{ // 流れ：VS → 紙芝居 → FIGHT
   const { m, s } = mk(false);
-  ok(m.kj.pts.reduce((a, b) => a + b, 0) === 20, '20点満点');
+  ok(m.kj.pts.reduce((a, b) => a + b, 0) === 20 && m.kj.n === 4, '20点満点・4キーワード');
   L.advance(m, s, R.VS_MS); ok(m.phase === 'story', '紙芝居へ');
-  ok(L.kjAnswer(m, s, 'A', s.kj.ans[0], R.VS_MS + 100).accepted === false, '紙芝居中は答えられない');
-  const t0 = R.VS_MS + K[0].story.length * R.PANEL_MS;
-  L.advance(m, s, t0); ok(m.phase === 'kj', 'FIGHT');
-  let r = L.kjAnswer(m, s, 'A', s.kj.ans[2], t0 + 3000); // 3つ目のキーワードから出してもよい
-  ok(r.ok && m.kj.prog.A.pts === 5 && m.players.B.hp === 1000 - 250 && m.kj.prog.A.got === '2', '順番自由：5点＝250ダメージ');
-  ok(!L.kjAnswer(m, s, 'A', s.kj.ans[2], t0 + 3100).accepted, '同じキーワードは2度出せない');
+  ok(L.kjAnswer(m, s, 'A', [s.kj.ans[0]], R.VS_MS + 100).accepted === false, '紙芝居中は答えられない');
+  L.advance(m, s, T0); ok(m.phase === 'kj', 'FIGHT');
+  // 単発：5点×40＝200
+  let r = L.kjAnswer(m, s, 'A', [s.kj.ans[2]], T0 + 3000);
+  ok(r.ok && r.kind === 'single' && m.kj.prog.A.pts === 5 && m.players.B.hp === 800 && m.kj.prog.A.got === '2', '単発：5点＝200ダメージ（順番自由）');
+  ok(!L.kjAnswer(m, s, 'A', [s.kj.ans[2]], T0 + 3100).accepted, '同じキーワードは2度出せない');
+  ok(!L.kjAnswer(m, s, 'A', [s.kj.ans[2], s.kj.ans[2]], T0 + 3100).accepted, '同じ札を2枚は出せない');
   const wrong = m.kj.chips.findIndex((c, i) => !s.kj.ans.includes(i));
-  r = L.kjAnswer(m, s, 'B', wrong, t0 + 4000);
-  ok(r.accepted && !r.ok && m.players.B.hp === 750 - 50 && m.kj.prog.B.lock === t0 + 4000 + R.KJ_LOCK, 'まちがいは自分に50・2秒動けない');
-  ok(!L.kjAnswer(m, s, 'B', s.kj.ans[0], t0 + 5000).accepted, '動けない間は出せない');
-  ok(L.kjAnswer(m, s, 'B', s.kj.ans[0], t0 + 6100).ok, '2秒たてば出せる');
-  [0, 3].forEach((i, k) => L.kjAnswer(m, s, 'A', s.kj.ans[i], t0 + 7000 + k * 1000));
-  ok(m.phase === 'kj' && m.kj.prog.A.pts === 15 && m.players.B.hp === 700 - 500, '15点');
-  L.kjAnswer(m, s, 'A', s.kj.ans[1], t0 + 9000);
-  ok(m.phase === 'end' && m.result.winner === 'A' && m.players.B.hp === 0 && m.ev.list.some(e => e.t === 'kjfin'), '20点でK.O.（必殺技）');
+  // 1つでも間違いが混じると、点はもらえず自爆（枚数×60）
+  r = L.kjAnswer(m, s, 'B', [s.kj.ans[0], s.kj.ans[1], wrong], T0 + 4000);
+  ok(r.accepted && !r.ok && m.players.B.hp === 800 - 180 && m.kj.prog.B.pts === 0 && m.kj.prog.B.got === '' && m.kj.prog.B.lock === T0 + 4000 + R.KJ_LOCK, '間違いが1つでも混じると点なし・自爆180・2秒動けない');
+  ok(!L.kjAnswer(m, s, 'B', [s.kj.ans[0]], T0 + 5000).accepted, '動けない間は出せない');
+  // 大技：2つ（10点）×40×1.5＝600
+  r = L.kjAnswer(m, s, 'B', [s.kj.ans[3], s.kj.ans[0]], T0 + 6100);
+  ok(r.ok && r.kind === 'combo' && m.players.A.hp === 400 && m.kj.prog.B.pts === 10, '大技2連：600ダメージ');
+  // 残り全部をまとめて（大技・3連×2）→ 20点になったのでとどめ
+  r = L.kjAnswer(m, s, 'A', [s.kj.ans[0], s.kj.ans[1], s.kj.ans[3]], T0 + 7000);
+  ok(r.ok && r.done && m.phase === 'end' && m.result.winner === 'A' && m.result.fin === 'combo' && m.players.B.hp === 0, '20点そろえばとどめ（大技）');
   ok(m.rv && m.rv.model === K[0].model, '終わったら解答例');
 }
-{ // 時間切れは点の高い方
-  const { m, s } = mk(false); const t0 = R.VS_MS + K[0].story.length * R.PANEL_MS;
-  L.advance(m, s, t0); L.kjAnswer(m, s, 'B', s.kj.ans[1], t0 + 1000);
-  L.advance(m, s, t0 + R.KJ_TIME); ok(m.phase === 'end' && m.result.winner === 'B' && m.result.reason === 'judge', '時間切れ：点の高い方の勝ち');
+{ // 天変地異：最初の一撃で全部
+  const { m, s } = fight(false);
+  const r = L.kjAnswer(m, s, 'A', s.kj.ans.slice().reverse(), T0 + 2000);
+  ok(r.ok && r.kind === 'tenpen' && m.phase === 'end' && m.result.fin === 'tenpen' && m.ev.list.some(e => e.t === 'kjfin' && e.kind === 'tenpen'), '天変地異で一撃K.O.');
+  const pa = P('a'), pb = P('b'); L.settle(m, pa, pb, 1);
+  const base = L.eloDelta(1500, 1500, 1);
+  ok(m.result.delta.A === Math.round(base * 2) && m.result.delta.B === -base, '天変地異の勝ちは経験値2倍（負けた側は普通）');
 }
-{ // CPU
-  const { m, s } = mk(true); const t0 = R.VS_MS + K[0].story.length * R.PANEL_MS;
-  L.advance(m, s, t0); L.advance(m, s, t0 + R.KJ_TIME - 1);
-  ok(m.phase === 'end' && m.result.winner === 'cpuX', 'CPUは時間内に完成させる');
+{ // 全部まとめて出しても、1つ間違いが混じれば自爆
+  const { m, s } = fight(false); const wrong = m.kj.chips.findIndex((c, i) => !s.kj.ans.includes(i));
+  const r = L.kjAnswer(m, s, 'A', s.kj.ans.concat([wrong]), T0 + 2000);
+  ok(!r.ok && m.players.A.hp === 1000 - 300 && m.phase === 'kj', '5枚で自爆300');
+}
+{ // 自爆で自分が倒れる
+  const { m, s } = fight(false); const w = m.kj.chips.map((c, i) => i).filter(i => !s.kj.ans.includes(i));
+  let t = T0; while (m.phase === 'kj') { t += 2100; L.kjAnswer(m, s, 'B', w, t); }
+  ok(m.result.winner === 'A' && m.players.B.hp === 0, '自爆でHP0なら負け');
+}
+{ // 時間切れはない（20分の放置だけ安全装置）
+  const { m, s } = fight(false); L.kjAnswer(m, s, 'B', [s.kj.ans[1]], T0 + 1000);
+  L.advance(m, s, T0 + 10 * 60000); ok(m.phase === 'kj', '10分たっても続く');
+  L.advance(m, s, T0 + R.KJ_TIME); ok(m.phase === 'end' && m.result.winner === 'B', '20分放置なら点の高い方');
+}
+{ // 古い形（札1枚の数字）も受け付ける
+  const { m, s } = fight(false); ok(L.kjAnswer(m, s, 'A', s.kj.ans[0], T0 + 1000).ok, '数字1つでもOK');
+  ok(!L.kjAnswer(m, s, 'A', [], T0 + 1100).accepted && !L.kjAnswer(m, s, 'A', [99], T0 + 1100).accepted && !L.kjAnswer(m, s, 'A', ['x'], T0 + 1100).accepted, 'おかしな札は受け付けない');
+}
+{ // CPU は放っておいても最後には倒しにくる
+  let wins = 0;
+  for (let i = 0; i < 30; i++) { const { m, s } = fight(true); L.advance(m, s, T0 + 5 * 60000); if (m.phase === 'end' && m.result.winner === 'cpuX') wins++; }
+  ok(wins === 30, 'CPUは5分以内に倒しにくる（' + wins + '/30）');
 }
 // Firestore は配列の中の配列を保存できない
 const nested = o => Array.isArray(o) ? o.some(x => Array.isArray(x) || nested(x)) : (o && typeof o === 'object' ? Object.values(o).some(nested) : false);

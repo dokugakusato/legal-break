@@ -166,9 +166,9 @@ const OPS = {
 
   // 記述バトル：札を1枚出す
   async kj(uid, d) {
-    const { matchId, chip } = d;
-    if (!Number.isInteger(chip)) throw new HttpsError('invalid-argument', '札が正しくありません');
-    return mutate(matchId, uid, (m, s, t) => L.kjAnswer(m, s, uid, chip, t));
+    const { matchId } = d, chips = Array.isArray(d.chips) ? d.chips.slice(0, 20) : d.chip;
+    if (!(Number.isInteger(chips) || (Array.isArray(chips) && chips.length && chips.every(Number.isInteger)))) throw new HttpsError('invalid-argument', '札が正しくありません');
+    return mutate(matchId, uid, (m, s, t) => L.kjAnswer(m, s, uid, chips, t));
   },
 
   // ひとこと（問題を解いている間は送れない）
