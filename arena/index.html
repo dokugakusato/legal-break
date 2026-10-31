@@ -270,6 +270,59 @@ body.quake .screen{animation:quake .1s linear infinite}
 .rrow .nm{flex:1;font-weight:900}
 .rrow .rk{font-family:var(--display);width:1.4em;text-align:center}
 .rrow .pt{font-family:var(--display);color:var(--gold,#f2b632)}
+.ux{position:absolute;z-index:8;pointer-events:none}
+.u-pillar{top:-10%;width:30%;height:120%;background:linear-gradient(90deg,transparent,rgba(255,255,220,.95),transparent);filter:blur(2px) drop-shadow(0 0 30px #ffd84a);animation:uPil 1.4s ease-out forwards}
+@keyframes uPil{0%{transform:scaleX(0);opacity:0}20%{transform:scaleX(1);opacity:1}100%{opacity:0}}
+.fighter.u-launch{animation:uLaunch 1s cubic-bezier(.3,.1,.6,1) forwards !important}
+@keyframes uLaunch{100%{transform:translateY(-320%) rotate(720deg) scale(.4)}}
+.u-rain{top:-12%;font-size:30px;animation:uRain 1.1s linear forwards}
+@keyframes uRain{100%{transform:translateY(420px) rotate(360deg)}}
+.u-rocket{top:30%;left:12%;font-size:64px;animation:uRk .8s cubic-bezier(.5,0,.8,1) forwards}
+.u-rocket.l{left:auto;right:12%;animation-name:uRkL}
+@keyframes uRk{0%{transform:translateX(0) rotate(-20deg)}100%{transform:translateX(230px) rotate(20deg) scale(1.6)}}
+@keyframes uRkL{0%{transform:translateX(0) rotate(20deg)}100%{transform:translateX(-230px) rotate(-20deg) scale(1.6)}}
+.u-smoke{top:38%;font-size:26px;opacity:0;animation:uSm 1s ease-out forwards}
+@keyframes uSm{0%{opacity:.9;transform:scale(.5)}100%{opacity:0;transform:scale(2) translateY(-30px)}}
+.fighter.u-spin{animation:uSpin 1s linear forwards !important}
+@keyframes uSpin{100%{transform:rotate(1080deg) scale(.7)}}
+.u-count{left:0;right:0;top:4%;text-align:center;font-family:var(--display);font-size:42px;color:#ffe55a;-webkit-text-stroke:1.5px #6a1a08;text-shadow:0 0 16px #ff8a00}
+.u-wave{left:-110%;top:0;width:110%;height:100%;background:linear-gradient(90deg,rgba(40,140,255,.0),rgba(60,170,255,.85) 60%,rgba(220,245,255,.95));border-radius:0 50% 50% 0;animation:uWave 1.2s ease-in forwards}
+.u-wave.l{left:auto;right:-110%;border-radius:50% 0 0 50%;animation-name:uWaveL;background:linear-gradient(-90deg,rgba(40,140,255,0),rgba(60,170,255,.85) 60%,rgba(220,245,255,.95))}
+@keyframes uWave{100%{transform:translateX(200%)}}@keyframes uWaveL{100%{transform:translateX(-200%)}}
+.fighter.u-wash{animation:uWash 1s ease-in forwards !important}
+@keyframes uWash{100%{transform:translateX(160%) rotate(90deg);opacity:.2}}
+.fighter.p1.u-wash{animation-name:uWashL}@keyframes uWashL{100%{transform:translateX(-160%) rotate(-90deg);opacity:.2}}
+.u-pop{font-size:56px;animation:uPop .6s ease-out forwards}
+@keyframes uPop{0%{transform:scale(.2)}50%{transform:scale(1.4)}100%{transform:scale(1.8);opacity:0}}
+.fighter.u-burn{filter:brightness(.15) contrast(1.4)!important;animation:shake .4s 3}
+.u-orbit{font-size:30px;margin:-15px 0 0 -15px;animation:uOrb .5s linear infinite}
+@keyframes uOrb{0%{transform:rotate(0) translateX(70px) rotate(0)}100%{transform:rotate(360deg) translateX(70px) rotate(-360deg)}}
+.u-hat{font-size:60px;animation:uHat 1s ease-out}
+@keyframes uHat{0%{transform:scale(0)}40%{transform:scale(1.3)}100%{transform:scale(1)}}
+.fighter.u-shrink{animation:uShrink .7s ease-in forwards !important}
+@keyframes uShrink{100%{transform:scale(0) rotate(540deg) translateY(60%);opacity:0}}
+.u-drop{top:-60%;font-size:90px;animation:uDrop .55s cubic-bezier(.6,0,1,1) forwards}
+@keyframes uDrop{100%{transform:translateY(260%)}}
+.fighter.u-squash{animation:uSq .4s ease-out forwards !important;transform-origin:bottom}
+@keyframes uSq{100%{transform:scaleY(.25) scaleX(1.4)}}
+.u-crack{bottom:0;width:30%;height:22%;background:repeating-linear-gradient(115deg,transparent 0 10px,#000 10px 13px);clip-path:polygon(0 100%,20% 30%,35% 70%,50% 10%,65% 60%,80% 25%,100% 100%);animation:uIn .2s}
+.u-up{bottom:-20%;font-size:40px;animation:uUp 1.2s cubic-bezier(.2,.8,.4,1) forwards}
+@keyframes uUp{100%{transform:translateY(-260px) rotate(200deg)}}
+.fighter.u-sink{animation:uSink 1s ease-in forwards !important}
+@keyframes uSink{100%{transform:translateY(120%) rotate(30deg);opacity:0}}
+.u-run{left:-15%;font-size:40px;animation:uRun .9s linear forwards}
+.u-run.l{left:auto;right:-15%;animation-name:uRunL}
+@keyframes uRun{100%{transform:translateX(560px)}}@keyframes uRunL{100%{transform:translateX(-560px)}}
+.u-gather{bottom:-30%;font-size:40px;animation:uGather .5s ease-out forwards}
+@keyframes uGather{100%{transform:translateY(-120%)}}
+.u-chat{top:30%;font:900 12px inherit;background:#fff;color:#222;padding:2px 6px;border-radius:8px;opacity:0;animation:uChat 1.2s ease-out forwards}
+@keyframes uChat{20%{opacity:1}80%{opacity:1}100%{opacity:0;transform:translateY(-20px)}}
+.u-slap{top:20%;left:15%;font-size:110px;animation:uSlap .4s cubic-bezier(.5,0,.8,1) forwards}.u-slap.l{left:auto;right:15%;animation-name:uSlapL}
+@keyframes uSlap{100%{transform:translateX(180px) rotate(-30deg)}}@keyframes uSlapL{100%{transform:translateX(-180px) rotate(30deg)}}
+.u-siren{inset:0;animation:uSiren .25s steps(2) 6}
+@keyframes uSiren{0%{background:rgba(255,30,30,.35)}100%{background:rgba(30,90,255,.35)}}
+.u-cage{top:-110%;height:100%;border:5px solid #9aa3ab;border-top-width:10px;background:repeating-linear-gradient(90deg,transparent 0 14px,#6b7480 14px 20px);box-shadow:0 0 20px #000;animation:uCage .6s cubic-bezier(.6,0,1,1) forwards}
+@keyframes uCage{100%{transform:translateY(110%)}}
 </style>
 </head>
 <body>
@@ -705,6 +758,52 @@ function particles(side,me,n,big){const ar=$('#arena');if(!ar)return;const e=((w
   for(let i=0;i<n;i++){const d=document.createElement('div');d.className='ptc'+(big?' big':'');d.textContent=e;const y=10+Math.random()*60;
     d.style.top=y+'%';d.style.left=side===1?'18%':'72%';d.style.setProperty('--dx',(side===1?1:-1)*(a.width*(.45+Math.random()*.2))+'px');d.style.setProperty('--dy',((Math.random()-.5)*80)+'px');d.style.setProperty('--r',((Math.random()-.5)*900)+'deg');
     d.style.animationDelay=(i*(big?45:70))+'ms';ar.appendChild(d);setTimeout(()=>d.remove(),1400+i*(big?45:70))}}
+// ---- 超ウルトラ技：キャラごとに別の演出 ----
+function uEl(ar,html,cls,css){const d=document.createElement('div');d.className='ux '+(cls||'');d.innerHTML=html;Object.assign(d.style,css||{});ar.appendChild(d);return d}
+function uRm(d,ms){setTimeout(()=>d.remove(),ms)}
+function uText(ar,t,css){const d=uEl(ar,t,'kiai boomtx ubig',Object.assign({left:'6%',top:'24%'},css||{}));uRm(d,1300)}
+function uBoom(ar,ff,n,big){const r=ff.getBoundingClientRect(),a=ar.getBoundingClientRect();for(let j=0;j<n;j++){const bm=document.createElement('div');bm.className='boom';bm.style.left=(r.left-a.left+r.width*(.2+Math.random()*.6))+'px';bm.style.top=(r.top-a.top+r.height*(.15+Math.random()*.5))+'px';bm.style.transform='scale('+((big||1.6)+Math.random())+')';ar.appendChild(bm);setTimeout(()=>bm.remove(),900)}flash();shake();sfx('big')}
+const toFoe=(side,v)=>(side===1?'':'-')+v;
+const ULT={
+ // 佐藤：独学昇天拳 … 光の柱とアッパーで、相手を天まで打ち上げる
+ hero:async({side,mf,ff,ar,hitFx})=>{mf.classList.add('upper');const p=uEl(ar,'','u-pillar',{left:side===1?'58%':'12%'});uRm(p,1600);for(let i=0;i<6;i++){await sleep(80);hitFx(3)}
+   ff.classList.add('u-launch');uText(ar,'昇 天 ！！');for(let i=0;i<14;i++){const d=uEl(ar,'📜','u-rain',{left:(Math.random()*90)+'%',animationDelay:(i*40)+'ms'});uRm(d,1400)}await sleep(1100);uBoom(ar,ff,2)},
+ // 田中：入れ歯ロケット … 入れ歯が煙を吐いて飛び、相手をくるくる回す
+ old:async({side,mf,ff,ar})=>{mf.classList.add('rush');const r=uEl(ar,'🦷','u-rocket'+(side===2?' l':''),{});uRm(r,1300);for(let i=0;i<8;i++){const sm=uEl(ar,'💨','u-smoke',{left:(side===1?18+i*8:72-i*8)+'%',animationDelay:(i*70)+'ms'});uRm(sm,1300)}
+   await sleep(650);ff.classList.add('u-spin');uBoom(ar,ff,2);uText(ar,'カッポーン！！');await sleep(900)},
+ // 佐々木：千本蹴り … 靴が嵐のように飛び、回数がどんどん増える
+ mina:async({side,mf,ff,ar,hitFx})=>{mf.classList.add('rush');const c=uEl(ar,'0','u-count',{});uRm(c,1700);particles(side,{id:'mina'},30,true);
+   for(let i=1;i<=20;i++){await sleep(55);c.textContent=(i*50)+'本！';if(i%3===0)hitFx(3)}uBoom(ar,ff,2);await sleep(300)},
+ // さや：命の大瀑布 … 大波が画面を流れ、相手を押し流す
+ girl:async({side,ff,ar})=>{const w=uEl(ar,'','u-wave'+(side===2?' l':''),{});uRm(w,1500);for(let i=0;i<20;i++){const d=uEl(ar,'💧','u-rain',{left:(Math.random()*95)+'%',animationDelay:(i*35)+'ms'});uRm(d,1400)}
+   await sleep(500);ff.classList.add('u-wash');sfx('big');uText(ar,'ザッパーーン！！');await sleep(1000)},
+ // 坂東：ヒャッハー大爆発 … 画面じゅうで爆発が連鎖、相手は黒こげ
+ thug:async({ff,ar})=>{for(let i=0;i<6;i++){const b=uEl(ar,'💥','u-pop',{left:(5+Math.random()*80)+'%',top:(5+Math.random()*60)+'%'});uRm(b,700);flash();sfx('hit');await sleep(140)}
+   ff.classList.add('u-burn');uBoom(ar,ff,4,2.2);uText(ar,'ヒャッハーー！！');await sleep(900)},
+ // 三浦：取消不能の罠 … トランプが相手を取り囲み、シルクハットに吸い込む
+ trick:async({ff,ar})=>{const r=ff.getBoundingClientRect(),a=ar.getBoundingClientRect(),cx=r.left-a.left+r.width/2,cy=r.top-a.top+r.height/2;
+   for(let i=0;i<12;i++){const d=uEl(ar,'🃏','u-orbit',{left:cx+'px',top:cy+'px',animationDelay:(-i*.1)+'s'});uRm(d,1500)}await sleep(900);
+   const h=uEl(ar,'🎩','u-hat',{left:(cx-30)+'px',top:(cy+20)+'px'});uRm(h,1200);ff.classList.add('u-shrink');uText(ar,'ハイ、消えた！');await sleep(900)},
+ // 土倉：十万トンの錨 … 巨大な錨が空から落ちてくる
+ dogra:async({ff,ar})=>{const r=ff.getBoundingClientRect(),a=ar.getBoundingClientRect();const d=uEl(ar,'⚓','u-drop',{left:(r.left-a.left+r.width/2-45)+'px'});uRm(d,1400);
+   await sleep(520);ff.classList.add('u-squash');uBoom(ar,ff,3,2);const c=uEl(ar,'','u-crack',{left:(r.left-a.left)+'px'});uRm(c,1200);uText(ar,'ズドーーン！！');await sleep(900)},
+ // 権田：荒野まるごと大地震 … 地面が割れ、岩がせり上がり、相手が地割れに落ちる
+ boss:async({ff,ar})=>{document.body.classList.add('quake');for(let i=0;i<12;i++){const d=uEl(ar,'🪨','u-up',{left:(Math.random()*92)+'%',animationDelay:(i*60)+'ms'});uRm(d,1400)}
+   const r=ff.getBoundingClientRect(),a=ar.getBoundingClientRect();const c=uEl(ar,'','u-crack',{left:(r.left-a.left-10)+'px'});uRm(c,1500);await sleep(700);ff.classList.add('u-sink');sfx('big');uText(ar,'ゴゴゴゴゴ……！！');await sleep(900)},
+ // 黒崎：百人組手 … 黒崎組の子分が次々と駆け抜ける
+ kurosaki:async({side,ff,ar,hitFx})=>{for(let i=0;i<16;i++){const d=uEl(ar,i%2?'🕴️':'👊','u-run'+(side===2?' l':''),{top:(15+Math.random()*55)+'%',animationDelay:(i*70)+'ms'});uRm(d,1600)}
+   for(let i=0;i<10;i++){await sleep(110);hitFx(3)}uBoom(ar,ff,2);uText(ar,'組の総力だ！！');await sleep(500)},
+ // 獄門：獄門大圧殺 … 鉄格子の檻が落ちてきて、相手を押しつぶす
+ kanshucho:async({ff,ar})=>{const r=ff.getBoundingClientRect(),a=ar.getBoundingClientRect();const c=uEl(ar,'','u-cage',{left:(r.left-a.left-8)+'px',width:(r.width+16)+'px'});uRm(c,1700);
+   await sleep(600);sfx('big');shake();await sleep(300);ff.classList.add('u-squash');uBoom(ar,ff,2);uText(ar,'ガシャーーン！！');await sleep(900)},
+ // 鈴木：入会権・町内会総出大会議 … ばあさん仲間がぞろぞろ集まってペチャクチャ、最後に特大ビンタ
+ oldwoman:async({side,ff,ar})=>{for(let i=0;i<8;i++){const d=uEl(ar,'👵','u-gather',{left:(8+i*11)+'%',animationDelay:(i*60)+'ms'});uRm(d,1700);const t=uEl(ar,['ペチャ','クチャ','あらまあ','聞いた？'][i%4],'u-chat',{left:(6+i*11)+'%',animationDelay:(200+i*60)+'ms'});uRm(t,1500)}
+   await sleep(1000);const h=uEl(ar,'🖐️','u-slap'+(side===2?' l':''),{});uRm(h,900);await sleep(350);ff.classList.add('u-spin');uBoom(ar,ff,2);uText(ar,'バッチーーン！！');await sleep(800)},
+ // 鬼塚：緊急逮捕・パトカー百台突撃 … サイレンが光り、パトカーの大群が突っ込む
+ keiji:async({side,ff,ar})=>{const sr=uEl(ar,'','u-siren',{});uRm(sr,1700);for(let i=0;i<14;i++){const d=uEl(ar,'🚓','u-run'+(side===2?' l':''),{top:(10+Math.random()*60)+'%',animationDelay:(i*70)+'ms',fontSize:'46px'});uRm(d,1600)}
+   await sleep(900);ff.classList.add('u-launch');uBoom(ar,ff,2);uText(ar,'確保ーーっ！！');await sleep(800)},
+ _:async({side,me,mf,ff,ar,hitFx})=>{mf.classList.add('rush');particles(side,me,26,true);for(let i=0;i<10;i++){await sleep(90);hitFx(3)}uBoom(ar,ff,3)}
+};
 async function ultraFx(side,me,hitFx){
   const ar=$('#arena'),mf=$('#F'+side),ff=$('#F'+(3-side)),M=(window.MV||{})[me.id]||['','',me.sp];
   BGM.bus&&(BGM.bus.gain.value=.1);
@@ -712,12 +811,9 @@ async function ultraFx(side,me,hitFx){
   ov.innerHTML='<i class="b1"></i><i class="b2"></i><i class="b3"></i><div class="ufig">'+fig(me.id)+'</div><div class="ut"><small>'+me.name+'の</small><em>超ウルトラ技</em><b>'+M[2]+'</b></div>';
   document.body.appendChild(ov);document.body.classList.add('quake');sfx('riser');sfx('gong');flash();
   await cv(me,'ultra');await sleep(350);ov.classList.add('out');setTimeout(()=>ov.remove(),600);
-  mf.classList.remove('idle','upper','spin','rush','lunge','dash');void mf.offsetWidth;mf.classList.add('rush');
-  particles(side,me,26,true);for(let i=0;i<10;i++){await sleep(90);hitFx(3)}
-  mf.classList.remove('rush');void mf.offsetWidth;mf.classList.add(me.spMove);await sleep(260);
-  const r=ff.getBoundingClientRect(),a=ar.getBoundingClientRect();
-  for(let j=0;j<3;j++){const bm=document.createElement('div');bm.className='boom';bm.style.left=(r.left-a.left+r.width*(.3+.2*j))+'px';bm.style.top=(r.top-a.top+r.height*(.25+.15*j))+'px';bm.style.transform='scale('+(1.4+j*.4)+')';ar.appendChild(bm);setTimeout(()=>bm.remove(),900);flash();shake();sfx('big');await sleep(170)}
-  const tx=document.createElement('div');tx.className='kiai boomtx ubig';tx.textContent='ドッカーーン！！';tx.style.left='8%';tx.style.top='26%';ar.appendChild(tx);setTimeout(()=>tx.remove(),1300);
+  mf.classList.remove('idle','upper','spin','rush','lunge','dash');void mf.offsetWidth;
+  const U=ULT[me.id]||ULT._;await U({side,me,mf,ff,ar,hitFx});
+  ff.classList.remove('u-launch','u-wash','u-shrink','u-sink','u-squash','u-spin','u-burn');mf.classList.remove('u-up','rush','upper','spin','dash');
   document.body.classList.remove('quake');BGM.bus&&(BGM.bus.gain.value=.5);
 }
 async function cutin(side,me,lab,nm,vk){
@@ -728,7 +824,7 @@ async function cutin(side,me,lab,nm,vk){
 async function ko(winSide){
   B.over=true;clearInterval(B.clock);clearTimeout(B.cpuT);BGM.stop();
   const W=winSide===1?P1:P2,L=winSide===1?P2:P1,lf=$('#F'+(3-winSide)),ar=$('#arena');
-  lf.classList.remove('idle','hit');void lf.offsetWidth;lf.classList.add('fly');cv(L,'lose');
+  lf.classList.remove('idle','hit');void lf.offsetWidth;lf.classList.add('fly');voice(L.id+'_ko',((window.LBAC||{}).KO||{})[L.id]||'うわあああーっ！');{const k=document.createElement('div');k.className='kiai';k.style.fontSize='24px';k.textContent=((window.LBAC||{}).KO||{})[L.id]||'うわあああーっ！';k.style.top='30%';k.style[winSide===1?'right':'left']='4%';ar.appendChild(k);setTimeout(()=>k.remove(),1800)}
   setTimeout(()=>{const k=document.createElement('div');k.className='kiran';k.textContent='キラーン☆';k.style.top='2%';k.style[winSide===1?'right':'left']='4%';ar.appendChild(k)},900);
   await sleep(600);sfx('gong');ann('ko');await announce('K.O.','',1300);
   const perfect=B['hp'+winSide]===20;if(perfect){ann('perfect');await announce('PERFECT!','gold',1000)}

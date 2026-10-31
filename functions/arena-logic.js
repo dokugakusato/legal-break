@@ -5,7 +5,7 @@
 (function (root) {
   const A = { HP: 20, SELF: 4, FIGHT_MS: 90000, INTRO_MS: 5000, STORY_MS: 75000, INTER_MS: 45000, KO_MS: 6000, GONE_MS: 25000, QUEUE_FRESH: 25000 };
   const RANKS = [['D', 0], ['C', 100], ['B', 250], ['A', 450], ['S', 700]];
-  const CHARS = ['hero', 'old', 'mina', 'girl', 'thug', 'trick', 'dogra', 'boss', 'kurosaki', 'kanshucho'];
+  const CHARS = ['hero', 'old', 'oldwoman', 'mina', 'girl', 'thug', 'trick', 'dogra', 'boss', 'kurosaki', 'kanshucho', 'keiji'];
   const cleanChar = c => CHARS.includes(c) ? c : 'hero';
   const rankOf = rp => { let r = 'D'; for (const [n, need] of RANKS) if (rp >= need) r = n; return r; };
   const rIdx = r => RANKS.findIndex(x => x[0] === r);
