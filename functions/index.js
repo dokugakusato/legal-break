@@ -275,6 +275,22 @@ const OPS = {
     if (!picks || !picks.every(Number.isInteger)) throw new HttpsError('invalid-argument', 'キーワードが正しくありません');
     return amutate(d.matchId, uid, (m, s, t) => { AL.tick(m, uid, t); return AL.attack(m, s, uid, picks, t); });
   },
+  // CPU戦を始めた（時刻を覚える）／CPUに勝った（少しポイント）
+  async arCpuStart(uid, d) {
+    const char = AL.cleanChar(d.char);
+    await db.runTransaction(async tx => {
+      const doc = await tx.get(apRef(uid)); if (!doc.exists) return;
+      const p = doc.data(); p.cpuAt = now(); if (p.char !== char) p.char = char; tx.set(apRef(uid), p);
+    });
+    return { ok: true };
+  },
+  async arCpuWin(uid) {
+    return db.runTransaction(async tx => {
+      const doc = await tx.get(apRef(uid)); if (!doc.exists) return { gain: 0 };
+      const p = doc.data(), r = AL.cpuWin(p, now()); tx.set(apRef(uid), p);
+      return Object.assign(r, { player: p });
+    });
+  },
   async arTick(uid, d) { return amutate(d.matchId, uid, (m, s, t) => { AL.tick(m, uid, t); }); },
   async arStamp(uid, d) { return amutate(d.matchId, uid, (m, s, t) => AL.stamp(m, uid, String(d.k || ''), d.i, t)); }
 };

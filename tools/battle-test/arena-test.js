@@ -40,4 +40,9 @@ ok(pb.rp === 120 + 35 && pa.rp === 260 - 15 && pa.rank === 'C' && pb.l === undef
 m.players.a.seen = m.players.b.seen = 90000; A.tick(m, 'a', A.A.INTRO_MS + A.A.FIGHT_MS + 5);
 ok(m.phase === 'inter' && m.log[0].win === 'b' && m.log[0].reason === 'time', '時間切れはHPの多い方が1本');
 ok(A.stamp(m, 'a', 'win', 2, 100).accepted && !A.stamp(m, 'a', 'win', 9, 5000).accepted && !A.stamp(m, 'a', 'pre', 0, 200).accepted, 'ひとこと（連打はだめ）');
+{ const p = { rp: 98 }; ok(A.cpuWin(p, 50000).gain === 0, 'CPU戦：始めていないと0');
+  p.cpuAt = 1000; ok(A.cpuWin(p, 20000).gain === 0, 'CPU戦：40秒たたない勝ちは0');
+  let t = Date.UTC(2026, 9, 31, 3), tot = 0; for (let i = 0; i < 12; i++) { p.cpuAt = t; t += 60000; tot += A.cpuWin(p, t).gain; }
+  ok(tot === 30 && p.rp === 128 && p.rank === 'C' && p.cw === 12, 'CPU戦：1勝+3、1日30まで（ランクも上がる）');
+  p.cpuAt = t; ok(A.cpuWin(p, t + 86400000).gain === 3, 'CPU戦：次の日はまたもらえる'); }
 console.log('OK', pass, '件');

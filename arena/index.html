@@ -341,7 +341,7 @@ body.quake .screen{animation:quake .1s linear infinite}
   <button class="btn" id="startBtn" type="button">対戦する</button>
   <button class="btn ghost" id="rankBtn" type="button">全国ランキング</button>
   <p class="note" id="netMsg" style="margin:0"></p>
-  <p class="note">紙芝居で事件を見て、FIGHT！で答案づくり開始。<br>記述のキーワードを選んで攻撃。2つ同時で中技、3つで大技、4つで超ウルトラ技！<br>3ラウンド制・2本先取。相手が20秒見つからないときはCPUと練習（ポイントは変わらない）。練習中に誰か来たら、すぐ対戦に切りかわる。</p>
+  <p class="note">紙芝居で事件を見て、FIGHT！で答案づくり開始。<br>記述のキーワードを選んで攻撃。2つ同時で中技、3つで大技、4つで超ウルトラ技！<br>3ラウンド制・2本先取。相手が20秒見つからないときはCPUと対戦（CPUに勝つと+3ポイント、1日30まで）。練習中に誰か来たら、すぐ対戦に切りかわる。</p>
   <p class="note"><a href="https://legal-break.5ukaku.com/" style="color:#c9b89a">通常版の LEGAL BREAK へ</a></p>
 </section>
 
@@ -585,7 +585,7 @@ function openSelect(){lobbyStop();show('s-select');BGM.play('select');ann('selec
   document.querySelectorAll('.char').forEach(b=>b.onclick=()=>{sfx('select');document.querySelectorAll('.char').forEach(x=>x.classList.remove('on'));b.classList.add('on');P1=CHARS.find(c=>c.id===b.dataset.id);$('#decideBtn').disabled=false;const rc=$('#selInfo .rcard');if(rc)rc.outerHTML=rankCard(P1.id);voice(P1.id+'_pick',P1.name+'だ。')});
 }
 $('#decideBtn').onclick=()=>{if(!P1)return;sfx('decide');REC.char=P1.id;saveRec();if(NET.me)NET.me.char=P1.id;findMatch()};
-function cpuMatch(){NM=null;lobbyStart();const others=CHARS.filter(c=>c.id!==P1.id);P2=others[Math.floor(Math.random()*others.length)];startMatch()}
+function cpuMatch(){NM=null;lobbyStart();if(NET.uid)netCall('arCpuStart',{char:P1.id}).catch(()=>{});const others=CHARS.filter(c=>c.id!==P1.id);P2=others[Math.floor(Math.random()*others.length)];startMatch()}
 
 /* VS → 紙芝居 → FIGHT */
 let Q=null,LASTQ=[];
@@ -850,10 +850,12 @@ async function nextRound(){M3.round++;await sleep(400);if(NM){for(let i=0;i<40&&
 async function result(win,draw){
   let gain=0;const net=!!NM;
   if(net){for(let i=0;i<40&&NM.m.phase!=='end';i++){if(i%8===7)netTick();await sleep(250)}const R=NM.m.result||{};if(R.winner!==undefined&&NM.m.phase==='end'){win=R.winner===NET.uid;draw=!R.winner;gain=(R.delta||{})[NET.uid]||0;const af=(R.after||{})[NET.uid];}try{const r=await netCall('arMe',{});if(r.player)NET.me=r.player}catch(e){}netLeave(false)}
+  let cpuMsg='CPU戦で負けても、ポイントは減りません';
+  if(!net&&win&&!draw){cpuMsg='CPUに勝った！（ポイントはオンラインで名前を登録すると貯まる）';try{if(NET.uid){const r=await netCall('arCpuWin',{});if(r.player)NET.me=Object.assign(NET.me||{},r.player);cpuMsg=r.why==='ok'?`CPUに勝った！ +${r.gain} ポイント（CPU戦は今日あと ${r.left} ポイントまで）`:r.why==='max'?'CPU戦のポイントは今日の上限（30）に達しました。続きは人との対戦で！':'CPU戦の勝ち（短すぎる試合はポイントになりません）'}}catch(e){}}
   show('s-result');BGM.play(win?'win':'lose');ann(win?'win':'lose');
   
   $('#s-result').innerHTML=`<h2 class="rhead${win?'':' lose'}">${draw?'DRAW':win?'YOU WIN!':'YOU LOSE'}</h2>
-  ${rankCard()}<p class="note" style="margin:0">${net?(draw?'引き分け（ポイントの増減なし）':(gain>=0?'+'+gain:gain)+' ポイント'+(NM_END_REASON==='forfeit'?'（相手が戻らなかった）':'')):'CPU戦なので、ポイントは変わりません'}</p>
+  ${rankCard()}<p class="note" style="margin:0">${net?(draw?'引き分け（ポイントの増減なし）':(gain>=0?'+'+gain:gain)+' ポイント'+(NM_END_REASON==='forfeit'?'（相手が戻らなかった）':'')):cpuMsg}</p>
   <p class="note" style="margin:0">${M3.wins[1]} − ${M3.wins[2]}（2本先取）</p>
   ${stampBar([win?'win':'lose','any'],k=>net?netStamp(k):cpuReply(k==='any'?'any':win?'lose':'win'))}
   ${M3.log.map((r,i)=>{const g=r.used.map(x=>r.Q.keys[x]).filter(Boolean),pp=g.reduce((s,k)=>s+(k.pt||0),0);return `<div class="card"><span class="lab">ROUND ${i+1}　${r.win===null?'引き分け':r.win?'あなたの勝ち':'負け'}　答案 ${pp} / 20点</span><p style="margin:4px 0;font-size:13px">${g.length?g.map(k=>'「'+(k.label||k.t)+'」').join(''):'（まだ書けていない）'}</p><span class="lab">模範解答 ― ${r.Q.lawName}</span><div class="model">${r.Q.model}</div><p style="margin:0;font-size:12px">${r.Q.exp}</p></div>`}).join('')}
@@ -972,7 +974,7 @@ async function showRanking(ch){
   el.innerHTML=`<h2 class="shead">全国ランキング</h2><div class="rtabs">${tabs.map(t=>`<button type="button" data-c="${t}" class="${(ch||'all')===t?'on':''}">${t==='all'?'全体':CHARS.find(c=>c.id===t).name}</button>`).join('')}</div><div id="rlist"><p class="note">読み込み中…</p></div><button class="btn ghost" type="button" id="rBack">もどる</button>`;
   el.querySelectorAll('.rtabs button').forEach(b=>b.onclick=()=>showRanking(b.dataset.c==='all'?null:b.dataset.c));$('#rBack').onclick=()=>{show('s-title');$('#titleRank').innerHTML=rankCard()};
   if(!NET.on){$('#rlist').innerHTML='<p class="note">オンラインにつながっていません</p>';return}
-  try{let q=NET.db.collection('arenaPlayers');if(ch)q=q.where('char','==',ch);const docs=(await q.orderBy('rp','desc').limit(100).get()).docs.map(d=>Object.assign({uid:d.id},d.data())).filter(p=>(p.games||0)>0);
+  try{let q=NET.db.collection('arenaPlayers');if(ch)q=q.where('char','==',ch);const docs=(await q.orderBy('rp','desc').limit(100).get()).docs.map(d=>Object.assign({uid:d.id},d.data())).filter(p=>(p.games||0)+(p.cw||0)>0);
     let mine='';if(NET.me&&(!ch||NET.me.char===ch)){let pos=docs.findIndex(p=>p.uid===NET.uid)+1;if(!pos){try{let cq=NET.db.collection('arenaPlayers');if(ch)cq=cq.where('char','==',ch);const c=await cq.where('rp','>',NET.me.rp||0).count().get();pos=c.data().count+1}catch(e){pos=0}}
       const c=CHARS.find(x=>x.id===NET.me.char);mine=`<p class="note">あなたの順位：<b>${pos?pos+'位':'—'}</b>（${c?c.name:''}・${rt(NET.me.rank)}（${NET.me.rank||'D'}）・${NET.me.rp||0} ポイント）</p>`}
     const row=(p,i)=>{const c=CHARS.find(x=>x.id===p.char);return `<div class="rrow${p.uid===NET.uid?' me':''}"><span class="no">${i+1}</span><span class="face">${c?fig(c.id):''}</span><span class="nm">${(p.name||'').replace(/[<>&]/g,'')}<br><small>${rt(p.rank)}・${c?c.name:''}</small></span><span class="rk r${p.rank}">${p.rank||'D'}</span><span class="pt">${p.rp||0}</span></div>`};

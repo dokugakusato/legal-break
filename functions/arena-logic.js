@@ -121,6 +121,18 @@
     m.result.delta = { [a]: da, [b]: db };
     m.result.after = { [a]: { rp: pa.rp, rank: pa.rank }, [b]: { rp: pb.rp, rank: pb.rank } };
   }
-  const api = { A, RANKS, CHARS, cleanChar, rankOf, points, usable, build, ready, attack, tick, stamp, settle, other };
+  // CPUを倒したときのポイント（少しずつ）。1勝＋3、1日30ポイントまで。始めてから40秒たっていない勝ちは数えない
+  const CPU = { GAIN: 3, DAY_MAX: 30, MIN_MS: 40000 };
+  const jstDay = t => new Date(t + 9 * 3600000).toISOString().slice(0, 10);
+  function cpuWin(p, t) {
+    if (!p.cpuAt || t - p.cpuAt < CPU.MIN_MS) return { gain: 0, why: 'early' };
+    p.cpuAt = 0;
+    const day = jstDay(t); if (p.cpuDay !== day) { p.cpuDay = day; p.cpuPts = 0; }
+    const gain = Math.max(0, Math.min(CPU.GAIN, CPU.DAY_MAX - (p.cpuPts || 0)));
+    p.cpuPts = (p.cpuPts || 0) + gain; p.cw = (p.cw || 0) + 1;
+    p.rp = (p.rp || 0) + gain; p.rank = rankOf(p.rp); p.updated = t;
+    return { gain, why: gain ? 'ok' : 'max', left: CPU.DAY_MAX - p.cpuPts };
+  }
+  const api = { A, CPU, RANKS, CHARS, cleanChar, rankOf, points, usable, build, ready, attack, tick, stamp, settle, other, cpuWin };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.LBArena = api;
 })(typeof self !== 'undefined' ? self : this);
