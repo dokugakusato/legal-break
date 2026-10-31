@@ -1,0 +1,45 @@
+# オンライン版（online/）の声を VOICEVOX で録音して、公開まで行う。通常版の声とは別
+name: オンライン版の声を録音
+on:
+  push:
+    branches: [main]
+    paths: ['online/voices.json', 'online/tools/gen_voice.mjs', '.github/workflows/voice-online.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: voice-online
+jobs:
+  voice:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      voicevox:
+        image: voicevox/voicevox_engine:cpu-latest
+        ports: ['50021:50021']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: ffmpeg を用意
+        run: which ffmpeg || (sudo apt-get update && sudo apt-get install -y ffmpeg)
+      - name: VOICEVOX の起動を待つ
+        run: for i in $(seq 1 60); do curl -sf http://127.0.0.1:50021/version && exit 0; sleep 5; done; exit 1
+      - name: 録音
+        run: node online/tools/gen_voice.mjs
+      - name: 録音した声を保存
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add online/audio
+          git diff --cached --quiet || (git commit -m "オンライン版の声を自動録音" && git pull --rebase && git push)
+      - name: 公開（鍵があるときだけ）
+        env:
+          SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$SA" ]; then echo "鍵がないので公開をとばします"; exit 0; fi
+          git pull --rebase -q || true
+          printf '%s' "$SA" > "$RUNNER_TEMP/sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
+          npx -y firebase-tools@latest deploy --only hosting --project legal-break-6882d --non-interactive
+          rm -f "$RUNNER_TEMP/sa.json"
