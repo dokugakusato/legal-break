@@ -27,10 +27,10 @@ for (const e of eps.sort((a, b) => a.no - b.no)) {
     for (const d of b.decoys || []) { const ng = (b.ng || []).find(n => (n.any || []).some(a => d.includes(a))); keys.push({ t: d, why: ng ? ng.why : '答案に入れてはいけない言葉だ。' }); }
   }
   const good = keys.filter(k => k.ok);
-  const bad = [...keys.filter(k => !k.ok), ...(DE[e.no] || [])].filter((k, i, a) => a.findIndex(x => x.t === k.t) === i && !good.some(g => g.t === k.t));
+  const bad = [...keys.filter(k => !k.ok), ...(DE[e.no] || (e.online && e.online.decoys) || [])].filter((k, i, a) => a.findIndex(x => x.t === k.t) === i && !good.some(g => g.t === k.t));
   if (good.length < 3 || bad.length < 4) { console.warn('とばす: 第' + e.no + '話（キーワードが足りない）'); continue; }
-  const st = ST[e.no];
-  const q = String(b.q || '').replace(/(答案に書くべき|答案の|記述の|判例の)キーワードを.*$/, '').replace(/40字程度で記述せよ。?$/, '').trim().replace(/、$/, '答えよ。');
+  const st = ST[e.no] || (e.online && e.online.panels ? e.online : null); // 第13話からは、話データの中の「オンライン用」の欄（online）を使う
+  const q = String(b.q || '').replace(/(答案に書くべき|答案の|記述の|判例の)キーワードを.*$/, '').replace(/\d+字程度で記述せよ。?$/, '').trim().replace(/、$/, '答えよ。');
   const story = st ? st.panels.map(p => Object.assign({}, p)) : [{ nar: (e.title || '') + '。' + (b.topic || ''), figs: [['hero', 'c', '佐藤']] }];
   story.push({ nar: '出題：' + q, figs: [['hero', 'c', '佐藤']], say: { side: 'c', text: '答案のキーワードを選んで戦え！' }, bg: 'red' });
   out.push({
