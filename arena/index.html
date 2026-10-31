@@ -24,7 +24,8 @@ html,body{margin:0;height:100%;background:var(--ink);color:var(--bone);font-fami
 .btn:disabled{opacity:.4}
 .note{font-size:12px;color:#c9b89a;text-align:center;line-height:1.6;margin:6px 0}
 /* タイトル */
-#s-title{justify-content:center;gap:14px;text-align:center}
+#s-title{justify-content:flex-start;gap:14px;text-align:center;overflow-y:auto}#s-title>:first-child{margin-top:auto}#s-title>:last-child{margin-bottom:auto}#s-title>*{flex-shrink:0}
+.kicker{font-size:15px;font-weight:900;letter-spacing:.25em;color:#fff;margin:0 0 -6px;text-shadow:0 2px 0 #b8322a}
 .logo{font-family:var(--display);line-height:.95;margin:0}
 .logo .l1{display:block;font-size:clamp(44px,13vw,64px);color:#fff;text-shadow:4px 4px 0 var(--blood),0 0 30px rgba(255,80,40,.5);letter-spacing:.02em}
 .logo .l2{display:block;font-size:clamp(30px,9vw,44px);color:var(--gold);text-shadow:3px 3px 0 #6a1a08;margin-top:6px;letter-spacing:.2em}
@@ -330,7 +331,8 @@ body.quake .screen{animation:quake .1s linear infinite}
 <div id="loading">LOADING…</div>
 
 <section class="screen" id="s-title" hidden>
-  <span class="beta">試作版・全国の人とランダム対戦</span>
+  <div><span class="beta">試作版・全国の人とランダム対戦</span></div>
+  <p class="kicker">行政書士 独学応援</p>
   <h1 class="logo"><span class="l1">LEGAL BREAK</span><span class="l2">ONLINE</span><span class="l3">記述ファイト</span></h1>
   <p class="press">TAP TO START</p>
   <div id="titleRank"></div>
