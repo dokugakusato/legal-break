@@ -79,6 +79,11 @@ function fight(cpu) { const x = mk(cpu); L.advance(x.m, x.s, T0); return x; }
   const pa = P('a'), pb = P('b'); L.settle(x.m, pa, pb, 1);
   ok(x.m.result.delta.A === Math.round(L.eloDelta(1500, 1500, 1) * 1.2), '中技でとどめは経験値1.2倍');
 }
+{ // 2枚まちがえても、自爆は1枚ぶん
+  const { m, s } = fight(false); const w = m.kj.chips.map((c, i) => i).filter(i => !s.kj.ans.includes(i));
+  const r = L.kjAnswer(m, s, 'A', [s.kj.ans[0], w[0], w[1]], T0 + 2000);
+  ok(!r.ok && m.players.A.hp === 1000 - 60 && m.kj.prog.A.pts === 0, '3枚出して2枚まちがえても、自爆は1枚ぶん（60）');
+}
 { // 全部まとめて出しても、1つ間違いが混じれば自爆
   const { m, s } = fight(false); const wrong = m.kj.chips.findIndex((c, i) => !s.kj.ans.includes(i));
   const r = L.kjAnswer(m, s, 'A', s.kj.ans.concat([wrong]), T0 + 2000);
