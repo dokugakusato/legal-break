@@ -10,7 +10,7 @@ const { setGlobalOptions } = require('firebase-functions/v2');
 const admin = require('firebase-admin');
 const L = require('./logic');
 const Q = require('./questions');
-const K = require('./kijutsu');
+const K = require('./kijutsu').concat(require('./story-kj')); // ノートの論点＋ストーリーモードの章ボス
 
 admin.initializeApp();
 const db = admin.firestore();

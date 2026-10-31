@@ -1,5 +1,5 @@
 // 記述バトルのルールの確認。 node tools/battle-test/kj-test.js
-const L = require('../../functions/logic'), K = require('../../functions/kijutsu'), assert = require('assert');
+const L = require('../../functions/logic'), K = require('../../functions/kijutsu').concat(require('../../functions/story-kj')), assert = require('assert');
 let pass = 0; const ok = (c, m) => { assert(c, m); pass++; };
 const P = n => L.newPlayer(n, 0), R = L.R;
 // データの形
@@ -9,6 +9,7 @@ K.forEach(k => {
   ok(k.story.length >= 3 && k.q && k.model && k.exp, k.id + ' 物語・問題・解答');
   const all = k.slots.map(x => x.a).concat(k.wrong.map(w => w.t));
   ok(new Set(all).size === all.length, k.id + ' 札が重複しない');
+  if (k.src === 'story') { ok(k.slots.length >= 3 && k.wrong.length >= 4 && k.wrong.every(w => w.t), k.id + ' ストーリーの章ボス：正解3つ以上・ひっかけ4つ以上'); return; }
   ok(k.slots.length === 4 && k.wrong.length >= 4 && k.wrong.every(w => w.t && w.why), k.id + ' 正解4つ・ひっかけ（解説つき）4つ以上');
   ok(all.every(x => x.length <= 22 && !/[、，]$/.test(x)), k.id + ' 札はそれだけで意味の通る短い文');
   let filled = k.tpl; k.slots.forEach(x => { filled = filled.replace('[]', x.a); });

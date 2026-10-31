@@ -19,7 +19,11 @@
 </script>
 <script src="../../functions/kijutsu.js"></script>
 <script>
-  window.LB_K = module.exports; delete window.module;
+  window.LB_K = module.exports; window.module = { exports: {} };
+</script>
+<script src="../../functions/story-kj.js"></script>
+<script>
+  window.LB_K = window.LB_K.concat(module.exports); delete window.module;
 </script>
 <script src="../../functions/logic.js"></script>
 <script src="mock-api.js"></script>

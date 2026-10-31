@@ -9,7 +9,11 @@ if [ "$PJ" = "legal-break-6882d" ]; then echo "これは本番のプロジェク
 BR=$(git rev-parse --abbrev-ref HEAD)
 if [ "$BR" != "online-battle" ]; then echo "online-battle ブランチで実行してください（今は $BR）"; exit 1; fi
 cd "$(dirname "$0")/../.."
+# ストーリーモード（本番 main）の章ボスの記述を、対戦の問題に取り込む（読むだけ。本番は変えない）
+git fetch -q origin main:refs/remotes/origin/main 2>/dev/null || true
+node tools/battle-test/import-story.js origin/main || echo "（ストーリーモードの取り込みはスキップ。前回の分を使う）"
 node tools/battle-test/logic-test.js
+node tools/battle-test/kj-test.js
 (cd functions && npm install --no-audit --no-fund --silent)
 if [ "$CLOUD_SHELL" = "true" ] && command -v firebase >/dev/null; then
   # Google Cloud Shell：ログイン済みの Firebase CLI がそのまま使える
