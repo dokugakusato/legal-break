@@ -11,6 +11,7 @@ git archive "$REF" online episodes icons faces kijutsu.js audio/index.js | tar -
 
 git show "$REF":index.html > "$OUT/main-index.txt"   # 登場人物の絵を借りるためだけに読む（ページとしては置かない）
 node tools/battle-test/arena-patch.js "$OUT"
+node tools/battle-test/arena-data.js "$OUT/online"
 # 試作で録音した声（arena/audio）。まだなければ空の目次
 mkdir -p "$OUT/online/audio-x"
 # mp3 は試験用サイトに置かず、GitHub（jsDelivr）から読む（Cloud Shell からのアップロードが重いため）
