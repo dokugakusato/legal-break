@@ -311,6 +311,7 @@ body.quake .screen{animation:quake .1s linear infinite}
 @keyframes uUp{100%{transform:translateY(-260px) rotate(200deg)}}
 .fighter.u-sink{animation:uSink 1s ease-in forwards !important}
 @keyframes uSink{100%{transform:translateY(120%) rotate(30deg);opacity:0}}
+.u-seal{font-size:34px;font-weight:900;color:#e0302a;border:5px solid #e0302a;border-radius:8px;padding:2px 10px;background:rgba(255,255,255,.85);transform:rotate(-14deg);animation:uSeal .35s ease-out both;z-index:9}@keyframes uSeal{0%{transform:rotate(-14deg) scale(3);opacity:0}100%{transform:rotate(-14deg) scale(1);opacity:1}}
 .u-run{left:-15%;font-size:40px;animation:uRun .9s linear forwards}
 .u-run.l{left:auto;right:-15%;animation-name:uRunL}
 @keyframes uRun{100%{transform:translateX(560px)}}@keyframes uRunL{100%{transform:translateX(-560px)}}
@@ -789,6 +790,10 @@ const ULT={
  // 土倉：十万トンの錨 … 巨大な錨が空から落ちてくる
  dogra:async({ff,ar})=>{const r=ff.getBoundingClientRect(),a=ar.getBoundingClientRect();const d=uEl(ar,'⚓','u-drop',{left:(r.left-a.left+r.width/2-45)+'px'});uRm(d,1400);
    await sleep(520);ff.classList.add('u-squash');uBoom(ar,ff,3,2);const c=uEl(ar,'','u-crack',{left:(r.left-a.left)+'px'});uRm(c,1200);uText(ar,'ズドーーン！！');await sleep(900)},
+ // 猫田：債権回収・猫の大群なだれ込み … 猫の大群が駆け込み、百裂ひっかき、最後に「差押」の札を貼って吹っ飛ばす
+ nekota:async({side,ff,ar,hitFx})=>{for(let i=0;i<16;i++){const d=uEl(ar,i%3?'🐈':'🐈‍⬛','u-run'+(side===2?' l':''),{top:(20+Math.random()*55)+'%',animationDelay:(i*60)+'ms'});uRm(d,1500)}
+   const r=ff.getBoundingClientRect(),a=ar.getBoundingClientRect();for(let i=0;i<8;i++){await sleep(100);const c=uEl(ar,'🐾','u-pop',{left:(r.left-a.left+Math.random()*r.width-20)+'px',top:(r.top-a.top+Math.random()*r.height*.7)+'px'});uRm(c,700);hitFx(3)}
+   const st=uEl(ar,'差押','u-seal',{left:(r.left-a.left+r.width/2-44)+'px',top:(r.top-a.top+r.height*.25)+'px'});uRm(st,1300);sfx('big');shake();await sleep(450);ff.classList.add('u-wash');uText(ar,'ぜーんぶ、回収でさぁ！');await sleep(900)},
  // 権田：荒野まるごと大地震 … 地面が割れ、岩がせり上がり、相手が地割れに落ちる
  boss:async({ff,ar})=>{document.body.classList.add('quake');for(let i=0;i<12;i++){const d=uEl(ar,'🪨','u-up',{left:(Math.random()*92)+'%',animationDelay:(i*60)+'ms'});uRm(d,1400)}
    const r=ff.getBoundingClientRect(),a=ar.getBoundingClientRect();const c=uEl(ar,'','u-crack',{left:(r.left-a.left-10)+'px'});uRm(c,1500);await sleep(700);ff.classList.add('u-sink');sfx('big');uText(ar,'ゴゴゴゴゴ……！！');await sleep(900)},

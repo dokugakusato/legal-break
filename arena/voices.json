@@ -167,6 +167,56 @@
    "井戸端百烈ビンタ！"
   ],
   [
+   "nekota_a1",
+   "nekota",
+   "シャッ！"
+  ],
+  [
+   "nekota_a2",
+   "nekota",
+   "ほれほれぇ！"
+  ],
+  [
+   "nekota_rush",
+   "nekota",
+   "ひっかきひっかきぃっ！"
+  ],
+  [
+   "nekota_lose",
+   "nekota",
+   "ふ、踏み倒されたぁっ！"
+  ],
+  [
+   "nekota_groan",
+   "nekota",
+   "うぐぐ……"
+  ],
+  [
+   "nekota_counter",
+   "nekota",
+   "甘ぇんでさぁ！"
+  ],
+  [
+   "nekota_taunt",
+   "nekota",
+   "今日こそ、返してもらいやしょうか。"
+  ],
+  [
+   "nekota_win",
+   "nekota",
+   "利息もきっちり、いただきやしたぜ。"
+  ],
+  [
+   "nekota_pick",
+   "nekota",
+   "取立ての猫田でさぁ。"
+  ],
+  [
+   "nekota_sp",
+   "nekota",
+   "取立て百裂ひっかき！"
+  ],
+  [
    "okami_a1",
    "okami",
    "はいっ！"
@@ -482,6 +532,11 @@
    "あらあら、うふふふふふ！"
   ],
   [
+   "nekota_laugh",
+   "nekota",
+   "ニャッニャッニャッ……ヒッヒッヒッ！"
+  ],
+  [
    "keiji_laugh",
    "keiji",
    "ハッハッハッ！ 観念しな！"
@@ -682,6 +737,21 @@
    "超ウルトラ技！ 入会権、町内会総出大会議！！"
   ],
   [
+   "nekota_mid",
+   "nekota",
+   "中技！ 取立てネコパンチ！"
+  ],
+  [
+   "nekota_big",
+   "nekota",
+   "大技！ 連帯保証、百裂ひっかき！"
+  ],
+  [
+   "nekota_ultra",
+   "nekota",
+   "超ウルトラ技！ 債権回収、猫の大群なだれ込み！！"
+  ],
+  [
    "okami_mid",
    "okami",
    "中技！ 宿泊契約スマッシュ！"
@@ -810,6 +880,11 @@
    "oldwoman_ko",
    "oldwoman",
    "あれまあああぁぁーーっ！"
+  ],
+  [
+   "nekota_ko",
+   "nekota",
+   "ニャアアアアーーーッ！ 取立てがぁぁっ！"
   ],
   [
    "keiji_ko",
@@ -1307,73 +1382,73 @@
    "いい勝負だった"
   ],
   [
-   "dogra_st_pre0",
-   "dogra",
+   "nekota_st_pre0",
+   "nekota",
    "よろしく頼む！"
   ],
   [
-   "dogra_st_pre1",
-   "dogra",
+   "nekota_st_pre1",
+   "nekota",
    "俺に勝てるか？"
   ],
   [
-   "dogra_st_pre2",
-   "dogra",
+   "nekota_st_pre2",
+   "nekota",
    "手加減はせんぞ"
   ],
   [
-   "dogra_st_pre3",
-   "dogra",
+   "nekota_st_pre3",
+   "nekota",
    "かかってこい！"
   ],
   [
-   "dogra_st_win0",
-   "dogra",
+   "nekota_st_win0",
+   "nekota",
    "まだまだよのー"
   ],
   [
-   "dogra_st_win1",
-   "dogra",
+   "nekota_st_win1",
+   "nekota",
    "足元にも及ばんわ"
   ],
   [
-   "dogra_st_win2",
-   "dogra",
+   "nekota_st_win2",
+   "nekota",
    "出直してこい"
   ],
   [
-   "dogra_st_win3",
-   "dogra",
+   "nekota_st_win3",
+   "nekota",
    "条文が泣いておるぞ"
   ],
   [
-   "dogra_st_lose0",
-   "dogra",
+   "nekota_st_lose0",
+   "nekota",
    "次は負けん！"
   ],
   [
-   "dogra_st_lose1",
-   "dogra",
+   "nekota_st_lose1",
+   "nekota",
    "くっ、覚えておけ"
   ],
   [
-   "dogra_st_lose2",
-   "dogra",
+   "nekota_st_lose2",
+   "nekota",
    "やるな……！"
   ],
   [
-   "dogra_st_lose3",
-   "dogra",
+   "nekota_st_lose3",
+   "nekota",
    "もう一戦だ！"
   ],
   [
-   "dogra_st_any0",
-   "dogra",
+   "nekota_st_any0",
+   "nekota",
    "ありがとう！"
   ],
   [
-   "dogra_st_any1",
-   "dogra",
+   "nekota_st_any1",
+   "nekota",
    "いい勝負だった"
   ],
   [
