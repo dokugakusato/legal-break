@@ -21,7 +21,7 @@
     PANEL_MS: 8000,        // 紙芝居1枚の時間
     KJ_TIME: 20 * 60000,   // 時間切れなし（相手を倒すまで続く）。放置されたときだけの安全装置：20分
     KJ_PT: 40,             // 1点あたりのダメージ（単発）
-    KJ_MULT: [1, 1, 1.5, 2], // 同時に出した数ごとの倍率（1個＝単発、2個＝中技×1.5、3個＝大技×2）。4個以上は天変地異（一撃K.O.）
+    KJ_MULT: [1, 1, 1.5, 2], // 同時に出した数ごとの倍率（1個＝単発、2個＝中技×1.5、3個＝大技×2）。4個以上は超必殺（一撃K.O.）
     KJ_MISS: 60,           // 自爆のダメージ（何枚まちがえても1回60）
     KJ_LOCK: 2000,
     KJ_EXP: { single: 1, mid: 1.2, big: 1.5, tenpen: 2 } // 勝ち方ごとの経験値（レート）の倍率
@@ -138,7 +138,7 @@
       paused: null, result: null, stamps: {}, created: t, v: 1
     };
     let cpuPlan = null;
-    if (cpu) { // CPU：9〜18秒ごとに攻撃。1〜2枚、ときどき間違える。まれに天変地異
+    if (cpu) { // CPU：9〜18秒ごとに攻撃。1〜2枚、ときどき間違える。まれに超必殺
       cpuPlan = []; let at = 0;
       for (let i = 0; i < 40; i++) { at += 9000 + Math.round(rnd() * 9000); cpuPlan.push({ at, ok: rnd() >= 0.25, k: rnd() < 0.35 ? 2 : 1, all: i === 0 && rnd() < 0.04 }); }
     }
@@ -150,7 +150,7 @@
     if (fin) m.result.fin = fin;
   }
   // 攻撃発動：選んだキーワードの札をまとめて出す（順番は自由）。
-  //  1枚＝単発、2枚＝中技、3枚＝大技、4枚以上（3つしかない論点は最初の一撃で全部）＝天変地異（一撃K.O.・経験値2倍）
+  //  1枚＝単発、2枚＝中技、3枚＝大技、4枚以上（3つしかない論点は最初の一撃で全部）＝超必殺（一撃K.O.・経験値2倍）
   //  1枚でも答案に入らない札が混じっていたら、点はもらえず自爆ダメージ（何枚まちがえても1枚ぶん）
   //  全部のキーワードがそろった（20点）ら、その一撃がとどめ。時間切れはなく、どちらかが倒れるまで続く
   // pg.got＝当てた空欄の番号を並べた文字列（どの札かは公開しない）
@@ -170,7 +170,7 @@
       return { accepted: true, ok: false, dmg, bad, why: (s.kj.why || [])[bad] || '' };
     }
     const pts = slots.reduce((a, x) => a + m.kj.pts[x], 0), k = slots.length;
-    // 4つ以上を同時に＝天変地異（超ウルトラ技）。キーワードが3つの論点は、最初の一撃で全部なら天変地異
+    // 4つ以上を同時に＝超必殺（超ウルトラ技）。キーワードが3つの論点は、最初の一撃で全部なら天変地異
     const tenpen = k >= 4 || (pg.n === 0 && k === m.kj.n && k >= 3);
     const kind = tenpen ? 'tenpen' : k === 3 ? 'big' : k === 2 ? 'mid' : 'single';
     pg.n += k; pg.pts += pts; pg.got = got + slots.join('');
@@ -282,7 +282,7 @@
     const [a, b] = m.uids;
     const sa = m.result.winner === a ? 1 : m.result.winner === b ? 0 : 0.5;
     let xa = eloDelta(pa.rating, pb.rating, sa), xb = eloDelta(pb.rating, pa.rating, 1 - sa);
-    // 記述バトル：勝ち方で経験値アップ（天変地異は2倍）。相手のランクが高いほど元の値も大きい
+    // 記述バトル：勝ち方で経験値アップ（超必殺は2倍）。相手のランクが高いほど元の値も大きい
     const mul = (R.KJ_EXP || {})[m.result.fin] || 1;
     if (m.result.winner === a && xa > 0) xa = Math.round(xa * mul); else if (m.result.winner === b && xb > 0) xb = Math.round(xb * mul);
     const up = (p, x, sc) => {

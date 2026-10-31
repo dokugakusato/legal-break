@@ -129,17 +129,18 @@
     setTimeout(() => { anim(fTo, 'hit', 450); anim(fTo, F.move === 'upper' || F.move === 'throw' ? 'launch' : 'blown', 1000); emo(fTo, 'shock', 1400); shake(); SND.hit(); }, 1100 + 380);
   }
 
-  // ---------- 天変地異（全部のキーワードを一撃で） ----------
+  // ---------- 超必殺（キーワード4つ同時。キャラごとのギャグ技） ----------
   function tenpen(byUid, toUid) {
     const mine = byUid === uid, fTo = toUid === uid ? '#figMe' : '#figOp', fBy = mine ? '#figMe' : '#figOp';
     let d = document.getElementById('tenpen');
     if (!d) { d = document.createElement('div'); d.id = 'tenpen'; document.body.appendChild(d); }
     const bolt = x => `<svg class="bolt" style="left:${x}%" viewBox="0 0 40 200"><path d="M24 0 6 92h14L8 200 36 78H21L32 0z"/></svg>`;
     d.className = 'tenpen ' + (mine ? 'me' : 'op');
-    d.innerHTML = `${bolt(8)}${bolt(46)}${bolt(80)}<div class="tp-t"><small>${mine ? 'あなた' : esc(M.players[byUid].name)}の完成答案</small><b>天変地異</b><em>超ウルトラ技！</em></div><div class="rocks"><i></i><i></i><i></i><i></i><i></i><i></i></div>`;
+    const F = FIG(M.players[byUid].chara), U = F.ult || '超必殺';
+    d.innerHTML = `${bolt(8)}${bolt(46)}${bolt(80)}<div class="tp-t"><small>${mine ? 'あなた' : esc(M.players[byUid].name)}の超必殺！</small><b class="${U.length > 8 ? 'long' : ''}">${esc(U)}</b><em>「${esc(F.ultLine || '')}」</em></div><div class="rocks"><i></i><i></i><i></i><i></i><i></i><i></i></div>`;
     d.hidden = false; void d.offsetWidth; d.classList.add('go');
     document.body.classList.remove('quake'); void document.body.offsetWidth; document.body.classList.add('quake');
-    speak('天変地異！', 'waza'); SND.counter(); setTimeout(() => SND.counter(), 350); setTimeout(() => SND.ko(), 900);
+    speakSeq([[F.ultLine || '', mine ? 'me' : 'op'], [U + '！', 'waza']]); SND.counter(); setTimeout(() => SND.counter(), 350); setTimeout(() => SND.ko(), 900);
     setTimeout(() => { anim(fBy, 'sp-' + FIG(M.players[byUid].chara).move, 1100); }, 1400);
     setTimeout(() => { anim(fTo, 'hit', 450); anim(fTo, 'launch', 1000); emo(fTo, 'shock', 2000); shake(); SND.hit(); }, 1700);
     setTimeout(() => { d.hidden = true; d.classList.remove('go'); document.body.classList.remove('quake'); }, 2600);
@@ -364,12 +365,12 @@
     if (!draw) { const loser = win ? '#figOp' : '#figMe', winner = win ? '#figMe' : '#figOp'; emo(winner, 'happy'); emo(loser, 'sad'); if (res.reason === 'ko') $(loser).classList.add('down'); }
     music(null); if (window.LBMusic) LBMusic.jingle(win || draw ? 'win' : 'lose'); speak(draw ? '引き分け' : win ? 'あなたの勝ち！' : '負けてしまった…', 'me');
     let big = draw ? 'DRAW' : win ? (res.reason === 'ko' ? 'K.O.!' : 'WIN!') : 'LOSE…';
-    let sub = draw ? '引き分け' : win ? (res.reason === 'forfeit' ? '相手が戻らなかった（不戦勝）' : res.reason === 'judge' ? '判定勝ち' : m.mode === 'kj' ? (res.fin === 'tenpen' ? '天変地異！ 超ウルトラ技でK.O.！' : res.fin === 'big' ? '大技で完成答案、K.O.！' : res.fin === 'mid' ? '中技で完成答案、K.O.！' : '完成答案でK.O.！') : 'あなたの勝ち') : (res.reason === 'forfeit' ? '接続が切れて不戦敗' : res.reason === 'judge' ? '判定負け' : res.fin === 'self' ? '自爆でK.O.…' : res.fin === 'tenpen' ? '天変地異をくらった…' : 'K.O.された…');
+    let sub = draw ? '引き分け' : win ? (res.reason === 'forfeit' ? '相手が戻らなかった（不戦勝）' : res.reason === 'judge' ? '判定勝ち' : m.mode === 'kj' ? (res.fin === 'tenpen' ? `超必殺「${FIG(m.players[uid].chara).ult || ''}」でK.O.！` : res.fin === 'big' ? '大技で完成答案、K.O.！' : res.fin === 'mid' ? '中技で完成答案、K.O.！' : '完成答案でK.O.！') : 'あなたの勝ち') : (res.reason === 'forfeit' ? '接続が切れて不戦敗' : res.reason === 'judge' ? '判定負け' : res.fin === 'self' ? '自爆でK.O.…' : res.fin === 'tenpen' ? `超必殺「${FIG(m.players[opUid()].chara).ult || ''}」をくらった…` : 'K.O.された…');
     let rate = '';
     if (m.cpu) rate = '<p class="cpunote">CPU戦なので、ランクは変わりません</p>';
     else if (res.delta && res.delta[uid] != null) {
       const d = res.delta[uid], a = res.after[uid];
-      if (win && res.fin === 'tenpen') rate = '<p class="expbonus">天変地異ボーナス：経験値2倍！</p>';
+      if (win && res.fin === 'tenpen') rate = '<p class="expbonus">超必殺ボーナス：経験値2倍！</p>';
       else if (win && res.fin === 'big') rate = '<p class="expbonus">大技ボーナス：経験値1.5倍</p>';
       else if (win && res.fin === 'mid') rate = '<p class="expbonus">中技ボーナス：経験値1.2倍</p>';
       rate += `<p class="rchange">レート ${a.rating - d} → <b class="${d >= 0 ? 'up' : 'dn'}">${a.rating}（${d >= 0 ? '+' : ''}${d}）</b></p><div class="newrank r${esc(a.rank)}">${esc(a.rank)}</div><p class="cpunote">ランク</p>`;
@@ -397,7 +398,7 @@
       const key = m.qi + ':' + i; if (seen[key]) return; seen[key] = 1;
       if (sNow() - (m.phaseAt + e.at) > 8000 && m.phase !== 'q') return; // 古いものは演出しない
       const mine = e.by === uid, fBy = mine ? '#figMe' : '#figOp', fTo = e.to === uid ? '#figMe' : '#figOp';
-      if (e.t === 'kjfin' && e.kind === 'tenpen') { pop('天変地異！！', 'gold'); tenpen(e.by, e.to); setTimeout(() => dmgNum(e.to === uid ? 'me' : 'op', e.dmg), 1800); return; }
+      if (e.t === 'kjfin' && e.kind === 'tenpen') { pop('超必殺！！', 'gold'); tenpen(e.by, e.to); setTimeout(() => dmgNum(e.to === uid ? 'me' : 'op', e.dmg), 1800); return; }
       if (e.t === 'kjfin') e.t = 'hit';
       if (e.t === 'kjhit' && e.kind === 'big') { // 大技（3つ同時）：キャラの必殺技カットイン → 3連続ヒット
         const kw = mine && kjShout.length ? kjShout.map(x => `「${x}」`).join('') : '';
@@ -477,7 +478,7 @@
     }
     $('#kjAns').innerHTML = h + '</span>'; kjFresh = [];
     $('#kjMyPts').textContent = pg.pts; $('#kjOpPts').textContent = `${op.pts}`;
-    if (!kjWhyShown) $('#kjHint').innerHTML = pg.n < k.n ? '答案に書くキーワードを選んで攻撃発動。<b>2つ同時で中技、3つで大技、4つで天変地異</b>。ひっかけが1つでも混じれば自爆' : '完成答案！';
+    if (!kjWhyShown) $('#kjHint').innerHTML = pg.n < k.n ? '答案に書くキーワードを選んで攻撃発動。<b>2つ同時で中技、3つで大技、4つでキャラの超必殺</b>。ひっかけが1つでも混じれば自爆' : '完成答案！';
     const box = $('#chips');
     if (box.dataset.for !== MID) {
       box.dataset.for = MID; kjSel = [];
@@ -494,16 +495,16 @@
   // 選んだ札と「攻撃発動」ボタン（何枚つなげたかで技の名前が変わる）
   function moveName(n) {
     const pg = M && M.kj.prog[uid]; if (!n) return '';
-    if (n >= 4 || (pg && pg.n === 0 && n === M.kj.n && n >= 3)) return '天変地異';
+    if (n >= 4 || (pg && pg.n === 0 && n === M.kj.n && n >= 3)) return '超必殺';
     return n === 3 ? '大技' : n === 2 ? '中技' : '単発攻撃';
   }
   function drawSel() {
     const box = $('#chips'), n = kjSel.length;
     box.querySelectorAll('.chip').forEach(b => { const i = kjSel.indexOf(+b.dataset.c); b.classList.toggle('sel', i >= 0); b.dataset.no = i >= 0 ? i + 1 : ''; });
     const nm = moveName(n), go = $('#kjGo');
-    $('#kjSel').innerHTML = n ? `${n}枚選択 → <b class="${nm === '天変地異' ? 'tp' : ''}">${nm}</b>` : '札を選んで「攻撃発動」';
-    go.disabled = !n || kjBusy; go.textContent = nm === '天変地異' ? '天変地異 発動！！' : n === 3 ? '大技 発動！' : n === 2 ? '中技 発動！' : '攻撃発動！';
-    go.classList.toggle('big', n >= 2); go.classList.toggle('tp', nm === '天変地異');
+    $('#kjSel').innerHTML = n ? `${n}枚選択 → <b class="${nm === '超必殺' ? 'tp' : ''}">${nm === '超必殺' ? `超必殺「${esc(FIG(M.players[uid].chara).ult || '')}」` : nm}</b>` : '札を選んで「攻撃発動」';
+    go.disabled = !n || kjBusy; go.textContent = nm === '超必殺' ? '超必殺 発動！！' : n === 3 ? '大技 発動！' : n === 2 ? '中技 発動！' : '攻撃発動！';
+    go.classList.toggle('big', n >= 2); go.classList.toggle('tp', nm === '超必殺');
     $('#kjClr').hidden = !n;
   }
   function pickChip(i) {
