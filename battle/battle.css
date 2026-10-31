@@ -311,3 +311,9 @@ body.inbattle .soundbtn{top:auto;bottom:calc(4px + env(safe-area-inset-bottom,0)
 .keys{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin:4px 0}
 .keys span{background:var(--gold);color:#1a100a;font-size:11px;font-weight:900;padding:2px 7px;border-radius:9px}
 #endL{justify-content:flex-start}
+
+/* 紙芝居（4コマ）を1枚ずつ大きく */
+.story .komaroot .panel{height:min(54vh,380px)}
+.story .komaroot .cap{font-size:15px;line-height:1.7}
+.story .komaroot .say{font-size:15px}
+.story .komaroot .fig{height:84%}

@@ -42,6 +42,11 @@
       speechSynthesis.cancel(); speechSynthesis.speak(u);
     } catch (e) {}
   }
+  // 続けて読む（ナレーション → セリフ）
+  function speakSeq(list) {
+    if (!SOUND || !('speechSynthesis' in window)) return;
+    try { speechSynthesis.cancel(); list.forEach(([text, who]) => { const u = new SpeechSynthesisUtterance(text); u.lang = 'ja-JP'; u.rate = who === 'nar' ? 1.2 : 1.1; u.pitch = who === 'nar' ? 0.85 : who === 'waza' ? 0.65 : 1.15; const v = speechSynthesis.getVoices().filter(v => /ja/i.test(v.lang)); if (v.length) u.voice = v[0]; speechSynthesis.speak(u); }); } catch (e) {}
+  }
   function setSound(on) {
     SOUND = on; try { localStorage.setItem('lbBattleSound', on ? '1' : '0'); } catch (e) {}
     $('#soundBtn').textContent = on ? '♪ 音 ON' : '♪ 音 OFF'; $('#soundBtn').classList.toggle('off', !on);
@@ -402,16 +407,24 @@
 
   // ---------- 記述バトル ----------
   let kjMine = [], kjDrawn = false, storyShown = -1, kjBusy = false, kjLockTo = 0, kjPending = null;
+  // 紙芝居：ストーリーモードの4コマと同じ見た目（登場人物・吹き出し・背景・小道具）
+  function komaFig(t) { const S = window.KOMA_SIL || {}; return S[t] || S.hero || ''; }
+  function komaProp([k, pos]) { const P = (window.KOMA_PROPS || {})[k]; if (!P) return ''; return `<div class="prop ${pos}" style="--s:${P.s};aspect-ratio:${P.vb[0]}/${P.vb[1]}"><svg viewBox="0 0 ${P.vb[0]} ${P.vb[1]}" aria-hidden="true">${P.svg}</svg></div>`; }
+  function komaHTML(p, i, n) {
+    const N = window.KOMA_NAMES || {};
+    const spf = p.say ? (p.figs.find(f => f[1] === p.say.side) || p.figs[0]) : null, sp = spf ? spf[0] : null;
+    const emo = p.say ? (p.say.emo || (p.say.evil ? 'evil' : /！/.test(p.say.text) ? 'angry' : /…/.test(p.say.text) ? 'sad' : '')) : '';
+    const figs = p.figs.map(([t, pos, nm]) => { const e = t === sp ? emo : (p.react || ''); return `<div class="fig ${pos} ${t}${e ? ' emo-' + e : ''}">${komaFig(t)}${window.EMO_SVG}<span class="ntag">${esc(nm || N[t] || '')}</span></div>`; }).join('');
+    const say = p.say ? `<div class="say ${p.say.side}${p.say.evil ? ' evil' : ''}"><b class="who">${esc((spf && spf[2]) || N[sp] || '')}</b>${esc(p.say.text)}</div>` : '';
+    return `<div class="kw"><div class="cap">${esc(p.nar)}</div><div class="panel ${p.bg ? 'bg-' + p.bg : ''}${p.lines ? ' lines' : ''}${p.say ? ' talk' : ''}"><div class="tone"></div>${(p.props || []).map(komaProp).join('')}${figs}${say}<span class="pno">${i + 1}</span></div></div>`;
+  }
   function drawStory(m, i) {
     const k = m.kj, p = k.story[i]; if (!p) return;
-    const sato = window.FIGHTERS && FIG('sato');
-    const art = p.who === '佐藤' ? `<span class="art">${window.SATO_SVG}</span>` : '';
     $('#story').innerHTML = `<p class="topic">${esc(k.field)}｜${esc(k.topic)}</p>
-      <div class="kami"><span class="no">事件 ${i + 1}/${k.story.length}</span>
-      ${p.nar ? `<p class="nar">${esc(p.nar)}</p>` : ''}${p.say ? `<div class="say">${art}<div class="bub"><span class="who">${esc(p.who || '')}</span>${esc(p.say)}</div></div>` : ''}</div>
+      <div class="komaroot"><div class="koma">${p.figs ? komaHTML(p, i, k.story.length) : `<div class="kami"><p class="nar">${esc(p.nar || p.say || '')}</p></div>`}</div></div>
       <div class="dots">${k.story.map((_, j) => `<i class="${j <= i ? 'on' : ''}"></i>`).join('')}</div>
       <p class="soon">${i + 1 >= k.story.length ? 'まもなく FIGHT！ 答案づくり開始' : ''}</p>`;
-    speak(p.nar || p.say, p.nar ? 'nar' : 'me');
+    speakSeq([[p.nar, 'nar'], p.say ? [typeof p.say === 'string' ? p.say : p.say.text, (p.figs && p.figs.find(f => f[1] === p.say.side) || [])[0] === 'hero' ? 'waza' : 'me'] : null].filter(Boolean));
   }
   function drawKJ(m) {
     const k = m.kj, pg = k.prog[uid], op = k.prog[opUid()];
@@ -460,7 +473,7 @@
       const left = M.until - t, c = $('#count');
       if (c) { const v = left > 3000 ? '' : left > 0 ? String(Math.ceil(left / 1000)) : 'FIGHT!'; if (c.dataset.v !== v) { c.dataset.v = v; c.innerHTML = v ? `<b>${v}</b>` : ''; if (v) SND.tick(); } }
     }
-    if (M.phase === 'story') { const i = Math.min(M.kj.story.length - 1, Math.floor((t - M.phaseAt) / 6500)); if (i !== storyShown && i >= 0) { storyShown = i; drawStory(M, i); } }
+    if (M.phase === 'story') { const i = Math.min(M.kj.story.length - 1, Math.floor((t - M.phaseAt) / 8000)); if (i !== storyShown && i >= 0) { storyShown = i; drawStory(M, i); } }
     const bar = $('#timerBar');
     if (M.phase === 'q' || M.phase === 'kj') {
       const left = M.paused ? M.until - M.paused.since : M.until - t, tot = M.phase === 'kj' ? 120000 : QTIME;
@@ -580,5 +593,6 @@
     };
   }
 
+  window.LBDrawStory = drawStory; // 動作確認用
   boot();
 })();
