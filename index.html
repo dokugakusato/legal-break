@@ -571,6 +571,9 @@ b.gold{color:var(--gold)}
 .rstrip small{display:block;font-size:10.5px;color:var(--dust);font-weight:700;letter-spacing:.15em}
 .rstrip b{font-family:var(--display);font-weight:400;font-size:22px;color:var(--gold)}
 .rstrip span{font-size:11.5px;color:var(--bone);text-align:right;line-height:1.5}
+.onlinebtn{position:relative;background:linear-gradient(90deg,#1d6fb8 0%,#1d6fb8 48%,#b8231a 52%,#b8231a 100%);border:2px solid var(--gold);display:flex;flex-direction:column;align-items:center;line-height:1.25}
+.onlinebtn span{position:absolute;left:10px;top:50%;transform:translateY(-50%) rotate(-8deg);font-family:var(--display);font-weight:400;font-size:20px;color:var(--gold);text-shadow:2px 2px 0 #000}
+.onlinebtn small{font-size:11px;letter-spacing:.15em;color:#ffe9c2}
 .tabs{display:grid;grid-template-columns:repeat(4,1fr);border:2px solid var(--dust)}
 .tabs button{background:transparent;color:var(--dust);border:none;padding:9px 4px;font-weight:900;font-size:14px;letter-spacing:.1em}
 .tabs button+button{border-left:2px solid var(--dust)}
@@ -606,6 +609,7 @@ b.gold{color:var(--gold)}
     <div class="rankmini" id="titleRank" hidden></div>
     <button class="btn" id="startBtn" type="button">修行を始める</button>
     <button class="btn ghost" id="selectBtn" type="button">話を選ぶ</button>
+    <button class="btn onlinebtn" id="onlineBtn" type="button" onclick="location.href='online/'"><span>VS</span>オンライン対戦<small>記述ファイト（試作）</small></button>
     <div id="titleShare"></div>
     <button class="btn ghost" id="installBtn" type="button" hidden>ホーム画面に置いて、アプリにする</button>
     <div class="accbox" hidden></div>

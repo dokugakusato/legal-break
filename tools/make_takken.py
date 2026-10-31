@@ -17,6 +17,10 @@ def rep(old, new, count=1):
 h, n = re.subn(r'<script>/\* 旧住所（GitHub）から新住所へ.*?</script>', '', h, count=1, flags=re.S)
 assert n == 1, '引っ越し用のしくみが見つからない'
 
+# 1b) オンライン対戦の入口は、行政書士版だけ
+h, n = re.subn(r'\n\s*<button class="btn onlinebtn" id="onlineBtn"[^\n]*</button>', '', h, count=1)
+assert n == 1, 'オンライン対戦の入口が見つからない'
+
 # 2) 名前・説明
 rep('<title>LEGAL BREAK 法の拳</title>', '<title>TAKKEN HUNTER 不動産の拳</title>')
 rep('content="法の拳"', 'content="宅建の拳"')
