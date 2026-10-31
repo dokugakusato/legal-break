@@ -14,6 +14,8 @@ git fetch -q origin main:refs/remotes/origin/main 2>/dev/null || true
 node tools/battle-test/import-story.js origin/main || echo "（ストーリーモードの取り込みはスキップ。前回の分を使う）"
 node tools/battle-test/logic-test.js
 node tools/battle-test/kj-test.js
+# オンライン版（本番 main の online/）の画面に、全論点を足した試作を /lb/online/ に作る
+bash tools/battle-test/build-arena.sh origin/main || echo "（オンライン版の試作づくりはスキップ）"
 (cd functions && npm install --no-audit --no-fund --silent)
 if [ "$CLOUD_SHELL" = "true" ] && command -v firebase >/dev/null; then
   # Google Cloud Shell：ログイン済みの Firebase CLI がそのまま使える
