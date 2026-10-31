@@ -14,13 +14,14 @@ const dir = ROOT + 'audio/'; fs.mkdirSync(dir, { recursive: true });
 const MAN = dir + 'manifest.json'; let man = {}; try { man = JSON.parse(fs.readFileSync(MAN, 'utf8')); } catch (e) {}
 let made = 0; const ok = {};
 for (const [id, k, text] of lines) {
-  const st = style(k), say = yomi(text), sig = st.sig + '|' + say, mp3 = dir + id + '.mp3'; ok[id] = 1;
+  const st = style(k), say = yomi(text), sig = st.sig + (k === 'oldwoman' ? '|vib' : '') + '|' + say, mp3 = dir + id + '.mp3'; ok[id] = 1;
   if (fs.existsSync(mp3) && man[id] === sig) continue;
   const q = await (await fetch(`${ENGINE}/audio_query?speaker=${st.id}&text=${encodeURIComponent(say)}`, { method: 'POST' })).json();
   Object.assign(q, { speedScale: st.c[2], pitchScale: st.c[3], intonationScale: st.c[4], volumeScale: 1.25, prePhonemeLength: .05, postPhonemeLength: .1 });
   const wav = Buffer.from(await (await fetch(`${ENGINE}/synthesis?speaker=${st.id}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(q) })).arrayBuffer());
   fs.writeFileSync('/tmp/av.wav', wav); // アナウンスは会場に響くように（低音を足して、こだまをかける）
-  const fx = k === 'ann' ? ['-af', 'bass=g=6,aecho=0.8:0.85:110|230|360:0.42|0.28|0.16,apad=pad_dur=0.6,volume=1.3'] : [];
+  // ばあさんは声をふるわせて年寄りらしく
+  const fx = k === 'ann' ? ['-af', 'bass=g=6,aecho=0.8:0.85:110|230|360:0.42|0.28|0.16,apad=pad_dur=0.6,volume=1.3'] : k === 'oldwoman' ? ['-af', 'vibrato=f=5.5:d=0.22,lowpass=f=6000'] : [];
   execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', '/tmp/av.wav', ...fx, '-ac', '1', '-ar', '24000', '-b:a', '64k', mp3]);
   man[id] = sig; made++; console.log('録音', id, say, '／', st.sig);
 }
