@@ -17,7 +17,10 @@
     if (rtt <= bestRtt * 1.5) { bestRtt = Math.min(bestRtt, rtt); offset = serverNow - (t0 + t1) / 2; }
   }
   async function call(op, data) {
-    const t0 = Date.now(); const r = await API.call(op, data || {}); syncClock(t0, Date.now(), r && r.now);
+    let t0 = Date.now(), r;
+    try { r = await API.call(op, data || {}); }
+    catch (e) { if (!/internal|unavailable|deadline/.test(e && e.code || '')) throw e; await new Promise(ok => setTimeout(ok, 1500)); t0 = Date.now(); r = await API.call(op, data || {}); } // サーバーの起き上がり直後の失敗は1回だけやり直す
+    syncClock(t0, Date.now(), r && r.now);
     if (r && r.match && MID && r.match.uids && r.match.uids.includes(uid)) applyMatch(r.match); // 通知を待たずに描く（軽くするため）
     return r;
   }
