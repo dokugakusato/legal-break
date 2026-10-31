@@ -274,6 +274,7 @@ body.inbattle .mute{display:none}
 <button class="mute" id="mute" type="button">音：ON</button>
 
 <script src="stories.js"></script>
+<script src="decoys.js"></script>
 <script>
 /* ================== 下ごしらえ ================== */
 const $=s=>document.querySelector(s);
@@ -329,7 +330,8 @@ function buildQuestions(){
       for(const d of b.decoys||[]){const ng=(b.ng||[]).find(n=>(n.any||[]).some(a=>d.includes(a)));keys.push({t:d,why:ng?ng.why:'答案に入れてはいけない言葉だ。'})}
     }
     const tot=keys.reduce((s,k)=>s+(k.pt||0),0);if(!keys.length||tot<15)continue;
-    QS.push({no:e.no,ep:e,title:(e.title||'').split(' ― ')[0],lawName:b.lawName||b.topic,q:b.q,keys,model:b.model||'',exp:b.exp||'',panels:b.panels||[],efig:b.efig||'boss',enemy:b.enemy,narr:e.no>=11?'narrf':'narr'});
+    const pool=[...keys.filter(k=>!k.pt),...((window.OL_DECOYS||{})[e.no]||[])].filter((k,i,a)=>a.findIndex(x=>x.t===k.t)===i);
+    QS.push({good:keys.filter(k=>k.pt),pool,no:e.no,ep:e,title:(e.title||'').split(' ― ')[0],lawName:b.lawName||b.topic,q:b.q,keys,model:b.model||'',exp:b.exp||'',panels:b.panels||[],efig:b.efig||'boss',enemy:b.enemy,narr:e.no>=11?'narrf':'narr'});
   }
 }
 
@@ -442,9 +444,14 @@ function openSelect(){show('s-select');BGM.play('select');ann('select');
 $('#decideBtn').onclick=()=>{if(!P1)return;sfx('decide');if(!REC.char){REC.char=P1.id;saveRec()}const others=CHARS.filter(c=>c.id!==P1.id);P2=others[Math.floor(Math.random()*others.length)];startMatch()};
 
 /* VS → 紙芝居 → FIGHT */
-let Q=null;
+let Q=null,LASTQ=[];
+// 出題を選ぶ：最近出た論点は避け、ひっかけは「たくわえ」から毎回ランダムに4つ
+function pickQ(){const cand=QS.filter(q=>!LASTQ.includes(q.no));const base=(cand.length?cand:QS)[Math.floor(Math.random()*(cand.length||QS.length))];
+  LASTQ=[base.no,...LASTQ].slice(0,Math.min(4,QS.length-1));
+  const bad=base.pool.slice().sort(()=>Math.random()-.5).slice(0,4);
+  return Object.assign({},base,{keys:[...base.good,...bad].sort(()=>Math.random()-.5)})}
 async function startMatch(){
-  Q=QS[Math.floor(Math.random()*QS.length)];
+  Q=pickQ();
   show('s-vs');BGM.stop();sfx('gong');
   $('#s-vs').innerHTML=`<div class="vsrow top"><div class="vsfig">${fig(P1.id)}</div><div class="vsname">${P1.name}</div><div class="vsline">「${TAUNT[P1.id]}」</div></div><div class="vsmark">VS</div><div class="vsrow bot"><div class="vsfig">${fig(P2.id)}</div><div class="vsname">${P2.name}<br><small style="font-size:12px;color:var(--gold)">CPU</small></div><div class="vsline">「${TAUNT[P2.id]}」</div></div>`;
   await sleep(500);ann('vs');await sleep(900);await cv(P1,'taunt');await sleep(150);await cv(P2,'taunt');await sleep(400);
