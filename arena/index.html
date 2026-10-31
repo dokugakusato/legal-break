@@ -907,8 +907,9 @@ async function netInit(){
     $('#titleRank').innerHTML=rankCard();$('#netMsg').textContent='';
   }catch(e){$('#netMsg').textContent='オンラインにつながりませんでした（CPUとの練習はできます）'}
 }
-async function netCall(op,data){const f=NET.fns.httpsCallable('battle');const go=()=>f(Object.assign({op},data||{})).then(r=>{const d=r.data||{};if(d.now)NET.skew=d.now-Date.now();return d});
-  try{return await go()}catch(e){if(/internal|unavailable|deadline/.test(e.code||''))return go();throw e}}
+// 通信が切れたまま待ち続けないように、10秒で打ち切る（合図が止まると「いなくなった」と判定されるため）
+async function netCall(op,data){const f=NET.fns.httpsCallable('battle',{timeout:10000});const go=()=>f(Object.assign({op},data||{})).then(r=>{const d=r.data||{};if(d.now)NET.skew=d.now-Date.now();return d});
+  try{return await go()}catch(e){if(op!=='arAttack'&&/internal|unavailable|deadline/.test(e.code||''))return go();throw e}}
 function netQ(m,round){const r=m.rounds[round-1];const base=QS.find(q=>q.no===r.no)||QS[0];const all=base.good.concat(base.pool);const pt=Math.round(20/base.good.length);
   // 点はサーバーと同じ（20÷正解の数）にそろえる
   return Object.assign({},base,{keys:r.keys.map(t=>{const k=all.find(x=>x.t===t)||{t,why:''};return k.pt?Object.assign({},k,{pt}):k})})}
