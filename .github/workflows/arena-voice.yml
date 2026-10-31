@@ -1,0 +1,35 @@
+# 試作（online-battle ブランチ、/lb/online/）の声を VOICEVOX で録音する。本番（main）の声にはさわらない
+name: 試作の声を録音
+on:
+  push:
+    branches: [online-battle]
+    paths: ['arena/voices.json', 'arena/gen_voice.mjs', 'tools/battle-test/arena-chars.js', '.github/workflows/arena-voice.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: arena-voice
+jobs:
+  voice:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      voicevox:
+        image: voicevox/voicevox_engine:cpu-latest
+        ports: ['50021:50021']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: ffmpeg を用意
+        run: which ffmpeg || (sudo apt-get update && sudo apt-get install -y ffmpeg)
+      - name: VOICEVOX の起動を待つ
+        run: for i in $(seq 1 60); do curl -sf http://127.0.0.1:50021/version && exit 0; sleep 5; done; exit 1
+      - name: 録音
+        run: node arena/gen_voice.mjs
+      - name: 録音した声を保存（online-battle ブランチだけ）
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add arena/audio
+          git diff --cached --quiet || (git commit -m "試作の声を自動録音" && git pull --rebase && git push)
