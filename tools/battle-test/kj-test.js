@@ -38,7 +38,7 @@ function fight(cpu) { const x = mk(cpu); L.advance(x.m, x.s, T0); return x; }
   const wrong = m.kj.chips.findIndex((c, i) => !s.kj.ans.includes(i));
   // 1つでも間違いが混じると、点はもらえず自爆（枚数×60）
   r = L.kjAnswer(m, s, 'B', [s.kj.ans[0], s.kj.ans[1], wrong], T0 + 4000);
-  ok(r.accepted && !r.ok && m.players.B.hp === 800 - 180 && m.kj.prog.B.pts === 0 && m.kj.prog.B.got === '' && m.kj.prog.B.lock === T0 + 4000 + R.KJ_LOCK, '間違いが1つでも混じると点なし・自爆180・2秒動けない');
+  ok(r.accepted && !r.ok && m.players.B.hp === 800 - 60 && m.kj.prog.B.pts === 0 && m.kj.prog.B.got === '' && m.kj.prog.B.lock === T0 + 4000 + R.KJ_LOCK, '間違いが1つでも混じると点なし・自爆は間違えた1枚ぶん（60）・2秒動けない');
   ok(r.why && r.why.length > 5 && m.kj.chips[r.bad] && !JSON.stringify(m).includes(r.why), '自爆したら、そのひっかけの解説を本人にだけ返す');
   ok(m.kj.chips.length === 8 && m.kj.labels.every(l => l === ''), '札は8枚（正解4・ひっかけ4）、正解の名前は送らない');
   ok(!L.kjAnswer(m, s, 'B', [s.kj.ans[0]], T0 + 5000).accepted, '動けない間は出せない');
@@ -82,7 +82,7 @@ function fight(cpu) { const x = mk(cpu); L.advance(x.m, x.s, T0); return x; }
 { // 全部まとめて出しても、1つ間違いが混じれば自爆
   const { m, s } = fight(false); const wrong = m.kj.chips.findIndex((c, i) => !s.kj.ans.includes(i));
   const r = L.kjAnswer(m, s, 'A', s.kj.ans.concat([wrong]), T0 + 2000);
-  ok(!r.ok && m.players.A.hp === 1000 - 300 && m.phase === 'kj', '5枚で自爆300');
+  ok(!r.ok && m.players.A.hp === 1000 - 60 && m.phase === 'kj', '正解4枚＋間違い1枚でも、自爆は間違えた1枚ぶん');
 }
 { // 自爆で自分が倒れる
   const { m, s } = fight(false); const w = m.kj.chips.map((c, i) => i).filter(i => !s.kj.ans.includes(i));

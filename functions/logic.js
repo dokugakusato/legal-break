@@ -22,7 +22,7 @@
     KJ_TIME: 20 * 60000,   // 時間切れなし（相手を倒すまで続く）。放置されたときだけの安全装置：20分
     KJ_PT: 40,             // 1点あたりのダメージ（単発）
     KJ_MULT: [1, 1, 1.5, 2], // 同時に出した数ごとの倍率（1個＝単発、2個＝中技×1.5、3個＝大技×2）。4個以上は天変地異（一撃K.O.）
-    KJ_MISS: 60,           // 自爆：出した札1枚あたり
+    KJ_MISS: 60,           // 自爆：間違えた札1枚あたり
     KJ_LOCK: 2000,
     KJ_EXP: { single: 1, mid: 1.2, big: 1.5, tenpen: 2 } // 勝ち方ごとの経験値（レート）の倍率
   };
@@ -151,7 +151,7 @@
   }
   // 攻撃発動：選んだキーワードの札をまとめて出す（順番は自由）。
   //  1枚＝単発、2枚＝中技、3枚＝大技、4枚以上（3つしかない論点は最初の一撃で全部）＝天変地異（一撃K.O.・経験値2倍）
-  //  1枚でも答案に入らない札が混じっていたら、点はもらえず自爆ダメージ（枚数が多いほど大きい）
+  //  1枚でも答案に入らない札が混じっていたら、点はもらえず自爆ダメージ（間違えた札の数だけ）
   //  全部のキーワードがそろった（20点）ら、その一撃がとどめ。時間切れはなく、どちらかが倒れるまで続く
   // pg.got＝当てた空欄の番号を並べた文字列（どの札かは公開しない）
   function kjPlay(m, s, uid, chips, t) {
@@ -160,8 +160,8 @@
     if (pg.n >= m.kj.n) return { accepted: false, why: 'done' };
     const at = t - m.phaseAt, got = String(pg.got || ''), slots = chips.map(c => s.kj.ans.indexOf(c));
     if (slots.some(x => x >= 0 && got.includes(String(x)))) return { accepted: false, why: 'dup' };
-    if (slots.some(x => x < 0)) { // 自爆
-      const dmg = R.KJ_MISS * chips.length;
+    if (slots.some(x => x < 0)) { // 自爆：点はもらえない。ダメージは間違えた札の数だけ（正しい札はダメージにならない）
+      const dmg = R.KJ_MISS * slots.filter(x => x < 0).length;
       pg.lock = t + R.KJ_LOCK;
       m.players[uid].hp = Math.max(0, m.players[uid].hp - dmg);
       m.ev.list.push({ t: 'kjmiss', by: uid, to: uid, dmg, at, k: chips.length });
