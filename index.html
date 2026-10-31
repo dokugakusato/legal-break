@@ -590,6 +590,7 @@ b.gold{color:var(--gold)}
 .rrow.none{opacity:.5}
 
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}}
+.grecaptcha-badge{visibility:hidden}
 </style>
 
 <canvas id="sky" aria-hidden="true"></canvas>
@@ -1578,17 +1579,18 @@ function refreshTitle(){
 
 /* ---------- 全国ランキング ---------- */
 // 公開するのは「ニックネーム・クリアした話の数・平均正答率」だけ。メールアドレスは載せない。
-const NICK_BAD=/[@＠]|https?:|www\.|\.(com|jp|net|org)|\d{7,}/i;
+const NICK_BAD=/[@＠]|https?:|www\.|\.(com|jp|net|org|io|me|xyz|info)|[0-9０-９]{7,}|死ね|しね|殺す|ころす|fuck|shit|sex|セックス|ちんこ|まんこ/i;
 function myNick(){if(!P.nick){P.nick='独学者'+String(Math.floor(1000+Math.random()*9000));saveP()}return P.nick}
 const rankScore=()=>cleared()*1000+avgBest();
+const isMember=()=>!!(ACC.user&&!ACC.user.isAnonymous);
 function pushRank(){
-  if(!ACC.user||!cleared())return Promise.resolve();
+  if(!isMember()||!cleared())return Promise.resolve();
   const d={name:myNick(),cleared:cleared(),avg:avgBest(),score:rankScore(),updated:firebase.firestore.FieldValue.serverTimestamp()};
   return ACC.db.collection('ranking').doc(ACC.user.uid).set(d).catch(()=>{});
 }
 async function countWhere(q){try{if(q.count){const s=await q.count().get();return s.data().count}}catch(e){}const s=await q.limit(2000).get();return s.size}
 async function myRank(){
-  if(!ACC.user||!cleared())return null;
+  if(!isMember()||!cleared())return null;
   const col=ACC.db.collection('ranking');
   const [above,total]=await Promise.all([countWhere(col.where('score','>',rankScore())),countWhere(col)]);
   return {rank:above+1,total};
@@ -1603,11 +1605,11 @@ async function renderRanking(){
     const uid=ACC.user&&ACC.user.uid;
     const rows=top.docs.map((d,i)=>{const r=d.data();return `<div class="kk${d.id===uid?' me':''}"><b class="kr">${i+1}</b><span class="kn2">${esc(r.name)}</span><span class="kc">${r.cleared}話</span><span class="ka">${r.avg}%</span></div>`}).join('');
     box.innerHTML=`<div class="card rankme"><span class="qtag">全国ランキング</span>
-      ${me?`<div class="myrank"><small>あなたの順位</small><b>${me.rank}<span>位</span></b><em>${me.total}人中</em></div>`:`<p class="qtext">1話クリアすると、ランキングに載る。</p>`}
+      ${me?`<div class="myrank"><small>あなたの順位</small><b>${me.rank}<span>位</span></b><em>${me.total}人中</em></div>`:(isMember()?`<p class="qtext">1話クリアすると、ランキングに載る。</p>`:`<p class="qtext">全国ランキングに載るのは、メールかGoogleでログインした人だけ。</p><button class="btn mini" type="button" id="rankIn">ログインする</button>`)}
       <div class="nickline">ニックネーム：<b>${esc(myNick())}</b><button class="btn ghost mini" type="button" id="nickBtn">変える</button></div>
       <p class="note">順位は、クリアした話の数が多い順。同じ数なら平均正答率が高い順。</p></div>
     <div class="card"><span class="qtag">上位20人</span><div class="kt"><div class="kk kh"><b class="kr">位</b><span class="kn2">ニックネーム</span><span class="kc">クリア</span><span class="ka">正答率</span></div>${rows||'<p class="note">まだ誰も載っていない。最初の一人になれ。</p>'}</div></div>`;
-    $('#nickBtn').onclick=nickSheet;
+    $('#nickBtn').onclick=nickSheet;const ri=$('#rankIn');if(ri)ri.onclick=()=>accSheet('form');
   }catch(e){box.innerHTML=`<div class="card"><p class="qtext">ランキングを読み込めなかった。少し時間をおいて、もう一度開いてくれ。</p></div>`}
 }
 const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1619,7 +1621,7 @@ function nickSheet(){
   $('#nickClose').onclick=closeSheet;
   $('#nickForm').onsubmit=e=>{e.preventDefault();const v=$('#nickIn').value.trim().replace(/\s+/g,' ');
     if(!v){$('#nickMsg').textContent='名前を入れてくれ。';return}
-    if(NICK_BAD.test(v)){$('#nickMsg').textContent='メールアドレスやURL、長い数字は使えない。別の名前にしてくれ。';return}
+    if(NICK_BAD.test(v)){$('#nickMsg').textContent='メールアドレスやURL、長い数字、乱暴な言葉は使えない。別の名前にしてくれ。';return}
     P.nick=v.slice(0,12);saveP();closeSheet();renderRanking()};
 }
 
@@ -1640,8 +1642,10 @@ function accInit(){
   const cfg=window.LB_FIREBASE;if(!cfg||!cfg.apiKey)return;
   const base='https://www.gstatic.com/firebasejs/10.12.2/';
   const load=f=>new Promise((res,rej)=>{const s=document.createElement('script');s.src=base+f;s.onload=res;s.onerror=rej;document.head.appendChild(s)});
-  load('firebase-app-compat.js').then(()=>Promise.all([load('firebase-auth-compat.js'),load('firebase-firestore-compat.js')])).then(()=>{
-    firebase.initializeApp(cfg);ACC.auth=firebase.auth();ACC.auth.languageCode='ja';ACC.db=firebase.firestore();ACC.on=true;
+  load('firebase-app-compat.js').then(()=>Promise.all([load('firebase-auth-compat.js'),load('firebase-firestore-compat.js')].concat(cfg.appCheckKey?[load('firebase-app-check-compat.js')]:[]))).then(()=>{
+    firebase.initializeApp(cfg);
+    // ロボット確認（App Check）。reCAPTCHAの鍵が config.js に入っているときだけ動く
+    if(cfg.appCheckKey&&firebase.appCheck){try{firebase.appCheck().activate(new firebase.appCheck.ReCaptchaV3Provider(cfg.appCheckKey),true)}catch(e){}}ACC.auth=firebase.auth();ACC.auth.languageCode='ja';ACC.db=firebase.firestore();ACC.on=true;
     let redirWait=false,reRedir=false;try{redirWait=sessionStorage.getItem('lbRedir')==='1'}catch(e){}
     ACC.auth.onAuthStateChanged(u=>{ACC.user=u;if(u){pullCloud()}else if(!redirWait&&!ACC.auth.isSignInWithEmailLink(location.href)){ACC.auth.signInAnonymously().catch(()=>{})}accRender()});
     // Googleの画面から戻ってきたときの結果を受け取る
@@ -1812,7 +1816,7 @@ function epClear(){if(CH.nextTitle&&!S.yk){S.yk=1;return yokoku(epClear)}
   $('#goSel').onclick=openSelect;
   const ga=$('#goAgain');if(ga)ga.onclick=()=>playEp(e.no);
   if(r1>r0)setTimeout(()=>rankUp(r1),1200);
-  if(ACC.on&&ACC.user){$('#s-clear').querySelector('.result').insertAdjacentHTML('beforeend','<p class="note" id="natRank">全国順位を計算中…</p>');pushRank().then(myRank).then(m=>{const n=$('#natRank');if(n&&m)n.innerHTML=`全国 <b class="gold">${m.rank}位</b>（${m.total}人中）`;else if(n)n.remove()}).catch(()=>{const n=$('#natRank');if(n)n.remove()})}
+  if(ACC.on&&isMember()){$('#s-clear').querySelector('.result').insertAdjacentHTML('beforeend','<p class="note" id="natRank">全国順位を計算中…</p>');pushRank().then(myRank).then(m=>{const n=$('#natRank');if(n&&m)n.innerHTML=`全国 <b class="gold">${m.rank}位</b>（${m.total}人中）`;else if(n)n.remove()}).catch(()=>{const n=$('#natRank');if(n)n.remove()})}
 }
 function rankUp(i){
   const ov=$('#ov');ov.hidden=false;const line=`お前は今日から「${RANKS[i].name}」だ。`;

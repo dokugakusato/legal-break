@@ -1,6 +1,10 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // ランキングに使えないニックネーム（小文字にしてから調べる）。禁止語を増やすときは | で区切って足す
+    function NG_NAME() {
+      return '.*([@＠]|https?:|www[.]|[.](com|jp|net|org|io|me|xyz|info)|[0-9０-９]{7,}|死ね|しね|殺す|ころす|fuck|shit|sex|セックス|ちんこ|まんこ).*';
+    }
 
     // 記録は本人だけが読み書き・削除できる
     match /progress/{uid} {
@@ -22,24 +26,34 @@ service cloud.firestore {
     }
 
     // 全国ランキング：誰でも見られる。書けるのは本人の1件だけ。
-    // 載せてよいのはニックネーム・クリア数・平均正答率・点数・更新時刻だけ（メールアドレスは載せられない）
+    // ・載れるのはメールかGoogleでログインした人だけ（匿名では載れない）
+    // ・載せてよいのはニックネーム・クリア数・平均正答率・点数・更新時刻だけ（メールアドレスは載せられない）
+    // ・ニックネームにメールアドレス・URL・長い数字・禁止語は使えない
+    // ・クリア数の上限は「公開中の16話＋余裕2話」。2026年11月1日から1日ごとに1話ずつ自動で上がる
+    // ・クリア数を増やす書き込みは、前回から60秒以上あける
     match /ranking/{uid} {
-      function isOwner() {
-        return request.auth != null && request.auth.uid == uid;
+      function isMember() {
+        return request.auth != null && request.auth.uid == uid
+          && request.auth.token.firebase.sign_in_provider != 'anonymous';
       }
       function validRank() {
         let d = request.resource.data;
         return d.keys().hasOnly(['name', 'cleared', 'avg', 'score', 'updated'])
-          && d.name is string && d.name.size() >= 1 && d.name.size() <= 12
-          && !d.name.matches('.*[@＠].*')
-          && d.cleared is int && d.cleared >= 0 && d.cleared <= 2000
+          && d.name is string && d.name.matches('[^\n\r\t]{1,12}')
+          && !d.name.lower().matches(NG_NAME())
+          && d.cleared is int && d.cleared >= 0
+          && (d.cleared - 18) * 86400 <= (request.time - timestamp.date(2026, 11, 1)).seconds()
           && d.avg is int && d.avg >= 0 && d.avg <= 100
           && d.score == d.cleared * 1000 + d.avg
           && d.updated == request.time;
       }
       allow read: if true;
-      allow create, update: if isOwner() && validRank();
-      allow delete: if isOwner();
+      allow create: if isMember() && validRank();
+      allow update: if isMember() && validRank()
+        && (request.resource.data.cleared <= resource.data.cleared
+            || request.time > resource.data.updated + duration.value(60, 's'));
+      // 自分の記録を消すのは、匿名でもできる（登録を消すとき用）
+      allow delete: if request.auth != null && request.auth.uid == uid;
     }
 
     // 宅建版（TAKKEN HUNTER）の記録。行政書士版と同じ決まりで、本人だけが読み書きできる
@@ -58,24 +72,35 @@ service cloud.firestore {
       allow delete: if isOwner();
     }
 
-    // 宅建版の全国ランキング。載せてよい項目は行政書士版と同じ
+    // 宅建版の全国ランキング。決まりは行政書士版と同じ
+    // ・載れるのはメールかGoogleでログインした人だけ（匿名では載れない）
+    // ・載せてよいのはニックネーム・クリア数・平均正答率・点数・更新時刻だけ（メールアドレスは載せられない）
+    // ・ニックネームにメールアドレス・URL・長い数字・禁止語は使えない
+    // ・クリア数の上限は「公開中の6話＋余裕2話」。2026年11月1日から1日ごとに1話ずつ自動で上がる
+    // ・クリア数を増やす書き込みは、前回から60秒以上あける
     match /tk_ranking/{uid} {
-      function isOwner() {
-        return request.auth != null && request.auth.uid == uid;
+      function isMember() {
+        return request.auth != null && request.auth.uid == uid
+          && request.auth.token.firebase.sign_in_provider != 'anonymous';
       }
       function validRank() {
         let d = request.resource.data;
         return d.keys().hasOnly(['name', 'cleared', 'avg', 'score', 'updated'])
-          && d.name is string && d.name.size() >= 1 && d.name.size() <= 12
-          && !d.name.matches('.*[@＠].*')
-          && d.cleared is int && d.cleared >= 0 && d.cleared <= 2000
+          && d.name is string && d.name.matches('[^\n\r\t]{1,12}')
+          && !d.name.lower().matches(NG_NAME())
+          && d.cleared is int && d.cleared >= 0
+          && (d.cleared - 8) * 86400 <= (request.time - timestamp.date(2026, 11, 1)).seconds()
           && d.avg is int && d.avg >= 0 && d.avg <= 100
           && d.score == d.cleared * 1000 + d.avg
           && d.updated == request.time;
       }
       allow read: if true;
-      allow create, update: if isOwner() && validRank();
-      allow delete: if isOwner();
+      allow create: if isMember() && validRank();
+      allow update: if isMember() && validRank()
+        && (request.resource.data.cleared <= resource.data.cleared
+            || request.time > resource.data.updated + duration.value(60, 's'));
+      // 自分の記録を消すのは、匿名でもできる（登録を消すとき用）
+      allow delete: if request.auth != null && request.auth.uid == uid;
     }
 
     // ここに書いていない場所は、すべて読み書き禁止
