@@ -24,9 +24,12 @@
     var x = new XMLHttpRequest(); x.open('GET', '../../battle/index.html', false); x.send();
     var d = new DOMParser().parseFromString(x.responseText, 'text/html');
     document.getElementById('app').innerHTML = d.getElementById('app').innerHTML;
+    ['soundBtn', 'toasts', 'cutin'].forEach(function (id) { document.body.appendChild(d.getElementById(id)); });
   })();
   window.LB_BATTLE_FIREBASE = null;
 </script>
 <script src="../../battle/sato.js"></script>
+<script src="../../battle/fighters.js"></script>
+<script src="../../battle/music.js"></script>
 <script src="../../battle/battle.js"></script>
 </body></html>

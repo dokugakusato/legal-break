@@ -4,7 +4,6 @@
   'use strict';
   const $ = s => document.querySelector(s);
   const STAMPS = ['よろしく！', 'ナイス！', '参った！', 'もう1戦！', 'ありがとう！', 'くっ…！'];
-  const WAZA = ['取消訴訟！', '執行停止！', '国家賠償請求！', '詐害行為取消権！', '無権代理の追認拒絶！', '背信的悪意者排除！'];
   const QTIME = 30000, SEARCH_MS = 20000, DISC = 15000;
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const NUM = ['①', '②', '③', '④', '⑤'];
@@ -17,18 +16,43 @@
     if (!serverNow) return; const rtt = t1 - t0;
     if (rtt <= bestRtt * 1.5) { bestRtt = Math.min(bestRtt, rtt); offset = serverNow - (t0 + t1) / 2; }
   }
-  async function call(name, data) { const t0 = Date.now(); const r = await API.call(name, data || {}); syncClock(t0, Date.now(), r && r.now); return r; }
+  async function call(op, data) {
+    const t0 = Date.now(); const r = await API.call(op, data || {}); syncClock(t0, Date.now(), r && r.now);
+    if (r && r.match && MID && r.match.uids && r.match.uids.includes(uid)) applyMatch(r.match); // 通知を待たずに描く（軽くするため）
+    return r;
+  }
 
   // ---------- 音（最初のタップで鳴らせるようにする） ----------
   let AC = null;
-  function unlock() { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); } catch (e) {} }
+  let SOUND = true; try { SOUND = localStorage.getItem('lbBattleSound') !== '0'; } catch (e) {}
+  function unlock() {
+    try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); } catch (e) {}
+    if (AC && window.LBMusic) { LBMusic.ensure(AC); LBMusic.setOn(SOUND); if (!LBMusic.current() && !$('#s-home').hidden) LBMusic.play('title'); }
+  }
+  function music(name) { if (window.LBMusic && AC) { name ? LBMusic.play(name) : LBMusic.stop(); } }
+  // 声（ブラウザの読み上げ）。相手のことばは低め、自分は高め
+  function speak(text, who) {
+    if (!SOUND || !('speechSynthesis' in window)) return;
+    try {
+      const u = new SpeechSynthesisUtterance(text); u.lang = 'ja-JP'; u.rate = 1.1; u.pitch = who === 'op' ? 0.75 : who === 'waza' ? 0.6 : 1.15; u.volume = 1;
+      const v = speechSynthesis.getVoices().filter(v => /ja/i.test(v.lang)); if (v.length) u.voice = who === 'op' && v[1] ? v[1] : v[0];
+      speechSynthesis.cancel(); speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+  function setSound(on) {
+    SOUND = on; try { localStorage.setItem('lbBattleSound', on ? '1' : '0'); } catch (e) {}
+    $('#soundBtn').textContent = on ? '♪ 音 ON' : '♪ 音 OFF'; $('#soundBtn').classList.toggle('off', !on);
+    if (window.LBMusic) LBMusic.setOn(on);
+    if (!on) try { speechSynthesis.cancel(); } catch (e) {}
+    unlock();
+  }
   function tone(f1, f2, dur, type, vol) {
-    if (!AC) return; const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
+    if (!AC || !SOUND) return; const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
     o.type = type || 'square'; o.frequency.setValueAtTime(f1, t); o.frequency.exponentialRampToValueAtTime(Math.max(30, f2), t + dur);
     g.gain.setValueAtTime(vol || .16, t); g.gain.exponentialRampToValueAtTime(.001, t + dur); o.connect(g).connect(AC.destination); o.start(t); o.stop(t + dur + .02);
   }
   function noise(dur, vol) {
-    if (!AC) return; const n = AC.sampleRate * dur, b = AC.createBuffer(1, n, AC.sampleRate), d = b.getChannelData(0);
+    if (!AC || !SOUND) return; const n = AC.sampleRate * dur, b = AC.createBuffer(1, n, AC.sampleRate), d = b.getChannelData(0);
     for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
     const s = AC.createBufferSource(), g = AC.createGain(); s.buffer = b; g.gain.value = vol || .3; s.connect(g).connect(AC.destination); s.start();
   }
@@ -43,8 +67,58 @@
   };
 
   // ---------- 画面の切り替え ----------
-  function show(id) { document.querySelectorAll('.scr').forEach(s => s.hidden = s.id !== id); }
+  function show(id) { document.querySelectorAll('.scr').forEach(s => s.hidden = s.id !== id); document.body.classList.toggle('inbattle', id === 's-battle'); }
   function msg(t) { $('#homeMsg').textContent = t || ''; }
+
+  // ---------- キャラクター ----------
+  const FIG = id => (window.FIGHTERS || []).find(f => f.id === id) || window.FIGHTERS[0];
+  function myChara() { try { return FIG(localStorage.getItem('lbBattleChara')).id; } catch (e) { return 'sato'; } }
+  function drawCharas() {
+    const cur = myChara(), box = $('#charas'); if (!box) return;
+    box.innerHTML = window.FIGHTERS.map(f => `<button type="button" class="cc${f.id === cur ? ' on' : ''}" data-c="${f.id}"><span class="art">${f.svg}</span><b>${esc(f.name)}</b><small>${esc(f.type)}</small></button>`).join('');
+    const F = FIG(cur); $('#charaInfo').innerHTML = `<b>${esc(F.name)}</b>（${esc(F.type)}）　必殺技：<em>${esc(F.waza)}</em>`;
+    box.querySelectorAll('.cc').forEach(b => b.onclick = () => {
+      unlock(); try { localStorage.setItem('lbBattleChara', b.dataset.c); } catch (e) {}
+      const F = FIG(b.dataset.c); drawCharas(); SND.go(); speak(F.line, 'me');
+      if (API && uid && player) call('me', { chara: F.id }).catch(() => {});
+    });
+  }
+  // 戦う2人の絵。佐藤は本体と同じボロボロ演出、ほかのキャラは傷の重ね絵
+  const EDMG = '<svg class="edmg" viewBox="0 0 100 160" aria-hidden="true"><g class="e1"><ellipse cx="57" cy="44" rx="5" ry="4" fill="#5a2a6a" opacity=".55"/><path d="M34 98l10 6M60 112l9-5M44 128l7 4" stroke="#efe3cf" stroke-width="1.6" fill="none" opacity=".9"/></g><g class="e2"><path d="M45 22c-1.5 7 1 10-1 17c-1 4 2.6 4.4 2.6.4c.5-6-.6-10-1.6-17.4z" fill="#c22d22"/><path d="M26 108l7-10 5 10 5-7 1 12zM60 96l9-4 2 10 6 2-7 8z" fill="#2a1a14" stroke="#efe3cf" stroke-width=".8"/></g><g class="e3"><path d="M32 100l20 18M52 100l-20 18" stroke="#c22d22" stroke-width="3" stroke-linecap="round"/><circle cx="43" cy="40" r="4" fill="#3a1a2a" opacity=".8"/><path d="M64 120l6-8 4 8 5-6 2 11z" fill="#2a1a14" stroke="#efe3cf" stroke-width=".8"/></g></svg>';
+  function figHTML(id) { const F = FIG(id); return (id === 'sato' ? window.SATO_SVG : F.svg) + window.EMO_SVG + (id === 'sato' ? '' : EDMG); }
+  let figsFor = '';
+  function drawFigs(me, op) {
+    const key = me.chara + '|' + op.chara; if (figsFor === key) return; figsFor = key;
+    $('#figMe').className = 'fig me c-' + me.chara + (me.chara === 'sato' ? ' hero' : '');
+    $('#figOp').className = 'fig op c-' + op.chara + (op.chara === 'sato' ? ' hero' : '') + (me.chara === op.chara ? ' alt' : '');
+    $('#figMe').innerHTML = figHTML(me.chara); $('#figOp').innerHTML = figHTML(op.chara);
+  }
+
+  // ---------- ひとこと（大きく出して、声で読む） ----------
+  function toast(t, cls) {
+    const box = $('#toasts'), d = document.createElement('div'); d.className = 'toast ' + (cls || ''); d.innerHTML = t; box.appendChild(d);
+    setTimeout(() => d.classList.add('out'), 2600); setTimeout(() => d.remove(), 3100);
+  }
+  function showSaying(who, id, mine) {
+    const p = M && M.players[who]; const name = mine ? 'あなた' : (p ? p.name : '相手');
+    toast(`<span class="who">${esc(name)}</span>「${esc(STAMPS[id] || '')}」${mine ? '<span class="sent">✓ 送った</span>' : ''}`, mine ? 'me' : 'op');
+    speak(STAMPS[id] || '', mine ? 'me' : 'op');
+    const el = mine ? $('#bubMe') : $('#bubOp');
+    el.textContent = STAMPS[id] || ''; el.hidden = false; el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
+    clearTimeout(el._t); el._t = setTimeout(() => el.hidden = true, 2600);
+  }
+
+  // ---------- 必殺技（カットイン → 技名を読み上げ → キャラごとの動き） ----------
+  function special(byUid, toUid) {
+    const p = M.players[byUid], F = FIG(p.chara), mine = byUid === uid;
+    const fBy = mine ? '#figMe' : '#figOp', fTo = toUid === uid ? '#figMe' : '#figOp';
+    const ci = $('#cutin'); ci.className = 'cutin ' + (mine ? 'me' : 'op');
+    ci.innerHTML = `<div class="band"><span class="art${(!mine && M.players[uid].chara === p.chara) ? ' alt' : ''}">${F.svg}</span><div class="wz"><small>${esc(p.name)}の必殺技</small><b>${esc(F.waza)}！</b></div></div>`;
+    ci.hidden = false; void ci.offsetWidth; ci.classList.add('go');
+    speak(F.waza, 'waza'); SND.counter();
+    setTimeout(() => { ci.hidden = true; ci.classList.remove('go'); anim(fBy, 'sp-' + F.move, 1100); }, 1100);
+    setTimeout(() => { anim(fTo, 'hit', 450); anim(fTo, F.move === 'upper' || F.move === 'throw' ? 'launch' : 'blown', 1000); emo(fTo, 'shock', 1400); shake(); SND.hit(); }, 1100 + 380);
+  }
 
   // ---------- メニュー ----------
   function renderMe() {
@@ -64,8 +138,8 @@
     return n;
   }
   async function goHome() {
-    leaveMatch(); show('s-home'); msg('');
-    try { const r = await call('battleMe'); if (r.player) { player = r.player; renderMe(); } } catch (e) {}
+    leaveMatch(); show('s-home'); msg(''); music('title'); drawCharas();
+    try { const r = await call('me'); if (r.player) { player = r.player; renderMe(); } } catch (e) {}
     refreshOnline();
   }
 
@@ -77,10 +151,10 @@
     saveName(name);
     leaveMatch();
     const my = { id: Math.random() }; search = my;
-    show('s-search'); $('#found').hidden = true; $('#cancelBtn').hidden = false;
+    show('s-search'); $('#found').hidden = true; $('#cancelBtn').hidden = false; music('wait');
     $('#searchTxt').textContent = '対戦相手を待っています…'; $('#searchLeft').textContent = '';
     let r;
-    try { r = await call('battleFind', { name }); }
+    try { r = await call('find', { name, chara: myChara() }); }
     catch (e) { if (search === my) { search = null; show('s-home'); msg(errText(e)); } return; }
     if (search !== my) return;
     if (r.matchId) return matched(r.matchId, false);
@@ -92,17 +166,17 @@
       $('#searchLeft').textContent = left > 0 ? `あと ${left} 秒で修行相手（CPU）と戦う` : '修行相手を呼んでいます…';
       if (left <= 0 && !my.cpuAsked) {
         my.cpuAsked = true;
-        try { const c = await call('battleCpu', { since }); if (search === my) matched(c.matchId, true); }
+        try { const c = await call('cpu', { since }); if (search === my) matched(c.matchId, true); }
         catch (e) { if (search === my) { stopSearch(); show('s-home'); msg(errText(e)); } }
       }
     }, 250);
   }
   function stopSearch() { if (!search) return; clearInterval(search.timer); search.unTicket && search.unTicket(); search = null; }
-  async function cancel() { stopSearch(); show('s-home'); try { await call('battleCancel'); } catch (e) {} }
+  async function cancel() { stopSearch(); show('s-home'); music('title'); try { await call('cancel'); } catch (e) {} }
   function matched(id, viaCpu) {
     stopSearch();
     $('#cancelBtn').hidden = true;
-    const f = $('#found'); f.textContent = viaCpu ? '修行相手、参上！' : '見つかった！'; f.hidden = false; SND.found();
+    const f = $('#found'); f.textContent = viaCpu ? '修行相手、参上！' : '見つかった！'; f.hidden = false; SND.found(); if (window.LBMusic) { LBMusic.stop(); LBMusic.jingle('found'); }
     setTimeout(() => enterMatch(id), 900);
   }
 
@@ -115,9 +189,8 @@
     show('s-battle');
     ['#vs', '#review', '#endL', '#pauseB'].forEach(s => $(s).hidden = true);
     $('#qText').textContent = ''; $('#choices').innerHTML = ''; $('#qMeta').textContent = ''; $('#qNo').textContent = 'VS';
-    $('#figMe').className = 'fig me hero'; $('#figOp').className = 'fig op hero';
-    $('#figMe').innerHTML = window.SATO_SVG + window.EMO_SVG; $('#figOp').innerHTML = window.SATO_SVG + window.EMO_SVG;
-    unM = API.watchMatch(id, m => { if (MID === id && m) render(m); }, () => {});
+    figsFor = ''; $('#figMe').innerHTML = ''; $('#figOp').innerHTML = '';
+    unM = API.watchMatch(id, m => { if (MID === id && m) applyMatch(m); }, () => {});
     clearInterval(loopTimer); loopTimer = setInterval(loop, 100);
   }
   function leaveMatch() {
@@ -125,7 +198,7 @@
     unM && unM(); unM = null; unOp && unOp(); unOp = null;
     clearTimeout(tickTimer); clearInterval(loopTimer); MID = null; M = null;
   }
-  function tick() { if (MID) call('battleTick', { matchId: MID }).catch(() => {}); }
+  function tick() { if (MID) call('tick', { matchId: MID }).catch(() => {}); }
   function scheduleTick() {
     clearTimeout(tickTimer); if (!M || M.phase === 'end') return;
     let at = M.until + 250;
@@ -134,6 +207,8 @@
     tickTimer = setTimeout(() => { tick(); tickTimer = setTimeout(tick, 2500); }, Math.max(50, at - sNow()));
   }
 
+  // 新しい状態だけを描く（通知と返事の両方から届くので、古い方は捨てる）
+  function applyMatch(m) { if (M && (m.v || 0) <= (M.v || 0)) return; render(m); }
   function render(m) {
     const prev = M; M = m;
     const me = m.players[uid], op = m.players[opUid()];
@@ -143,7 +218,10 @@
     $('#hMeRank').outerHTML = `<b class="rk r${esc(me.rank)}" id="hMeRank">${esc(me.rank)}</b>`;
     $('#hOpRank').outerHTML = `<b class="rk r${esc(op.rank)}" id="hOpRank">${esc(op.rank)}</b>`;
     hpBar('#hMeBar', '#hMeHp', me.hp); hpBar('#hOpBar', '#hOpHp', op.hp);
+    drawFigs(me, op);
     hurt('#figMe', me.hp); hurt('#figOp', op.hp);
+    if (m.phase === 'vs' && (!prev || prev.phase !== 'vs')) music('battle');
+    if (window.LBMusic && m.phase !== 'end') LBMusic.setTempo(Math.min(me.hp, op.hp) <= 300 ? 1.15 : 1);
     if (!unOp && !op.cpu && API.watchStatus) unOp = API.watchStatus(opUid(), st => {
       opOffline = !!(st && st.state === 'offline');
       if (opOffline && M && M.phase !== 'end') { tick(); }
@@ -161,7 +239,7 @@
       // 攻撃の演出と正解の色を少し見せてから、解説を重ねる
       clearTimeout(rvTimer); rvTimer = setTimeout(() => { if (M && M.phase === 'rv') $('#review').hidden = false; }, 1600);
     }
-    if (m.phase === 'end' && !endShown) { endShown = true; showAnswerMarks(m); setTimeout(() => drawEnd(m), m.result && m.result.reason === 'ko' ? 1700 : 600); }
+    if (m.phase === 'end' && !endShown) { endShown = true; showAnswerMarks(m); setTimeout(() => drawEnd(m), m.result && m.result.reason === 'ko' ? 3300 : 600); }
     stamps(m);
     const pb = $('#pauseB');
     if (m.paused && m.phase !== 'end') { pb.hidden = false; pb.textContent = m.paused.uid === uid ? '通信が切れました。つなぎ直しています…' : '相手の接続を待っています…（15秒で不戦勝）'; }
@@ -170,29 +248,27 @@
     scheduleTick();
   }
   function hpBar(bar, num, hp) { const b = $(bar); b.style.width = Math.max(0, hp / 10) + '%'; b.classList.toggle('low', hp <= 300); $(num).textContent = hp; }
-  function hurt(sel, hp) { const f = $(sel); f.classList.toggle('hurt1', hp <= 600 && hp > 300); f.classList.toggle('hurt2', hp <= 300); }
+  function hurt(sel, hp) { const f = $(sel); f.classList.toggle('hurt1', hp <= 600 && hp > 300); f.classList.toggle('hurt2', hp <= 300); f.classList.toggle('ed1', hp < 1000); f.classList.toggle('ed2', hp <= 600); f.classList.toggle('ed3', hp <= 300); }
 
   function drawVS(m) {
     const me = m.players[uid], op = m.players[opUid()];
-    const card = p => `<div class="vscard"><div class="rb r${esc(p.rank)}">${esc(p.rank)}</div><div class="nm">${esc(p.name)}</div><div class="wl">${p.cpu ? '練習相手' : `${p.w}勝${p.l}敗 ・ レート${p.rating}`}</div></div>`;
-    $('#vs').innerHTML = `<div class="vsrow">${card(me)}<div class="vsx">VS</div>${card(op)}</div><div class="count" id="count"></div>${m.cpu ? '<p class="cpunote">CPU戦：ランクは変わりません</p>' : ''}${stampBar()}`;
+    const card = (p, alt) => { const F = FIG(p.chara); return `<div class="vscard"><span class="art${alt ? ' alt' : ''}">${F.svg}</span><div class="rb r${esc(p.rank)}">${esc(p.rank)}</div><div class="nm">${esc(p.name)}</div><div class="wl">${esc(F.name)}・${esc(F.type)}</div><div class="wl">${p.cpu ? '練習相手' : `${p.w}勝${p.l}敗 ・ レート${p.rating}`}</div></div>`; };
+    $('#vs').innerHTML = `<div class="vsrow">${card(me)}<div class="vsx">VS</div>${card(op, me.chara === op.chara)}</div><div class="count" id="count"></div>${m.cpu ? '<p class="cpunote">CPU戦：ランクは変わりません</p>' : ''}${stampBar()}`;
     bindStamps($('#vs'));
   }
-  function stampBar() { return `<div class="stamps">${STAMPS.map((s, i) => `<button type="button" data-st="${i}">${s}</button>`).join('')}</div>`; }
+  function stampBar() { return `<div class="stamps"><p class="stlab">ひとこと（相手に声で届く）</p>${STAMPS.map((s, i) => `<button type="button" data-st="${i}">${s}</button>`).join('')}</div>`; }
   function bindStamps(root) {
     root.querySelectorAll('[data-st]').forEach(b => b.onclick = () => {
       if (!MID) return; const id = +b.dataset.st;
       root.querySelectorAll('[data-st]').forEach(x => x.disabled = true); setTimeout(() => root.querySelectorAll('[data-st]').forEach(x => x.disabled = false), 3000);
-      call('battleStamp', { matchId: MID, id }).catch(() => {});
+      showSaying(uid, id, true); call('stamp', { matchId: MID, id }).then(r => { if (r && r.accepted === false) toast('送れませんでした（問題中は送れません）'); }).catch(() => toast('送れませんでした'));
     });
   }
   function stamps(m) {
     Object.keys(m.stamps || {}).forEach(u => {
       const s = m.stamps[u]; if (stampSeen[u] === s.seq) return; stampSeen[u] = s.seq;
-      if (sNow() - s.at > 6000) return;
-      const el = u === uid ? $('#bubMe') : $('#bubOp');
-      el.textContent = STAMPS[s.id] || ''; el.hidden = false; el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
-      clearTimeout(el._t); el._t = setTimeout(() => el.hidden = true, 2600);
+      if (u === uid || sNow() - s.at > 6000) return; // 自分のは押した瞬間に出している
+      showSaying(u, s.id, false);
     });
   }
 
@@ -211,7 +287,7 @@
     btn.classList.add('mine'); $('#choices').classList.add('locked');
     $('#choices').querySelectorAll('.ch').forEach(b => b.disabled = true);
     const qi = M.qi;
-    call('battleAnswer', { matchId: MID, qi, choice: i }).then(r => {
+    call('answer', { matchId: MID, qi, choice: i }).then(r => {
       if (r && !r.accepted && M && M.phase === 'q' && M.qi === qi && !M.ans[uid] && !M.paused) {
         btn.classList.remove('mine'); $('#choices').classList.remove('locked'); $('#choices').querySelectorAll('.ch').forEach(b => b.disabled = false);
       }
@@ -256,6 +332,7 @@
     m = M;
     const res = m.result || {}, win = res.winner === uid, draw = !res.winner;
     if (!draw) { const loser = win ? '#figOp' : '#figMe', winner = win ? '#figMe' : '#figOp'; emo(winner, 'happy'); emo(loser, 'sad'); if (res.reason === 'ko') $(loser).classList.add('down'); }
+    music(null); if (window.LBMusic) LBMusic.jingle(win || draw ? 'win' : 'lose'); speak(draw ? '引き分け' : win ? 'あなたの勝ち！' : '負けてしまった…', 'me');
     let big = draw ? 'DRAW' : win ? (res.reason === 'ko' ? 'K.O.!' : 'WIN!') : 'LOSE…';
     let sub = draw ? '引き分け' : win ? (res.reason === 'forfeit' ? '相手が戻らなかった（不戦勝）' : res.reason === 'judge' ? '判定勝ち' : 'あなたの勝ち') : (res.reason === 'forfeit' ? '接続が切れて不戦敗' : res.reason === 'judge' ? '判定負け' : 'K.O.された…');
     let rate = '';
@@ -280,10 +357,15 @@
       if (sNow() - (m.phaseAt + e.at) > 8000 && m.phase !== 'q') return; // 古いものは演出しない
       const mine = e.by === uid, fBy = mine ? '#figMe' : '#figOp', fTo = e.to === uid ? '#figMe' : '#figOp';
       if (e.t === 'hit' || e.t === 'counter') {
-        if (e.t === 'counter') { pop('COUNTER!', 'gold'); setTimeout(() => pop(WAZA[Math.floor(Math.random() * WAZA.length)], 'small gold'), 650); SND.counter(); }
-        else SND.hit();
-        anim(fBy, 'lunge', 260); setTimeout(() => { anim(fTo, 'hit', 450); anim(fTo, 'knock', 500); emo(fTo, 'shock', 1000); emo(fBy, 'angry', 900); shake(); dmgNum(e.to === uid ? 'me' : 'op', e.dmg); }, 180);
-        if (m.phase === 'end') SND.ko();
+        const finish = m.phase === 'end' && m.players[e.to].hp <= 0;
+        if (e.t === 'counter' || finish) {
+          pop(e.t === 'counter' ? 'COUNTER!' : 'とどめ！', 'gold'); special(e.by, e.to);
+          setTimeout(() => dmgNum(e.to === uid ? 'me' : 'op', e.dmg), 1500);
+          if (finish) setTimeout(() => SND.ko(), 1600);
+        } else {
+          SND.hit();
+          anim(fBy, 'lunge', 260); setTimeout(() => { anim(fTo, 'hit', 450); anim(fTo, 'knock', 500); emo(fTo, 'shock', 1000); emo(fBy, 'angry', 900); shake(); dmgNum(e.to === uid ? 'me' : 'op', e.dmg); }, 180);
+        }
       } else if (e.t === 'oto' || e.t === 'miss') {
         pop(e.t === 'oto' ? 'お手つき！' : 'ミス！', e.t === 'oto' ? '' : 'small'); SND.miss();
         anim(fTo, 'hit', 450); emo(fTo, 'sad', 1200); dmgNum(e.to === uid ? 'me' : 'op', e.dmg);
@@ -364,7 +446,11 @@
     inAppGuide();
     $('#nameIn').value = savedName();
     $('#findBtn').onclick = find; $('#cancelBtn').onclick = cancel; $('#rankBtn').onclick = ranking;
+    $('#soundBtn').onclick = () => setSound(!SOUND); setSound(SOUND);
+    drawCharas();
+    if ('speechSynthesis' in window) try { speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => {}; } catch (e) {}
     document.addEventListener('pointerdown', unlock, { once: true });
+    document.addEventListener('keydown', unlock, { once: true });
     renderMe();
     API = window.LB_MOCK_API || (window.LB_BATTLE_FIREBASE ? firebaseAPI(window.LB_BATTLE_FIREBASE) : null);
     if (!API) { $('#findBtn').disabled = true; msg('準備中です（試験用の設定がまだ入っていません）'); return; }
@@ -373,8 +459,8 @@
       uid = await API.init();
       API.onReconnect && API.onReconnect(() => { if (M && M.paused && M.phase !== 'end') tick(); });
       $('#findBtn').disabled = false; msg('');
-      const r = await call('battleMe');
-      if (r.player) { player = r.player; renderMe(); if (!$('#nameIn').value) $('#nameIn').value = player.name; }
+      const r = await call('me');
+      if (r.player) { player = r.player; renderMe(); if (!$('#nameIn').value) $('#nameIn').value = player.name; if (player.chara && !localStorage.getItem('lbBattleChara')) { try { localStorage.setItem('lbBattleChara', player.chara); } catch (e) {} drawCharas(); } }
       refreshOnline();
     } catch (e) { $('#findBtn').disabled = true; msg(errText(e)); }
   }
@@ -407,7 +493,7 @@
         return me;
       },
       onReconnect(cb) { reconnectCb = cb; },
-      call(name, data) { return fns.httpsCallable(name)(data).then(r => r.data); },
+      call(op, data) { return fns.httpsCallable('battle')(Object.assign({ op }, data)).then(r => r.data); },
       watchMatch(id, cb, err) { return db.collection('battleMatches').doc(id).onSnapshot(d => cb(d.data()), err || (() => {})); },
       watchTicket(cb) { return db.collection('battleTickets').doc(auth.currentUser.uid).onSnapshot(d => cb(d.exists ? d.data() : null), () => {}); },
       watchStatus(u, cb) { const r = rt.ref('status/' + u), f = r.on('value', s => cb(s.val())); return () => r.off('value', f); },

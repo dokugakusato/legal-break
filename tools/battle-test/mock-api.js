@@ -25,13 +25,14 @@
   }
   function mutate(id, u, fn) {
     const x = matches[id]; if (!x) throw err('not-found', '試合がない');
-    const was = x.m.phase === 'end';
+    const was = x.m.phase === 'end', before = JSON.stringify(x.m);
     const out = fn(x.m, x.s, now()) || {};
+    if (JSON.stringify(x.m) !== before) x.m.v = (x.m.v || 0) + 1;
     if (!was && x.m.phase === 'end' && !x.m.cpu) {
       const [a, b] = x.m.uids; L.settle(x.m, players[a], players[b], now());
     }
     emit(id); if (x.m.uids.includes(BOT)) bot(id);
-    return Object.assign({ now: now(), phase: x.m.phase }, out);
+    return Object.assign({ now: now(), phase: x.m.phase, match: JSON.parse(JSON.stringify(x.m)) }, out);
   }
 
   // 人間役のボット
@@ -42,12 +43,12 @@
     if (m.phase === 'end') return;
     if (opp === 'drop' && m.phase === 'q' && m.qi === 1 && !st.dropped) { st.dropped = 1; status[BOT] = 'offline'; return; }
     if (status[BOT] === 'offline') return;
-    st.tt = setTimeout(() => api.call('battleTick', { matchId: id }, BOT), Math.max(30, m.until - now() + 300));
-    if (m.phase === 'vs' && !st.hello) { st.hello = 1; setTimeout(() => api.call('battleStamp', { matchId: id, id: 0 }, BOT).catch(() => {}), 1200); }
+    st.tt = setTimeout(() => api.call('tick', { matchId: id }, BOT), Math.max(30, m.until - now() + 300));
+    if (m.phase === 'vs' && !st.hello) { st.hello = 1; setTimeout(() => api.call('stamp', { matchId: id, id: 0 }, BOT).catch(() => {}), 1200); }
     if (m.phase === 'q' && !m.ans[BOT] && st.q !== m.qi) {
       st.q = m.qi;
       const ok = Math.random() < 0.5, at = 4000 + Math.random() * 16000;
-      st.t = setTimeout(() => api.call('battleAnswer', { matchId: id, qi: m.qi, choice: ok ? x.s.cur.correct : (x.s.cur.correct + 1) % 5 }, BOT).catch(() => {}), at);
+      st.t = setTimeout(() => api.call('answer', { matchId: id, qi: m.qi, choice: ok ? x.s.cur.correct : (x.s.cur.correct + 1) % 5 }, BOT).catch(() => {}), at);
     }
   }
 
@@ -57,13 +58,14 @@
     async call(name, d, as) {
       const u = as || ME; d = d || {};
       await new Promise(ok => setTimeout(ok, 40));
-      if (name === 'battleMe') {
+      if (name === 'me') {
         if (d.name) { const n = L.cleanName(d.name); if (!n) throw err('invalid-argument', '名前は1〜12文字'); players[u] = players[u] || L.newPlayer(n, now()); players[u].name = n; }
+        if (d.chara && players[u]) players[u].chara = L.cleanChara(d.chara);
         const p = players[u]; return wait({ now: now(), player: p ? Object.assign(L.pub(p), { games: p.games || 0 }) : null });
       }
-      if (name === 'battleFind') {
+      if (name === 'find') {
         const n = L.cleanName(d.name); if (!n) throw err('invalid-argument', '名前は1〜12文字');
-        players[u] = players[u] || L.newPlayer(n, now()); players[u].name = n;
+        players[u] = players[u] || L.newPlayer(n, now()); players[u].name = n; players[u].chara = L.cleanChara(d.chara);
         const t = now();
         if (queue && queue.uid !== u && t - queue.at < R.QUEUE_FRESH && status[queue.uid] !== 'offline') {
           const id = create({ uid: queue.uid, p: players[queue.uid] }, { uid: u, p: players[u] }, false);
@@ -72,24 +74,24 @@
           return wait({ now: t, matchId: id });
         }
         queue = { uid: u, at: t };
-        if (u === ME && (opp === 'human' || opp === 'drop')) { status[BOT] = 'online'; setTimeout(() => api.call('battleFind', { name: players[BOT].name }, BOT), 3000); }
+        if (u === ME && (opp === 'human' || opp === 'drop')) { status[BOT] = 'online'; setTimeout(() => api.call('find', { name: players[BOT].name, chara: 'bando' }, BOT), 3000); }
         return wait({ now: t, waiting: true, since: t });
       }
-      if (name === 'battleCancel') { if (queue && queue.uid === u) queue = null; return wait({ now: now() }); }
-      if (name === 'battleCpu') {
+      if (name === 'cancel') { if (queue && queue.uid === u) queue = null; return wait({ now: now() }); }
+      if (name === 'cpu') {
         const t = now();
         if (d.since && tickets[u] && tickets[u].at >= d.since) return wait({ now: t, matchId: tickets[u].matchId });
         if (queue && queue.uid === u) queue = null;
-        const id = create({ uid: u, p: players[u] }, { uid: 'cpuX', p: { name: '修行相手（CPU）', rating: 0, rank: 'CPU' } }, true);
+        const id = create({ uid: u, p: players[u] }, { uid: 'cpuX', p: { name: '修行相手（CPU）', rating: 0, rank: 'CPU', chara: L.CHARAS[Math.floor(Math.random() * 6)] } }, true);
         setTicket(u, { matchId: id, at: t });
         return wait({ now: t, matchId: id });
       }
-      if (name === 'battleAnswer') return wait(mutate(d.matchId, u, (m, s, t) => L.answer(m, s, u, d.qi, d.choice, t, Q)));
-      if (name === 'battleTick') return wait(mutate(d.matchId, u, (m, s, t) => {
+      if (name === 'answer') return wait(mutate(d.matchId, u, (m, s, t) => L.answer(m, s, u, d.qi, d.choice, t, Q)));
+      if (name === 'tick') return wait(mutate(d.matchId, u, (m, s, t) => {
         const on = {}; m.uids.filter(x => !m.players[x].cpu).forEach(x => on[x] = status[x] !== 'offline');
         L.presence(m, t, on); L.advance(m, s, t, Q);
       }));
-      if (name === 'battleStamp') return wait(mutate(d.matchId, u, (m, s, t) => L.stamp(m, u, d.id, t)));
+      if (name === 'stamp') return wait(mutate(d.matchId, u, (m, s, t) => L.stamp(m, u, d.id, t)));
       throw err('not-found', name);
     },
     watchMatch(id, cb) { (watchers[id] = watchers[id] || []).push(cb); setTimeout(() => cb(JSON.parse(JSON.stringify(matches[id].m))), 20); return () => { watchers[id] = (watchers[id] || []).filter(f => f !== cb); }; },

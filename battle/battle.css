@@ -9,7 +9,7 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
 html,body{height:100%;margin:0}
-body{background:radial-gradient(120% 70% at 50% 0%,#5a2a14 0%,#2a140c 45%,var(--ink) 100%) fixed;color:var(--bone);font-family:var(--body);font-size:15px;line-height:1.6;overflow:hidden}
+body{background:radial-gradient(120% 70% at 50% 0%,#5a2a14 0%,#2a140c 45%,var(--ink) 100%);color:var(--bone);font-family:var(--body);font-size:15px;line-height:1.6;overflow:hidden}
 #app{position:fixed;inset:0;padding:env(safe-area-inset-top,0) env(safe-area-inset-right,0) env(safe-area-inset-bottom,0) env(safe-area-inset-left,0);display:flex;flex-direction:column;max-width:560px;margin:0 auto}
 .scr{flex:1;min-height:0;display:flex;flex-direction:column;position:relative}
 button{font:inherit;color:inherit;cursor:pointer}
@@ -166,3 +166,96 @@ button{font:inherit;color:inherit;cursor:pointer}
 /* 表情（本体と同じ部品）：ふだんは隠し、場面で出す */
 .emo>g{display:none}
 .fig.emo-shock .e-shock,.fig.emo-happy .e-happy,.fig.emo-sad .e-sad,.fig.emo-angry .e-angry{display:inline}
+
+/* 音のボタン */
+.soundbtn{position:fixed;z-index:70;top:calc(6px + env(safe-area-inset-top,0));right:calc(6px + env(safe-area-inset-right,0));padding:4px 10px;font-size:12px;font-weight:900;border:1px solid var(--gold);background:rgba(0,0,0,.6);color:var(--gold);border-radius:14px}
+.soundbtn.off{color:#8a7a68;border-color:#5a4a3a}
+#s-home{justify-content:flex-start;padding-top:22px}
+
+/* キャラ選び */
+.sec{margin:8px 16px 4px;font-size:12px;font-weight:900;color:var(--gold);letter-spacing:.1em}
+.charas{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin:0 12px}
+.cc{display:flex;flex-direction:column;align-items:center;padding:3px 1px 4px;border:2px solid #4a3a2e;border-radius:6px;background:rgba(0,0,0,.35);min-width:0}
+.cc .art{display:block;height:58px;width:100%}
+.cc .art svg{height:100%;width:100%}
+.cc b{font-size:11px;line-height:1.2;margin-top:2px}
+.cc small{font-size:8.5px;color:#b9aa93;line-height:1.1;white-space:nowrap;overflow:hidden;max-width:100%}
+.cc.on{border-color:var(--gold);background:rgba(217,164,65,.2);box-shadow:0 0 10px rgba(217,164,65,.5)}
+.charainfo{margin:5px 16px 0;font-size:12px;text-align:center;color:#e6d8c2;min-height:1.4em}
+.charainfo em{font-style:normal;color:var(--gold);font-weight:900}
+@media (max-height:640px){.cc .art{height:44px}.logo{font-size:30px}.mecard{margin-top:2px}}
+
+/* 戦う2人：ほかのキャラの傷、同じキャラ同士の色違い */
+.edmg{position:absolute;inset:0;width:100%;height:100%}
+.edmg g{display:none}
+.fig.ed1 .edmg .e1,.fig.ed2 .edmg .e2,.fig.ed3 .edmg .e3{display:inline}
+.fig.alt>svg:first-child,.art.alt svg{filter:hue-rotate(160deg) saturate(1.3)}
+.fig.op>svg:first-child{filter:none}
+.fig.op.alt>svg:first-child{filter:hue-rotate(160deg) saturate(1.3)}
+.fig:not(.hero).ed3>svg:first-child{animation:pant 1.6s ease-in-out infinite;transform-origin:50% 100%}
+.vscard .art{display:block;height:min(26vh,170px);margin:0 auto 4px}
+.vscard .art svg{height:100%;width:auto}
+.vsrow .vscard:last-child .art svg{transform:scaleX(-1)}
+
+/* 必殺技のカットイン */
+.cutin{position:fixed;inset:0;z-index:65;pointer-events:none;display:flex;align-items:center}
+.cutin .band{position:relative;width:100%;height:30%;display:flex;align-items:center;gap:8px;padding:0 12px;background:linear-gradient(90deg,#7a1a14,#d9a441 50%,#7a1a14);border-top:3px solid #fff;border-bottom:3px solid #fff;transform:translateX(-110%) skewY(-6deg);box-shadow:0 0 40px rgba(255,200,80,.8)}
+.cutin.op .band{transform:translateX(110%) skewY(6deg);flex-direction:row-reverse;background:linear-gradient(90deg,#1a2a7a,#7fc3ff 50%,#1a2a7a)}
+.cutin.go .band{animation:cutA 1.1s cubic-bezier(.2,.9,.3,1) forwards}
+.cutin.op.go .band{animation:cutB 1.1s cubic-bezier(.2,.9,.3,1) forwards}
+@keyframes cutA{0%{transform:translateX(-110%) skewY(-6deg)}25%,80%{transform:translateX(0) skewY(-6deg)}100%{transform:translateX(0) skewY(-6deg);opacity:0}}
+@keyframes cutB{0%{transform:translateX(110%) skewY(6deg)}25%,80%{transform:translateX(0) skewY(6deg)}100%{transform:translateX(0) skewY(6deg);opacity:0}}
+.cutin .art{height:120%;flex:none;aspect-ratio:100/160}
+.cutin .art svg{height:100%;width:100%}
+.cutin .wz{flex:1;text-align:center}
+.cutin .wz small{display:block;font-weight:900;font-size:13px;color:#fff;text-shadow:0 1px 0 #000}
+.cutin .wz b{display:block;font-family:var(--display);font-weight:400;font-size:clamp(26px,8.5vw,44px);line-height:1.1;color:#fff;text-shadow:0 3px 0 #000,0 0 18px #fff}
+
+/* 必殺技の動き（キャラごと） */
+.fig.me.sp-upper{animation:upMe 1.1s cubic-bezier(.3,.1,.3,1)}
+.fig.op.sp-upper{animation:upOp 1.1s cubic-bezier(.3,.1,.3,1)}
+@keyframes upMe{0%{transform:none}20%{transform:translateX(60%) translateY(14%) scaleY(.8)}55%{transform:translateX(105%) translateY(-75%) rotate(-14deg)}75%{transform:translateX(105%) translateY(-85%) rotate(-370deg)}100%{transform:none}}
+@keyframes upOp{0%{transform:scaleX(-1)}20%{transform:scaleX(-1) translateX(60%) translateY(14%) scaleY(.8)}55%{transform:scaleX(-1) translateX(105%) translateY(-75%) rotate(-14deg)}75%{transform:scaleX(-1) translateX(105%) translateY(-85%) rotate(-370deg)}100%{transform:scaleX(-1)}}
+.fig.me.sp-tackle{animation:tkMe 1.1s cubic-bezier(.6,0,.3,1)}
+.fig.op.sp-tackle{animation:tkOp 1.1s cubic-bezier(.6,0,.3,1)}
+@keyframes tkMe{30%{transform:translateX(-12%) scale(1.05)}55%,70%{transform:translateX(125%) scale(1.15)}100%{transform:none}}
+@keyframes tkOp{0%{transform:scaleX(-1)}30%{transform:scaleX(-1) translateX(-12%) scale(1.05)}55%,70%{transform:scaleX(-1) translateX(125%) scale(1.15)}100%{transform:scaleX(-1)}}
+.fig.me.sp-kick{animation:kkMe 1.1s ease-in-out}
+.fig.op.sp-kick{animation:kkOp 1.1s ease-in-out}
+@keyframes kkMe{30%{transform:translateX(70%) translateY(-30%) rotate(180deg)}55%{transform:translateX(110%) translateY(-20%) rotate(360deg)}100%{transform:none}}
+@keyframes kkOp{0%{transform:scaleX(-1)}30%{transform:scaleX(-1) translateX(70%) translateY(-30%) rotate(180deg)}55%{transform:scaleX(-1) translateX(110%) translateY(-20%) rotate(360deg)}100%{transform:scaleX(-1)}}
+.fig.me.sp-rapid{animation:rpMe 1.1s linear}
+.fig.op.sp-rapid{animation:rpOp 1.1s linear}
+@keyframes rpMe{10%,30%,50%,70%{transform:translateX(100%)}20%,40%,60%,80%{transform:translateX(85%)}100%{transform:none}}
+@keyframes rpOp{0%,100%{transform:scaleX(-1)}10%,30%,50%,70%{transform:scaleX(-1) translateX(100%)}20%,40%,60%,80%{transform:scaleX(-1) translateX(85%)}}
+.fig.me.sp-throw{animation:thMe 1.1s ease-in-out}
+.fig.op.sp-throw{animation:thOp 1.1s ease-in-out}
+@keyframes thMe{35%{transform:translateX(105%)}60%{transform:translateX(105%) translateY(-10%) rotate(-25deg)}100%{transform:none}}
+@keyframes thOp{0%{transform:scaleX(-1)}35%{transform:scaleX(-1) translateX(105%)}60%{transform:scaleX(-1) translateX(105%) translateY(-10%) rotate(-25deg)}100%{transform:scaleX(-1)}}
+.fig.me.sp-dash{animation:dsMe 1.1s steps(1,end)}
+.fig.op.sp-dash{animation:dsOp 1.1s steps(1,end)}
+@keyframes dsMe{0%{transform:none;opacity:1}15%{transform:translateX(40%);opacity:.4}30%{transform:translateX(80%);opacity:.7}45%{transform:translateX(120%);opacity:1}60%{transform:translateX(60%);opacity:.5}75%{transform:translateX(115%);opacity:1}100%{transform:none;opacity:1}}
+@keyframes dsOp{0%{transform:scaleX(-1);opacity:1}15%{transform:scaleX(-1) translateX(40%);opacity:.4}30%{transform:scaleX(-1) translateX(80%);opacity:.7}45%{transform:scaleX(-1) translateX(120%);opacity:1}60%{transform:scaleX(-1) translateX(60%);opacity:.5}75%{transform:scaleX(-1) translateX(115%);opacity:1}100%{transform:scaleX(-1);opacity:1}}
+/* 必殺技を受けた側 */
+.fig.me.launch{animation:lnMe 1s cubic-bezier(.2,.8,.4,1)}
+.fig.op.launch{animation:lnOp 1s cubic-bezier(.2,.8,.4,1)}
+@keyframes lnMe{40%{transform:translateY(-90%) rotate(-200deg)}100%{transform:none}}
+@keyframes lnOp{0%{transform:scaleX(-1)}40%{transform:scaleX(-1) translateY(-90%) rotate(-200deg)}100%{transform:scaleX(-1)}}
+.fig.me.blown{animation:bwMe 1s cubic-bezier(.2,.8,.4,1)}
+.fig.op.blown{animation:bwOp 1s cubic-bezier(.2,.8,.4,1)}
+@keyframes bwMe{40%{transform:translateX(-45%) rotate(-30deg)}100%{transform:none}}
+@keyframes bwOp{0%{transform:scaleX(-1)}40%{transform:scaleX(-1) translateX(-45%) rotate(-30deg)}100%{transform:scaleX(-1)}}
+
+/* ひとこと：画面の一番上に大きく出す（重なった画面にも隠れない） */
+#toasts{position:fixed;left:0;right:0;top:calc(34px + env(safe-area-inset-top,0));z-index:68;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;padding:0 12px}
+.toast{max-width:520px;width:100%;padding:9px 14px;border-radius:22px;font-size:17px;font-weight:900;background:#fff;color:#1a100a;box-shadow:0 4px 18px rgba(0,0,0,.6);animation:tIn .35s cubic-bezier(.2,1.5,.4,1);transition:opacity .4s,transform .4s}
+.toast.op{background:#ffe08a;border:3px solid #c22d22}
+.toast.me{background:#e8f4ff;border:3px solid #3a6aa8}
+.toast .who{display:block;font-size:11px;color:#7a5a3a}
+.toast .sent{float:right;font-size:12px;color:#2a7a3a}
+.toast.out{opacity:0;transform:translateY(-10px)}
+@keyframes tIn{0%{transform:scale(.6);opacity:0}100%{transform:none;opacity:1}}
+.stlab{width:100%;text-align:center;font-size:11px;color:#b9aa93;margin:0 0 2px}
+.stampbub{font-size:14px;padding:4px 10px}
+/* 対戦中は音のボタンを右下へ（相手の名前に重ならないように） */
+body.inbattle .soundbtn{top:auto;bottom:calc(4px + env(safe-area-inset-bottom,0));right:4px;opacity:.75;font-size:11px;padding:2px 8px}

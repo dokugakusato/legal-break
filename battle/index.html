@@ -10,6 +10,9 @@
 <link rel="stylesheet" href="battle.css">
 </head><body>
 <div id="inapp" hidden></div>
+<button type="button" class="soundbtn" id="soundBtn">♪ 音 ON</button>
+<div id="toasts" aria-live="polite"></div>
+<div class="cutin" id="cutin" hidden></div>
 <main id="app">
   <!-- メニュー -->
   <section class="scr" id="s-home">
@@ -22,6 +25,9 @@
         <div class="mestat" id="meStat">レート 1500 ・ 0勝0敗</div>
       </div>
     </div>
+    <p class="sec">キャラクターを選ぶ</p>
+    <div class="charas" id="charas"></div>
+    <p class="charainfo" id="charaInfo"></p>
     <button class="btn" id="findBtn" type="button">対戦相手をさがす</button>
     <button class="btn ghost" id="rankBtn" type="button">全国ランキング</button>
     <p class="online" id="onlineN"></p>
@@ -71,5 +77,7 @@
 
 <script src="config.js"></script>
 <script src="sato.js"></script>
+<script src="fighters.js"></script>
+<script src="music.js"></script>
 <script src="battle.js"></script>
 </body></html>

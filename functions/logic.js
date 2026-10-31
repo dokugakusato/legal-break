@@ -19,11 +19,13 @@
     K: 32, INIT: 1500
   };
   const STAMPS = ['よろしく！', 'ナイス！', '参った！', 'もう1戦！', 'ありがとう！', 'くっ…！'];
+  const CHARAS = ['sato', 'bando', 'sasaki', 'tanaka', 'gonda', 'miura'];
+  const cleanChara = c => CHARAS.includes(c) ? c : 'sato';
   const rankOf = r => r >= 1850 ? 'S' : r >= 1700 ? 'A' : r >= 1550 ? 'B' : r >= 1400 ? 'C' : 'D';
 
   function shuffle(a, rnd) { rnd = rnd || Math.random; a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
   function newPlayer(name, t) { return { name, rating: R.INIT, rank: rankOf(R.INIT), w: 0, l: 0, d: 0, games: 0, updated: t || 0 }; }
-  function pub(p) { return { name: p.name, rating: p.rating, rank: p.rank, w: p.w || 0, l: p.l || 0, d: p.d || 0 }; }
+  function pub(p) { return { name: p.name, rating: p.rating, rank: p.rank, w: p.w || 0, l: p.l || 0, d: p.d || 0, chara: cleanChara(p.chara) }; }
   const other = (m, uid) => m.uids[0] === uid ? m.uids[1] : m.uids[0];
   const cpuUid = m => m.cpu ? m.uids[1] : null;
 
@@ -40,7 +42,7 @@
       phase: 'vs', phaseAt: t, until: t + R.VS_MS,
       qi: -1, total, sd: 0,
       q: null, ans: {}, cpuAt: null, ev: { seq: 0, list: [] }, rv: null,
-      paused: null, result: null, stamps: {}, created: t
+      paused: null, result: null, stamps: {}, created: t, v: 1
     };
     return { m, s: { order, perms, cpu: null, cur: null } };
   }
@@ -182,6 +184,6 @@
     return n && !/[@＠]/.test(n) ? n : null;
   }
 
-  const api = { R, STAMPS, rankOf, shuffle, newPlayer, pub, other, buildMatch, startQuestion, applyAnswer, advance, answer, presence, stamp, eloDelta, settle, cleanName };
+  const api = { R, STAMPS, CHARAS, cleanChara, rankOf, shuffle, newPlayer, pub, other, buildMatch, startQuestion, applyAnswer, advance, answer, presence, stamp, eloDelta, settle, cleanName };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.LBLogic = api;
 })(typeof self !== 'undefined' ? self : this);
