@@ -21,10 +21,10 @@
     PANEL_MS: 8000,        // 紙芝居1枚の時間
     KJ_TIME: 20 * 60000,   // 時間切れなし（相手を倒すまで続く）。放置されたときだけの安全装置：20分
     KJ_PT: 40,             // 1点あたりのダメージ（単発）
-    KJ_MULT: [1, 1, 1.5, 2], // つなげた数ごとの倍率（2個＝大技×1.5、3個以上＝×2）
+    KJ_MULT: [1, 1, 1.5, 2], // 同時に出した数ごとの倍率（1個＝単発、2個＝中技×1.5、3個＝大技×2）。4個以上は天変地異（一撃K.O.）
     KJ_MISS: 60,           // 自爆：出した札1枚あたり
     KJ_LOCK: 2000,
-    KJ_EXP: { single: 1, combo: 1.3, tenpen: 2 } // 勝ち方ごとの経験値（レート）の倍率
+    KJ_EXP: { single: 1, mid: 1.2, big: 1.5, tenpen: 2 } // 勝ち方ごとの経験値（レート）の倍率
   };
   const STAMPS = ['よろしく！', 'ナイス！', '参った！', 'もう1戦！', 'ありがとう！', 'くっ…！'];
   const CHARAS = ['sato', 'bando', 'sasaki', 'tanaka', 'gonda', 'miura'];
@@ -147,7 +147,7 @@
     if (fin) m.result.fin = fin;
   }
   // 攻撃発動：選んだキーワードの札をまとめて出す（順番は自由）。
-  //  1枚＝単発攻撃、2枚以上＝大技（倍率アップ）、最初の一撃で全部＝天変地異（一撃K.O.・経験値大幅アップ）
+  //  1枚＝単発、2枚＝中技、3枚＝大技、4枚以上（3つしかない論点は最初の一撃で全部）＝天変地異（一撃K.O.・経験値2倍）
   //  1枚でも答案に入らない札が混じっていたら、点はもらえず自爆ダメージ（枚数が多いほど大きい）
   //  全部のキーワードがそろった（20点）ら、その一撃がとどめ。時間切れはなく、どちらかが倒れるまで続く
   // pg.got＝当てた空欄の番号を並べた文字列（どの札かは公開しない）
@@ -166,8 +166,9 @@
       return { accepted: true, ok: false, dmg };
     }
     const pts = slots.reduce((a, x) => a + m.kj.pts[x], 0), k = slots.length;
-    const tenpen = pg.n === 0 && k === m.kj.n && k >= 2;
-    const kind = tenpen ? 'tenpen' : k >= 2 ? 'combo' : 'single';
+    // 4つ以上を同時に＝天変地異（超ウルトラ技）。キーワードが3つの論点は、最初の一撃で全部なら天変地異
+    const tenpen = k >= 4 || (pg.n === 0 && k === m.kj.n && k >= 3);
+    const kind = tenpen ? 'tenpen' : k === 3 ? 'big' : k === 2 ? 'mid' : 'single';
     pg.n += k; pg.pts += pts; pg.got = got + slots.join('');
     let dmg = Math.round(pts * R.KJ_PT * R.KJ_MULT[Math.min(k, R.KJ_MULT.length - 1)]);
     if (tenpen) dmg = m.players[op].hp;

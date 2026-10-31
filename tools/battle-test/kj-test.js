@@ -34,12 +34,12 @@ function fight(cpu) { const x = mk(cpu); L.advance(x.m, x.s, T0); return x; }
   r = L.kjAnswer(m, s, 'B', [s.kj.ans[0], s.kj.ans[1], wrong], T0 + 4000);
   ok(r.accepted && !r.ok && m.players.B.hp === 800 - 180 && m.kj.prog.B.pts === 0 && m.kj.prog.B.got === '' && m.kj.prog.B.lock === T0 + 4000 + R.KJ_LOCK, '間違いが1つでも混じると点なし・自爆180・2秒動けない');
   ok(!L.kjAnswer(m, s, 'B', [s.kj.ans[0]], T0 + 5000).accepted, '動けない間は出せない');
-  // 大技：2つ（10点）×40×1.5＝600
+  // 中技：2つ同時（10点）×40×1.5＝600
   r = L.kjAnswer(m, s, 'B', [s.kj.ans[3], s.kj.ans[0]], T0 + 6100);
-  ok(r.ok && r.kind === 'combo' && m.players.A.hp === 400 && m.kj.prog.B.pts === 10, '大技2連：600ダメージ');
-  // 残り全部をまとめて（大技・3連×2）→ 20点になったのでとどめ
+  ok(r.ok && r.kind === 'mid' && m.players.A.hp === 400 && m.kj.prog.B.pts === 10, '中技（2つ同時）：600ダメージ');
+  // 残り3つを同時に＝大技 → 20点になったのでとどめ
   r = L.kjAnswer(m, s, 'A', [s.kj.ans[0], s.kj.ans[1], s.kj.ans[3]], T0 + 7000);
-  ok(r.ok && r.done && m.phase === 'end' && m.result.winner === 'A' && m.result.fin === 'combo' && m.players.B.hp === 0, '20点そろえばとどめ（大技）');
+  ok(r.ok && r.done && r.kind === 'big' && m.phase === 'end' && m.result.winner === 'A' && m.result.fin === 'big' && m.players.B.hp === 0, '大技（3つ同時）で20点、とどめ');
   ok(m.rv && m.rv.model === K[0].model, '終わったら解答例');
 }
 { // 天変地異：最初の一撃で全部
@@ -49,6 +49,27 @@ function fight(cpu) { const x = mk(cpu); L.advance(x.m, x.s, T0); return x; }
   const pa = P('a'), pb = P('b'); L.settle(m, pa, pb, 1);
   const base = L.eloDelta(1500, 1500, 1);
   ok(m.result.delta.A === Math.round(base * 2) && m.result.delta.B === -base, '天変地異の勝ちは経験値2倍（負けた側は普通）');
+}
+{ // 4つ以上同時は、途中からでも天変地異（キーワード5つの論点）
+  const k5 = K.find(k => k.slots.length === 5);
+  const { m, s } = L.buildKJ({ uid: 'A', p: P('あ') }, { uid: 'B', p: P('い') }, false, 0, [k5]);
+  const t0 = R.VS_MS + k5.story.length * R.PANEL_MS; L.advance(m, s, t0);
+  L.kjAnswer(m, s, 'A', [s.kj.ans[0]], t0 + 1000); ok(m.phase === 'kj', '5つの論点：1つ目は単発');
+  const r = L.kjAnswer(m, s, 'A', s.kj.ans.slice(1), t0 + 2000);
+  ok(r.kind === 'tenpen' && m.result.fin === 'tenpen' && m.players.B.hp === 0, '4つ同時で天変地異');
+}
+{ // キーワード3つの論点：最初の一撃で全部なら天変地異、途中からの3つは無い（2つ以下）
+  const k3 = K.find(k => k.slots.length === 3);
+  const { m, s } = L.buildKJ({ uid: 'A', p: P('あ') }, { uid: 'B', p: P('い') }, false, 0, [k3]);
+  const t0 = R.VS_MS + k3.story.length * R.PANEL_MS; L.advance(m, s, t0);
+  const r = L.kjAnswer(m, s, 'A', s.kj.ans.slice(), t0 + 1000);
+  ok(r.kind === 'tenpen' && m.phase === 'end', '3つの論点：最初に全部で天変地異');
+  const x = L.buildKJ({ uid: 'A', p: P('あ') }, { uid: 'B', p: P('い') }, false, 0, [k3]); L.advance(x.m, x.s, t0);
+  L.kjAnswer(x.m, x.s, 'A', [x.s.kj.ans[0]], t0 + 1000);
+  const r2 = L.kjAnswer(x.m, x.s, 'A', [x.s.kj.ans[1], x.s.kj.ans[2]], t0 + 2000);
+  ok(r2.kind === 'mid' && x.m.result.fin === 'mid', '3つの論点：1つ→残り2つは中技でとどめ');
+  const pa = P('a'), pb = P('b'); L.settle(x.m, pa, pb, 1);
+  ok(x.m.result.delta.A === Math.round(L.eloDelta(1500, 1500, 1) * 1.2), '中技でとどめは経験値1.2倍');
 }
 { // 全部まとめて出しても、1つ間違いが混じれば自爆
   const { m, s } = fight(false); const wrong = m.kj.chips.findIndex((c, i) => !s.kj.ans.includes(i));

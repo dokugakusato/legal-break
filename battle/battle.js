@@ -136,7 +136,7 @@
     if (!d) { d = document.createElement('div'); d.id = 'tenpen'; document.body.appendChild(d); }
     const bolt = x => `<svg class="bolt" style="left:${x}%" viewBox="0 0 40 200"><path d="M24 0 6 92h14L8 200 36 78H21L32 0z"/></svg>`;
     d.className = 'tenpen ' + (mine ? 'me' : 'op');
-    d.innerHTML = `${bolt(8)}${bolt(46)}${bolt(80)}<div class="tp-t"><small>${mine ? 'あなた' : esc(M.players[byUid].name)}の完成答案</small><b>天変地異</b><em>全キーワード 一撃！</em></div><div class="rocks"><i></i><i></i><i></i><i></i><i></i><i></i></div>`;
+    d.innerHTML = `${bolt(8)}${bolt(46)}${bolt(80)}<div class="tp-t"><small>${mine ? 'あなた' : esc(M.players[byUid].name)}の完成答案</small><b>天変地異</b><em>超ウルトラ技！</em></div><div class="rocks"><i></i><i></i><i></i><i></i><i></i><i></i></div>`;
     d.hidden = false; void d.offsetWidth; d.classList.add('go');
     document.body.classList.remove('quake'); void document.body.offsetWidth; document.body.classList.add('quake');
     speak('天変地異！', 'waza'); SND.counter(); setTimeout(() => SND.counter(), 350); setTimeout(() => SND.ko(), 900);
@@ -364,13 +364,14 @@
     if (!draw) { const loser = win ? '#figOp' : '#figMe', winner = win ? '#figMe' : '#figOp'; emo(winner, 'happy'); emo(loser, 'sad'); if (res.reason === 'ko') $(loser).classList.add('down'); }
     music(null); if (window.LBMusic) LBMusic.jingle(win || draw ? 'win' : 'lose'); speak(draw ? '引き分け' : win ? 'あなたの勝ち！' : '負けてしまった…', 'me');
     let big = draw ? 'DRAW' : win ? (res.reason === 'ko' ? 'K.O.!' : 'WIN!') : 'LOSE…';
-    let sub = draw ? '引き分け' : win ? (res.reason === 'forfeit' ? '相手が戻らなかった（不戦勝）' : res.reason === 'judge' ? '判定勝ち' : m.mode === 'kj' ? (res.fin === 'tenpen' ? '天変地異！ 全キーワード一撃でK.O.！' : res.fin === 'combo' ? '大技で完成答案、K.O.！' : '完成答案でK.O.！') : 'あなたの勝ち') : (res.reason === 'forfeit' ? '接続が切れて不戦敗' : res.reason === 'judge' ? '判定負け' : res.fin === 'self' ? '自爆でK.O.…' : res.fin === 'tenpen' ? '天変地異をくらった…' : 'K.O.された…');
+    let sub = draw ? '引き分け' : win ? (res.reason === 'forfeit' ? '相手が戻らなかった（不戦勝）' : res.reason === 'judge' ? '判定勝ち' : m.mode === 'kj' ? (res.fin === 'tenpen' ? '天変地異！ 超ウルトラ技でK.O.！' : res.fin === 'big' ? '大技で完成答案、K.O.！' : res.fin === 'mid' ? '中技で完成答案、K.O.！' : '完成答案でK.O.！') : 'あなたの勝ち') : (res.reason === 'forfeit' ? '接続が切れて不戦敗' : res.reason === 'judge' ? '判定負け' : res.fin === 'self' ? '自爆でK.O.…' : res.fin === 'tenpen' ? '天変地異をくらった…' : 'K.O.された…');
     let rate = '';
     if (m.cpu) rate = '<p class="cpunote">CPU戦なので、ランクは変わりません</p>';
     else if (res.delta && res.delta[uid] != null) {
       const d = res.delta[uid], a = res.after[uid];
       if (win && res.fin === 'tenpen') rate = '<p class="expbonus">天変地異ボーナス：経験値2倍！</p>';
-      else if (win && res.fin === 'combo') rate = '<p class="expbonus">大技ボーナス：経験値1.3倍</p>';
+      else if (win && res.fin === 'big') rate = '<p class="expbonus">大技ボーナス：経験値1.5倍</p>';
+      else if (win && res.fin === 'mid') rate = '<p class="expbonus">中技ボーナス：経験値1.2倍</p>';
       rate += `<p class="rchange">レート ${a.rating - d} → <b class="${d >= 0 ? 'up' : 'dn'}">${a.rating}（${d >= 0 ? '+' : ''}${d}）</b></p><div class="newrank r${esc(a.rank)}">${esc(a.rank)}</div><p class="cpunote">ランク</p>`;
       player = Object.assign({}, player || {}, { rating: a.rating, rank: a.rank });
     }
@@ -398,12 +399,18 @@
       const mine = e.by === uid, fBy = mine ? '#figMe' : '#figOp', fTo = e.to === uid ? '#figMe' : '#figOp';
       if (e.t === 'kjfin' && e.kind === 'tenpen') { pop('天変地異！！', 'gold'); tenpen(e.by, e.to); setTimeout(() => dmgNum(e.to === uid ? 'me' : 'op', e.dmg), 1800); return; }
       if (e.t === 'kjfin') e.t = 'hit';
-      if (e.t === 'kjhit' && e.kind === 'combo') { // 大技：キャラの必殺技カットイン → 連続ヒット
+      if (e.t === 'kjhit' && e.kind === 'big') { // 大技（3つ同時）：キャラの必殺技カットイン → 3連続ヒット
         const kw = mine && kjShout.length ? kjShout.map(x => `「${x}」`).join('') : '';
-        pop(mine ? `大技 ${e.k}連！ +${e.pts}点` : `相手の大技 ${e.k}連！`, 'gold');
-        special(e.by, e.to, { sub: `大技 ${e.k}連！ ${kw}` });
-        for (let j = 1; j < e.k; j++) setTimeout(() => { anim(fTo, 'hit', 300); SND.hit(); shake(); }, 1480 + j * 220);
-        setTimeout(() => dmgNum(e.to === uid ? 'me' : 'op', e.dmg), 1500 + e.k * 220); return; }
+        pop(mine ? `大技！ +${e.pts}点` : '相手の大技！', 'gold');
+        special(e.by, e.to, { sub: `大技 3連！ ${kw}` });
+        for (let j = 1; j < 3; j++) setTimeout(() => { anim(fTo, 'hit', 300); SND.hit(); shake(); }, 1480 + j * 220);
+        setTimeout(() => dmgNum(e.to === uid ? 'me' : 'op', e.dmg), 1500 + 3 * 220); return; }
+      if (e.t === 'kjhit' && e.kind === 'mid') { // 中技（2つ同時）：キャラの技の動き＋2連続ヒット
+        const F = FIG(M.players[e.by].chara);
+        pop(mine ? `中技！ 2連 +${e.pts}点` : '相手の中技！', 'gold'); speak('中技！', mine ? 'me' : 'op'); SND.counter(); emo(fBy, 'angry', 1000);
+        anim(fBy, 'sp-' + F.move, 1100);
+        [380, 600].forEach((d, j) => setTimeout(() => { anim(fTo, 'hit', 300); anim(fTo, j ? 'blown' : 'knock', j ? 1000 : 500); SND.hit(); shake(); if (j) { emo(fTo, 'shock', 1000); dmgNum(e.to === uid ? 'me' : 'op', e.dmg); } }, d));
+        return; }
       if (e.t === 'kjhit') { // 単発：キーワードを叫んで殴る
         const kw = mine && kjShout[0] ? kjShout[0] : '';
         SND.hit(); pop(mine ? `「${kw}」 +${e.pts}点` : `相手の攻撃！ +${e.pts}点`, mine ? (kw.length > 9 ? 'gold small' : 'gold') : 'small');
@@ -413,7 +420,7 @@
       if (e.t === 'hit' || e.t === 'counter') {
         const finish = m.phase === 'end' && m.players[e.to].hp <= 0;
         if (e.t === 'counter' || finish) {
-          pop(e.t === 'counter' ? 'COUNTER!' : m.mode === 'kj' ? (e.kind === 'combo' ? `大技${e.k}連で完成答案！` : '20点！完成答案！') : 'とどめ！', 'gold'); special(e.by, e.to, m.mode === 'kj' ? { sub: e.kind === 'combo' ? `とどめの大技 ${e.k}連！` : 'とどめの必殺技！' } : null);
+          pop(e.t === 'counter' ? 'COUNTER!' : m.mode === 'kj' ? (e.kind === 'big' ? '大技で完成答案！' : e.kind === 'mid' ? '中技で完成答案！' : '20点！完成答案！') : 'とどめ！', 'gold'); special(e.by, e.to, m.mode === 'kj' ? { sub: e.kind === 'big' ? 'とどめの大技！' : e.kind === 'mid' ? 'とどめの中技！' : 'とどめの必殺技！' } : null);
           setTimeout(() => dmgNum(e.to === uid ? 'me' : 'op', e.dmg), 1500);
           if (finish) setTimeout(() => SND.ko(), 1600);
         } else {
@@ -473,7 +480,7 @@
     });
     $('#kjAns').innerHTML = h + '</span>'; kjFresh = [];
     $('#kjMyPts').textContent = pg.pts; $('#kjOpPts').textContent = `${op.pts}`;
-    $('#kjHint').innerHTML = pg.n < k.n ? '空欄に入る札を選んで攻撃発動。<b>2枚以上で大技</b>、<b>一発で全部なら天変地異</b>。1枚でも違えば自爆' : '完成答案！';
+    $('#kjHint').innerHTML = pg.n < k.n ? '空欄に入る札を選んで攻撃発動。<b>2枚同時で中技、3枚で大技、4枚以上で天変地異</b>。1枚でも違えば自爆' : '完成答案！';
     const box = $('#chips');
     if (box.dataset.for !== MID) {
       box.dataset.for = MID; kjSel = [];
@@ -490,15 +497,15 @@
   // 選んだ札と「攻撃発動」ボタン（何枚つなげたかで技の名前が変わる）
   function moveName(n) {
     const pg = M && M.kj.prog[uid]; if (!n) return '';
-    if (pg && pg.n === 0 && n === M.kj.n && n >= 2) return '天変地異';
-    return n >= 2 ? `大技 ${n}連` : '単発攻撃';
+    if (n >= 4 || (pg && pg.n === 0 && n === M.kj.n && n >= 3)) return '天変地異';
+    return n === 3 ? '大技' : n === 2 ? '中技' : '単発攻撃';
   }
   function drawSel() {
     const box = $('#chips'), n = kjSel.length;
     box.querySelectorAll('.chip').forEach(b => { const i = kjSel.indexOf(+b.dataset.c); b.classList.toggle('sel', i >= 0); b.dataset.no = i >= 0 ? i + 1 : ''; });
     const nm = moveName(n), go = $('#kjGo');
     $('#kjSel').innerHTML = n ? `${n}枚選択 → <b class="${nm === '天変地異' ? 'tp' : ''}">${nm}</b>` : '札を選んで「攻撃発動」';
-    go.disabled = !n || kjBusy; go.textContent = nm === '天変地異' ? '天変地異 発動！！' : n >= 2 ? '大技 発動！' : '攻撃発動！';
+    go.disabled = !n || kjBusy; go.textContent = nm === '天変地異' ? '天変地異 発動！！' : n === 3 ? '大技 発動！' : n === 2 ? '中技 発動！' : '攻撃発動！';
     go.classList.toggle('big', n >= 2); go.classList.toggle('tp', nm === '天変地異');
     $('#kjClr').hidden = !n;
   }
