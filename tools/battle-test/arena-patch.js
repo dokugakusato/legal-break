@@ -17,7 +17,9 @@ rep("fetch('../index.html')", "fetch('../main-index.txt')");
 // 5) 声は本番のサイトのファイルをそのまま使う
 rep("'../audio/'+h+'.mp3'", "'https://legal-break.5ukaku.com/audio/'+h+'.mp3'");
 rep("'audio/'+id+'.mp3'", "'https://legal-break.5ukaku.com/online/audio/'+id+'.mp3'");
-// 6) 試作の表示
+// 6) 「通常版へ」は本番のサイトへ
+rep('<a href="../"', '<a href="https://legal-break.5ukaku.com/"');
+// 7) 試作の表示
 s = s.replace('試作版・CPUと練習', '試作版・CPUと練習（全論点）');
 fs.writeFileSync(F, s);
 // 追加の問題（オンライン版の問題の形に変える）
