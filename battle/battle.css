@@ -375,3 +375,8 @@ body.quake #app{animation:quake .12s linear 18}
 .kjans .kjtxt .bl.fresh{animation:tIn .45s cubic-bezier(.2,1.5,.4,1)}
 .cutin .wz small{white-space:normal;line-height:1.3}
 .kjans,.kjq,.kjhint,.kjbar,.kjtop{flex:none}
+/* 札は言い回し（文のまとまり）なので小さめ・左寄せ */
+.chips .chip{font-size:calc(12px * var(--kf));line-height:1.3;text-align:left;padding:calc(6px * var(--kf)) 7px}
+.kjans .kjtxt .bl.done{font-size:calc(13px * var(--kf));display:inline;padding:1px 4px;margin:0 1px;line-height:1.9;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.kjans .kjtxt .bl.done i{margin-left:2px}
+.kjarea{flex-shrink:0}

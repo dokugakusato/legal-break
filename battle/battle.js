@@ -406,7 +406,7 @@
         setTimeout(() => dmgNum(e.to === uid ? 'me' : 'op', e.dmg), 1500 + e.k * 220); return; }
       if (e.t === 'kjhit') { // 単発：キーワードを叫んで殴る
         const kw = mine && kjShout[0] ? kjShout[0] : '';
-        SND.hit(); pop(mine ? `「${kw}」！ +${e.pts}点` : `相手の攻撃！ +${e.pts}点`, mine ? 'gold' : 'small');
+        SND.hit(); pop(mine ? `「${kw}」 +${e.pts}点` : `相手の攻撃！ +${e.pts}点`, mine ? (kw.length > 9 ? 'gold small' : 'gold') : 'small');
         speak(mine ? kw + '！' : 'くらえ！', mine ? 'me' : 'op'); emo(fBy, 'angry', 900);
         anim(fBy, 'lunge', 260); setTimeout(() => { anim(fTo, 'hit', 450); anim(fTo, 'knock', 500); emo(fTo, 'shock', 900); shake(); dmgNum(e.to === uid ? 'me' : 'op', e.dmg); }, 180); return; }
       if (e.t === 'kjmiss') { SND.miss(); SND.hit(); pop(mine ? `自爆！ 間違いが混じってた` : '相手が自爆！', mine ? '' : 'gold small'); anim(fTo, 'hit', 450); anim(fTo, 'knock', 500); emo(fTo, 'sad', 1200); shake(); dmgNum(e.to === uid ? 'me' : 'op', e.dmg); return; }
@@ -663,9 +663,9 @@
   }
 
   window.LBDrawStory = drawStory; // 動作確認用
-  window.LBTestKJ = (m, n) => { // 動作確認用：全部はまった答案が1画面に収まるか
+  window.LBTestKJ = (m, n, texts) => { // 動作確認用：全部はまった答案が1画面に収まるか
     M = m; MID = 'test' + Math.random(); kjMine = {}; const pg = m.kj.prog[uid]; pg.got = [...Array(n).keys()].join(''); pg.n = n;
-    for (let i = 0; i < n; i++) kjMine[i] = m.kj.chips[i];
+    for (let i = 0; i < n; i++) kjMine[i] = texts ? texts[i] : m.kj.chips[i];
     drawKJ(m); const a = $('#kjarea'), sc = $('#s-battle');
     const over = Math.max(a.scrollHeight - a.clientHeight, sc.scrollHeight - sc.clientHeight, $('#kjAns').scrollHeight - $('#kjAns').clientHeight);
     return over > 2 ? 'over' + over + ' kf' + getComputedStyle(a).getPropertyValue('--kf') : 'ok';
