@@ -338,7 +338,7 @@ body.quake .screen{animation:quake .1s linear infinite}
   <button class="btn" id="startBtn" type="button">対戦する</button>
   <button class="btn ghost" id="rankBtn" type="button">全国ランキング</button>
   <p class="note" id="netMsg" style="margin:0"></p>
-  <p class="note">紙芝居で事件を見て、FIGHT！で答案づくり開始。<br>記述のキーワードを選んで攻撃。2つ同時で中技、3つで大技、4つで超ウルトラ技！<br>3ラウンド制・2本先取。相手が20秒見つからないときはCPUと練習（ポイントは変わらない）。</p>
+  <p class="note">紙芝居で事件を見て、FIGHT！で答案づくり開始。<br>記述のキーワードを選んで攻撃。2つ同時で中技、3つで大技、4つで超ウルトラ技！<br>3ラウンド制・2本先取。相手が20秒見つからないときはCPUと練習（ポイントは変わらない）。練習中に誰か来たら、すぐ対戦に切りかわる。</p>
   <p class="note"><a href="https://legal-break.5ukaku.com/" style="color:#c9b89a">通常版の LEGAL BREAK へ</a></p>
 </section>
 
@@ -573,7 +573,7 @@ const rankOf=rp=>{let r='D';for(const [n,need] of RANKS)if(rp>=need)r=n;return r
 const nextRank=rp=>RANKS.find(([n,need])=>need>rp);
 function rankCard(){const R0=NET.me?{char:NET.me.char,rp:NET.me.rp||0,win:NET.me.w||0,lose:NET.me.l||0,best:REC.best||0}:REC;const c=CHARS.find(x=>x.id===R0.char);if(!c)return '';const nx=nextRank(R0.rp);const REC_=REC;{const REC=R0;
   return `<div class="rcard"><div class="rbadge r${rankOf(REC.rp)}">${rankOf(REC.rp)}</div><div><b>${c.name}</b>　${REC.rp} RP<br><small>${REC.win}勝 ${REC.lose}敗・最高${REC.best}連勝${nx?`・${nx[0]}ランクまで ${nx[1]-REC.rp} RP`:'・頂点'}</small></div></div>`}}
-function openSelect(){show('s-select');BGM.play('select');ann('select');
+function openSelect(){lobbyStop();show('s-select');BGM.play('select');ann('select');
   if(REC.char&&!CHARS.some(c=>c.id===REC.char)){REC={char:null,rp:0,win:0,lose:0,streak:0,best:0};saveRec()}const lock=REC.char;if(lock)P1=CHARS.find(c=>c.id===lock);
   $('#chars').innerHTML=CHARS.map(c=>`<button class="char${lock&&c.id!==lock?' locked':''}" type="button" data-id="${c.id}"><span class="p1tag">1P</span>${fig(c.id)}<b>${c.name}</b><small>${c.sp}</small></button>`).join('');
   $('#selInfo').innerHTML=lock?`${rankCard()}<p class="note" style="margin:4px 0 0">ランキング中は、このキャラで戦う。<button type="button" id="chgBtn" class="linkbtn">キャラを変える（ランキングは最初に戻る）</button></p>`:'<p class="note" style="margin:0">最初に選んだキャラで、ランキングを貯めていく。途中で変えると、ランキングは最初に戻る。</p>';
@@ -582,7 +582,7 @@ function openSelect(){show('s-select');BGM.play('select');ann('select');
   const cb=$('#chgBtn');if(cb)cb.onclick=()=>{if(!confirm('キャラを変えると、ランキング（'+rankOf(REC.rp)+'ランク・'+REC.rp+' RP・'+REC.win+'勝'+REC.lose+'敗）は最初に戻ります。変えますか？'))return;REC={char:null,rp:0,win:0,lose:0,streak:0,best:0};saveRec();P1=null;openSelect()};
 }
 $('#decideBtn').onclick=()=>{if(!P1)return;sfx('decide');if(!REC.char){REC.char=P1.id;saveRec()}findMatch()};
-function cpuMatch(){NM=null;const others=CHARS.filter(c=>c.id!==P1.id);P2=others[Math.floor(Math.random()*others.length)];startMatch()}
+function cpuMatch(){NM=null;lobbyStart();const others=CHARS.filter(c=>c.id!==P1.id);P2=others[Math.floor(Math.random()*others.length)];startMatch()}
 
 /* VS → 紙芝居 → FIGHT */
 let Q=null,LASTQ=[];
@@ -926,7 +926,7 @@ async function netServerRoundEnd(prev){if(!NM||!B||B.over||NM.fightRound!==M3.ro
 function netLeave(cancel){if(!NM)return;try{NM.unsub&&NM.unsub()}catch(e){}clearInterval(NM.hb);if(cancel===false)return;NM=null}
 // 相手を探す。20秒で見つからなければCPU
 async function findMatch(){
-  if(!NET.on){cpuMatch();return}
+  lobbyStop();if(!NET.on){cpuMatch();return}
   let name=myName();if(!name){name=(prompt('対戦で表示する名前（12文字まで）')||'').trim().slice(0,12);if(!name){openSelect();return}try{localStorage.setItem('lbArenaName',name)}catch(e){}$('#nameIn').value=name}
   show('s-search');BGM.play('select');const my={};findMatch.cur=my;let done=false;
   const enter=async id=>{if(done)return;done=true;clearInterval(my.t);my.un&&my.un();await netEnter(id)};
@@ -945,6 +945,19 @@ async function netEnter(id){
   sfx('decide');startMatch()}
 // オンラインのとき、ひとことは相手に送る
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.stamps button');if(!b||!NM)return;netCall('arStamp',{matchId:NM.id,k:b.dataset.k,i:+b.dataset.i}).catch(()=>{})},true);
+
+/* ---------- CPUと練習している間も、相手探しを続ける。誰か来たら、すぐそちらの対戦に切りかえる ---------- */
+const LOBBY={t:null,un:null,since:0,busy:false};
+function lobbyStop(){clearInterval(LOBBY.t);LOBBY.t=null;try{LOBBY.un&&LOBBY.un()}catch(e){}LOBBY.un=null}
+function lobbyStart(){lobbyStop();if(!NET.on||!P1)return;const name=myName();if(!name)return;LOBBY.since=Date.now()+NET.skew-2000;
+  const ping=()=>{if(LOBBY.busy)return;netCall('arFind',{name,char:P1.id}).then(r=>{if(r&&r.matchId)lobbyJoin(r.matchId)}).catch(()=>{})};
+  ping();LOBBY.t=setInterval(ping,15000);
+  LOBBY.un=NET.db.collection('battleTickets').doc(NET.uid).onSnapshot(d=>{const t=d.exists?d.data():null;if(t&&t.kind==='arena'&&t.at>=LOBBY.since&&!NM)lobbyJoin(t.matchId)},()=>{})}
+async function lobbyJoin(id){if(LOBBY.busy||NM)return;LOBBY.busy=true;lobbyStop();
+  // CPUとの練習をやめて、オンラインの対戦へ（CPU戦はポイントに関係ないので、途中でやめても変わらない）
+  ST=null;if(B){B.over=true;clearInterval(B.clock);clearTimeout(B.cpuT)}try{if(VO)VO.pause()}catch(e){}BGM.stop();
+  sfx('gong');ann('vs');await announce('挑戦者あらわる！','gold',1600);
+  try{await netEnter(id)}finally{LOBBY.busy=false}}
 
 /* ---------- 全国ランキング（上位100人・自分の順位・キャラ別） ---------- */
 async function showRanking(ch){

@@ -228,35 +228,43 @@ const OPS = {
     });
     return { player: p };
   },
-  // 相手を探す（来なければ、スマホ側が20秒でCPU戦にする）
+  // 相手を探す（来なければ、スマホ側が20秒でCPU戦にする。CPU戦の間も15秒ごとに探し続ける）
+  // 待っている人が何人もいたら、その中からランダムに1人を選んで組む
   async arFind(uid, d) {
     const name = needName(d.name), char = AL.cleanChar(d.char);
-    const q0 = await aqRef.get(), w0 = q0.exists ? q0.data().waiting : null;
-    const alive = w0 && w0.uid !== uid ? await online(w0.uid) : false;
+    const q0 = await aqRef.get(), pool0 = (q0.exists && q0.data().pool) || {}, t0 = now();
+    const cands = Object.keys(pool0).filter(u => u !== uid && t0 - pool0[u].at < AL.A.QUEUE_FRESH);
+    // ランダムに並べて、つながっている人を1人選ぶ（ページを閉じた人とは組まない）
+    let pick = null;
+    for (const u of cands.sort(() => Math.random() - .5).slice(0, 5)) { if (await online(u)) { pick = u; break; } }
     return db.runTransaction(async tx => {
       const [qd, me] = await Promise.all([tx.get(aqRef), tx.get(apRef(uid))]);
-      const w = qd.exists ? qd.data().waiting : null, t = now();
+      const pool = Object.assign({}, (qd.exists && qd.data().pool) || {}), t = now();
+      Object.keys(pool).forEach(u => { if (t - pool[u].at >= AL.A.QUEUE_FRESH) delete pool[u]; }); // 古い人は外す
       let p = me.exists ? me.data() : newAP(name, char), meCh = !me.exists;
       if (p.name !== name) { p.name = name; meCh = true; }
       if (p.char !== char) { Object.assign(p, newAP(name, char)); meCh = true; }
-      if (w && w0 && w.uid === w0.uid && w.uid !== uid && alive && t - w.at < AL.A.QUEUE_FRESH) {
-        const od = await tx.get(apRef(w.uid)); const op = od.exists ? od.data() : newAP(w.name, w.char);
+      if (pick && pool[pick]) {
+        const w = pool[pick];
+        const od = await tx.get(apRef(pick)); const op = od.exists ? od.data() : newAP(w.name, w.char);
         const id = db.collection('arenaMatches').doc().id;
-        const { m, s } = AL.build({ uid: w.uid, p: op }, { uid, p }, t, K);
+        const { m, s } = AL.build({ uid: pick, p: op }, { uid, p }, t, K);
         m.expireAt = expire(t); s.expireAt = expire(t);
         tx.set(amRef(id), m); tx.set(asRef(id), s);
-        tx.set(tRef(w.uid), { matchId: id, at: t, kind: 'arena' }); tx.set(tRef(uid), { matchId: id, at: t, kind: 'arena' });
-        tx.set(aqRef, { waiting: null });
+        tx.set(tRef(pick), { matchId: id, at: t, kind: 'arena' }); tx.set(tRef(uid), { matchId: id, at: t, kind: 'arena' });
+        delete pool[pick]; delete pool[uid];
+        tx.set(aqRef, { pool });
         if (meCh) tx.set(apRef(uid), p);
         return { matchId: id, match: clean(m) };
       }
-      tx.set(aqRef, { waiting: { uid, name, char, at: t } });
+      pool[uid] = { name, char, at: t };
+      tx.set(aqRef, { pool });
       if (meCh) tx.set(apRef(uid), p);
       return { waiting: true, since: t };
     });
   },
   async arCancel(uid) {
-    await db.runTransaction(async tx => { const qd = await tx.get(aqRef), w = qd.exists ? qd.data().waiting : null; if (w && w.uid === uid) tx.set(aqRef, { waiting: null }); });
+    await db.runTransaction(async tx => { const qd = await tx.get(aqRef), pool = Object.assign({}, (qd.exists && qd.data().pool) || {}); if (pool[uid]) { delete pool[uid]; tx.set(aqRef, { pool }); } });
     // 待っている間に組めていたら、それを返す（スマホはそちらに入る）
     const td = await tRef(uid).get();
     return td.exists && td.data().kind === 'arena' && now() - td.data().at < 30000 ? { matchId: td.data().matchId } : {};
