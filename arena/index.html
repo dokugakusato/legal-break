@@ -257,6 +257,7 @@ body.quake .screen{animation:quake .1s linear infinite}
 .rlist p{margin:2px 0}
 .namelab{display:flex;gap:8px;align-items:center;justify-content:center;font-weight:900;font-size:14px}
 .namelab input{font:700 16px inherit;padding:8px 10px;border-radius:8px;border:2px solid var(--gold,#f2b632);background:rgba(0,0,0,.5);color:#fff;width:12em}
+.found{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:16px}.found .ffig{width:110px;height:170px;display:block}.found .ffig svg{width:100%;height:100%}.found b{font-size:24px;color:#fff}.found small{color:var(--gold)}
 .radar{position:relative;width:160px;height:160px;margin:30px auto}
 .radar i{position:absolute;inset:0;border:3px solid var(--gold,#f2b632);border-radius:50%;animation:radar 2s infinite;opacity:0}
 .radar i:nth-child(2){animation-delay:.66s}.radar i:nth-child(3){animation-delay:1.33s}
@@ -357,7 +358,7 @@ body.quake .screen{animation:quake .1s linear infinite}
 <section class="screen" id="s-vs" hidden></section>
 
 <section class="screen" id="s-search" hidden>
-  <h2 class="shead">対戦相手をさがしています</h2>
+  <h2 class="shead" id="srHead">対戦相手をさがしています</h2>
   <div class="radar"><i></i><i></i><i></i></div>
   <p class="note" id="srLeft"></p>
   <button class="btn ghost" id="srCancel" type="button">やめる</button>
@@ -510,7 +511,7 @@ const ann=k=>voice('ann_'+k,ANN[k]);
 
 /* ---------- 音楽（すべて自作の合成。格闘ゲーム風） ---------- */
 let AC=null;
-function ac(){if(S.mute)return null;if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(AC.state==='suspended')AC.resume();return AC}
+function ac(){if(S.mute)return null;try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(AC.state==='suspended')AC.resume();return AC}
 const NF=n=>440*Math.pow(2,(n-69)/12);
 let NB=null;function noise(a){if(!NB){const len=a.sampleRate;NB=a.createBuffer(1,len,a.sampleRate);const d=NB.getChannelData(0);for(let i=0;i<len;i++)d[i]=Math.random()*2-1}return NB}
 const I={
@@ -623,39 +624,43 @@ function story(inter){
   const OS=(window.OL_STORIES||{})[Q.no];let P=OS?OS.panels.slice():Q.panels.slice(0,Q.pn||3);if(inter)P=P.slice(-2);P.push({quiz:1});
   const durs=P.map(p=>p.quiz?quizMs(Q.q):panelMs(p)),total=durs.reduce((a,b)=>a+b,0);
   $('#stTag').textContent=`ROUND ${M3.round}｜${Q.tag||('第'+Q.no+'話 '+Q.title)}`;$('#stTitle').textContent='今回の論点：？？？';
-  const t0=Date.now();let i=-1,myReady=false,cpuReady=false,timer=null,quizShown=0,waitFrom=0,cpuWait=1200+Math.random()*1500;
+  // オンライン：2人とも、サーバーが決めた同じ時刻から、同じ速さで見る（SKIPなし）。遅れて入った人は、その時点のコマから
+  const sync=!!NM,startS=sync?(inter?NM.m.phaseAt:(NM.m.storyAt||NM.m.phaseAt)):0;
+  const t0=sync?startS-NET.skew:Date.now();let i=-1,myReady=false,cpuReady=false,timer=null,quizShown=0,waitFrom=0,cpuWait=1200+Math.random()*1500;
   // 相手（いまはCPU）：物語の途中でSKIPすることがある。こちらが待っているときは、長く待たせない
   const cpuAt=NM?Infinity:t0+total*(.45+Math.random()*.5);
   const status=()=>{const w=$('#stWait');if(!w)return;if(NM)cpuReady=!!NM.m.players[NM.op].ready||NM.m.phase==='fight';w.innerHTML=myReady?(cpuReady?'<b>そろった！</b>':'<b>相手の準備を待っています…</b>'):(cpuReady?'<b>相手は準備OK。</b>出題を読んだら「準備OK」':'相手も物語を見ている')};
-  const tryStart=()=>{if(ST!==run)return;status();const go=NM?(NM.m.phase==='fight'&&NM.m.round===M3.round):(myReady&&cpuReady);if(go){ST=null;clearTimeout(timer);const g=GEN;setTimeout(()=>{if(g!==GEN)return;if(VO)VO.pause();fightStart()},600)}};
+  const tryStart=()=>{if(ST!==run)return;if(NM&&NM.m.phase==='end'){ST=null;clearTimeout(timer);announce(NM.m.result&&NM.m.result.reason==='forfeit'?'相手がいなくなった':'試合終了','',1400).then(()=>result());return}status();const go=NM?(NM.m.phase==='fight'&&NM.m.round===M3.round):(myReady&&cpuReady);if(go){ST=null;clearTimeout(timer);const g=GEN;setTimeout(()=>{if(g!==GEN)return;if(VO)VO.pause();fightStart()},600)}};
   if(NM){NM.onUpdate=tryStart}
   const tick=()=>{if(ST!==run)return;const now=Date.now(),el=now-t0;
+    if(el<0){$('#stLeft').textContent='まもなく開始…';$('#stBar').style.width='0%';setTimeout(tick,200);return}
+    if(i<0){let k=0,acc=0;while(k<P.length-1&&acc+durs[k]<=el){acc+=durs[k];k++}draw(k,durs[k]-(el-acc))}
     if(!cpuReady&&(now>=cpuAt||(myReady&&now>=waitFrom+cpuWait))){cpuReady=true;tryStart();if(ST!==run)return}
     $('#stBar').style.width=Math.min(100,el/total*100)+'%';$('#stLeft').textContent='最長あと'+Math.max(0,Math.ceil((total-el)/1000))+'秒';
-    if(el>=total){if(NM){if(!myReady){myReady=true;netCall('arReady',{matchId:NM.id}).catch(()=>{})}if(serverNow()>=NM.m.until)netTick();tryStart();setTimeout(tick,1000);return}myReady=true;cpuReady=true;tryStart();return}
+    if(el>=total){if(NM){if(!myReady){myReady=true;$('#stNext').textContent='相手を待っています…';$('#stNext').disabled=true;netCall('arReady',{matchId:NM.id}).then(r=>{if(r&&r.match)netApply(r.match)}).catch(()=>{myReady=false})}if(serverNow()>=NM.m.until)netTick();tryStart();setTimeout(tick,1000);return}myReady=true;cpuReady=true;tryStart();return}
     requestAnimationFrame(tick)};
-  const draw=n=>{i=n;const p=P[i];clearTimeout(timer);if(VO)VO.pause();
+  const draw=(n,rest)=>{i=n;const p=P[i];clearTimeout(timer);if(VO)VO.pause();
     if(p.quiz){quizShown=Date.now();
       $('#koma').className='koma quizbg anim';
       $('#koma').innerHTML=`<div class="quiz"><span>出題</span><p>${qShort(Q.q)}</p><small>答案のキーワードを選んで戦え！</small></div>`;
-      if(!myReady)$('#stNext').textContent='準備OK ▶';sfx('gong');voice('q_'+Q.no,'出題。'+qShort(Q.q));
+      if(!myReady){$('#stNext').textContent='準備OK ▶';$('#stNext').disabled=false}sfx('gong');voice('q_'+Q.no,'出題。'+qShort(Q.q));
     }else{
       const sp=p.say?((p.figs||[]).find(f=>f[1]===p.say.side)||(p.figs||[])[0]||[]):null;
       const figs=(p.figs||[]).map(([k,pos])=>`<div class="${pos==='r'?'r':''}">${fig(k)}</div>`).join('');
       const who=sp?(sp[2]||FIG.NAMES[sp[0]]||''):'';
       $('#koma').className='koma anim'+(p.bg==='red'?' red':p.bg==='dark'?' dark':'');
       $('#koma').innerHTML=`<div class="cap">${p.nar}</div><div class="figs">${figs}</div>${p.say?`<div class="say${p.say.evil?' evil':''}"><small>${who}</small>${p.say.text}</div>`:''}`;
-      $('#stNext').textContent='SKIP ▶▶';
+      $('#stNext').textContent=sync?'物語を見ています…':'SKIP ▶▶';$('#stNext').disabled=sync;
       const u=olVoice('n'+Q.no+'_'+(i+1))||lbVoice(p.nar,Q.narr);if(u)playUrl(u);else tts(p.nar,.8,1.15);
     }
     $('#stN').textContent=`${i+1} / ${P.length}`;
-    if(i<P.length-1)timer=setTimeout(()=>{if(ST===run)draw(i+1)},durs[i]);
+    if(i<P.length-1)timer=setTimeout(()=>{if(ST===run)draw(i+1)},rest!=null?Math.max(300,rest):durs[i]);
   };
   // SKIP：物語をとばして出題へ。出題で「準備OK」を押すと、相手がそろった時点でFIGHT
   $('#stNext').disabled=false;$('#koma').onclick=null;
-  $('#stNext').onclick=()=>{ac();if(ST!==run)return;if(!P[i].quiz){draw(P.length-1);return}
+  $('#stNext').onclick=()=>{ac();if(ST!==run||i<0)return;if(!P[i].quiz){if(sync)return;draw(P.length-1);return}
     if(myReady||Date.now()-quizShown<1500)return;myReady=true;waitFrom=Date.now();$('#stNext').textContent='相手を待っています…';$('#stNext').disabled=true;if(NM)netCall('arReady',{matchId:NM.id}).then(r=>{if(r&&r.match)netApply(r.match)}).catch(()=>{});tryStart()};
-  draw(0);tick();
+  if(sync)tick();else{draw(0);tick()}
 }
 
 /* ---------- ひとこと（場面ごとに選ぶ。自分のキャラの声で相手に届く。CPUも言い返す） ---------- */
@@ -913,7 +918,7 @@ async function netCall(op,data){const f=NET.fns.httpsCallable('battle',{timeout:
 function netQ(m,round){const r=m.rounds[round-1];const base=QS.find(q=>q.no===r.no)||QS[0];const all=base.good.concat(base.pool);const pt=Math.round(20/base.good.length);
   // 点はサーバーと同じ（20÷正解の数）にそろえる
   return Object.assign({},base,{keys:r.keys.map(t=>{const k=all.find(x=>x.t===t)||{t,why:''};return k.pt?Object.assign({},k,{pt}):k})})}
-function netTick(){if(!NM||NM.ticking)return;NM.ticking=true;netCall('arTick',{matchId:NM.id}).then(r=>{if(r&&r.match)netApply(r.match)}).catch(()=>{}).then(()=>{if(NM)NM.ticking=false})}
+function netTick(){const my=NM;if(!my||my.ticking)return;my.ticking=true;netCall('arTick',{matchId:my.id}).then(r=>{if(r&&r.match&&NM===my)netApply(r.match)}).catch(()=>{}).then(()=>{my.ticking=false})}
 function netStamp(k){return null} // 送るのは下の click で（押したボタンの場面と番号を送る）
 // ひとこと（オンライン）：押したら送る
 const _sayStamp=sayStamp;
@@ -944,21 +949,33 @@ function netLeave(cancel){if(!NM)return;try{NM.unsub&&NM.unsub()}catch(e){}clear
 async function findMatch(){
   lobbyStop();if(!NET.on){cpuMatch();return}
   let name=myName();if(!name){name=(prompt('対戦で表示する名前（12文字まで）')||'').trim().slice(0,12);if(!name){openSelect();return}try{localStorage.setItem('lbArenaName',name)}catch(e){}$('#nameIn').value=name}
-  show('s-search');$('#srCancel').hidden=false;BGM.play('select');const my={};findMatch.cur=my;let done=false;
-  const enter=async id=>{if(done)return;done=true;clearInterval(my.t);my.un&&my.un();await netEnter(id)};
-  $('#srCancel').onclick=()=>{done=true;clearInterval(my.t);my.un&&my.un();netCall('arCancel',{}).catch(()=>{});openSelect()};
-  let r;try{r=await netCall('arFind',{name,char:P1.id})}catch(e){done=true;$('#netMsg').textContent=(e.message||'')+'';cpuMatch();return}
-  if(r.matchId)return enter(r.matchId);
-  const since=r.since,end=Date.now()+20000;
+  show('s-search');$('#srHead').textContent='対戦相手をさがしています';$('#srCancel').hidden=false;BGM.play('select');const my={};findMatch.cur=my;let done=false;
+  const stop=()=>{done=true;clearInterval(my.t);my.un&&my.un()};
+  const enter=async id=>{if(done)return;stop();await netEnter(id)};
+  $('#srCancel').onclick=()=>{stop();netCall('arCancel',{}).catch(()=>{});openSelect()};
+  const end=Date.now()+20000;let busy=false,fails=0,since=Date.now()+NET.skew-2000;
+  // 3秒ごとにサーバーに聞く（相手が見つかっていれば、その試合を返してくれる）。通知（チケット）も見ておく
+  const ask=async()=>{if(done||busy)return;busy=true;try{const r=await netCall('arFind',{name,char:P1.id});fails=0;if(r.matchId)return enter(r.matchId)}catch(e){if(++fails>=3&&!done){stop();$('#netMsg').textContent=(e.message||'')+'';cpuMatch()}}finally{busy=false}};
   my.un=NET.db.collection('battleTickets').doc(NET.uid).onSnapshot(d=>{const t=d.exists?d.data():null;if(t&&t.kind==='arena'&&t.at>=since)enter(t.matchId)},()=>{});
-  my.t=setInterval(async()=>{if(done)return;const left=Math.ceil((end-Date.now())/1000);$('#srLeft').textContent=left>0?`あと ${left} 秒でCPUと練習`:'CPUを呼んでいます…';
-    if(left<=0&&!my.asked){my.asked=true;let c={};try{c=await netCall('arCancel',{})}catch(e){}if(done)return;if(c.matchId)return enter(c.matchId);done=true;clearInterval(my.t);my.un&&my.un();cpuMatch()}},250)}
+  ask();let lastAsk=Date.now();
+  my.t=setInterval(async()=>{if(done)return;const left=Math.ceil((end-Date.now())/1000);$('#srLeft').textContent=left>0?`あと ${left} 秒でCPUと練習（練習中も、相手が来たらすぐ対戦）`:'CPUを呼んでいます…';
+    if(left>0&&Date.now()-lastAsk>=3000){lastAsk=Date.now();ask()}
+    if(left<=0&&!my.asked){my.asked=true;let c={};try{c=await netCall('arCancel',{})}catch(e){}if(done)return;if(c.matchId)return enter(c.matchId);stop();cpuMatch()}},250)}
+// 試合に入る：まずサーバーに聞いて試合を受け取る（リアルタイムの通知が届かなくても進める）。2秒ごとに「いる」の合図と最新の取得
 async function netEnter(id){
-  NM={id,m:null,op:null,evDone:0,stSeq:null};
-  await new Promise(ok=>{NM.unsub=NET.db.collection('arenaMatches').doc(id).onSnapshot(d=>{if(!d.exists)return;const m=d.data();if(!NM.m){NM.m=m;NM.op=m.uids[0]===NET.uid?m.uids[1]:m.uids[0];ok()}else netApply(m)},()=>{})});
-  const op=NM.m.players[NM.op];const c=CHARS.find(x=>x.id===op.char)||CHARS[0];P2=Object.assign({},c,{name:op.name});
-  NM.hb=setInterval(()=>{if(NM&&NM.m&&NM.m.phase!=='end')netTick()},5000);
-  sfx('decide');startMatch()}
+  NM={id,m:null,op:null,evDone:0,stSeq:null};const my=NM;
+  for(let k=0;k<8&&!my.m;k++){try{const r=await netCall('arTick',{matchId:id});if(r&&r.match)my.m=r.match}catch(e){}if(!my.m)await new Promise(r=>setTimeout(r,1000))}
+  if(NM!==my)return;
+  if(!my.m){NM=null;await announce('つながりませんでした','',1400);openSelect();return}
+  my.op=my.m.uids[0]===NET.uid?my.m.uids[1]:my.m.uids[0];
+  try{my.unsub=NET.db.collection('arenaMatches').doc(id).onSnapshot(d=>{if(d.exists&&NM===my)netApply(d.data())},()=>{})}catch(e){}
+  my.hb=setInterval(()=>{if(NM===my&&my.m&&my.m.phase!=='end')netTick()},2000);
+  const op=my.m.players[my.op];const c=CHARS.find(x=>x.id===op.char)||CHARS[0];P2=Object.assign({},c,{name:op.name});
+  // 見つかったことを、はっきり見せる
+  show('s-search');$('#srCancel').hidden=true;$('#srHead').textContent='対戦相手が見つかった！';sfx('decide');sfx('gong');flash();
+  $('#srLeft').innerHTML=`<span class="found"><span class="ffig">${fig(P2.id)}</span><b>${(op.name||'').replace(/[<>&]/g,'')}</b><small>${c.name}・${rt(op.rank)}（${op.rank||'D'}）</small></span>`;
+  await announce('MATCH!','gold',1400);
+  startMatch()}
 // オンラインのとき、ひとことは相手に送る
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.stamps button');if(!b||!NM)return;netCall('arStamp',{matchId:NM.id,k:b.dataset.k,i:+b.dataset.i}).catch(()=>{})},true);
 
@@ -967,14 +984,14 @@ const LOBBY={t:null,un:null,since:0,busy:false};
 function lobbyStop(){clearInterval(LOBBY.t);LOBBY.t=null;try{LOBBY.un&&LOBBY.un()}catch(e){}LOBBY.un=null}
 function lobbyStart(){lobbyStop();if(!NET.on||!P1)return;const name=myName();if(!name)return;LOBBY.since=Date.now()+NET.skew-2000;
   const ping=()=>{if(LOBBY.busy)return;netCall('arFind',{name,char:P1.id}).then(r=>{if(r&&r.matchId)lobbyJoin(r.matchId)}).catch(()=>{})};
-  ping();LOBBY.t=setInterval(ping,15000);
+  ping();LOBBY.t=setInterval(ping,5000);
   LOBBY.un=NET.db.collection('battleTickets').doc(NET.uid).onSnapshot(d=>{const t=d.exists?d.data():null;if(t&&t.kind==='arena'&&t.at>=LOBBY.since&&!NM)lobbyJoin(t.matchId)},()=>{})}
 async function lobbyJoin(id){if(LOBBY.busy||NM)return;LOBBY.busy=true;lobbyStop();
   // CPUとの練習をやめて、オンラインの対戦へ（CPU戦はポイントに関係ないので、途中でやめても変わらない）
   GEN++;ST=null;if(B){B.over=true;B.busy=false;clearInterval(B.clock);clearTimeout(B.cpuT)}try{if(VO)VO.pause()}catch(e){}BGM.stop();
   // 技の演出などが画面に残らないように片づける
   document.querySelectorAll('.ultra,.bubble,.kiai,.ux').forEach(x=>x.remove());const ci=$('#cutin');ci.hidden=true;ci.innerHTML='';$('#announce').hidden=true;document.body.classList.remove('quake');
-  show('s-search');$('#srLeft').textContent='対戦相手が見つかりました！';$('#srCancel').hidden=true;
+  show('s-search');$('#srHead').textContent='乱入！';$('#srLeft').textContent='挑戦者があらわれた！';$('#srCancel').hidden=true;
   sfx('gong');ann('ranyu');flash();document.body.classList.add('quake');await announce('乱入！！','gold ranyu',1800);document.body.classList.remove('quake');await announce('挑戦者あらわる！','',1100);
   try{await netEnter(id)}finally{LOBBY.busy=false}}
 

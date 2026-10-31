@@ -232,6 +232,12 @@ const OPS = {
   // 待っている人が何人もいたら、その中からランダムに1人を選んで組む
   async arFind(uid, d) {
     const name = needName(d.name), char = AL.cleanChar(d.char);
+    // もう誰かと組めていたら、その試合を返す（通知が届かなかった人も、次に聞いたときに入れる）
+    { const td = await tRef(uid).get();
+      if (td.exists && td.data().kind === 'arena' && now() - td.data().at < 60000) {
+        const md = await amRef(td.data().matchId).get();
+        if (md.exists && md.data().phase !== 'end' && md.data().uids.includes(uid)) return { matchId: td.data().matchId };
+      } }
     const q0 = await aqRef.get(), pool0 = (q0.exists && q0.data().pool) || {}, t0 = now();
     const cands = Object.keys(pool0).filter(u => u !== uid && t0 - pool0[u].at < AL.A.QUEUE_FRESH);
     // ランダムに並べて、つながっている人を1人選ぶ（ページを閉じた人とは組まない）
