@@ -10,6 +10,7 @@ const { setGlobalOptions } = require('firebase-functions/v2');
 const admin = require('firebase-admin');
 const L = require('./logic');
 const Q = require('./questions');
+const AL = require('./arena-logic');
 const K = require('./kijutsu').concat(require('./kakomon'), require('./story-kj')); // ノートの論点＋本試験の過去問（令和5〜7年）＋ストーリーモードの章ボス
 
 admin.initializeApp();
@@ -37,6 +38,40 @@ const clean = m => { const o = Object.assign({}, m); delete o.expireAt; return o
 async function online(uid) {
   try { const v = (await admin.database().ref('status/' + uid).get()).val(); return !v || v.state !== 'offline'; }
   catch (e) { return true; }
+}
+
+// 記述ファイト・オンライン版の保存先
+const apRef = uid => db.collection('arenaPlayers').doc(uid);
+const amRef = id => db.collection('arenaMatches').doc(id);
+const asRef = id => db.collection('arenaSecrets').doc(id);
+const aqRef = db.collection('battleQueue').doc('arena');
+const newAP = (name, char) => ({ name, char, rp: 0, rank: 'D', w: 0, l: 0, d: 0, games: 0, updated: now() });
+async function amutate(matchId, uid, fn) {
+  if (typeof matchId !== 'string' || !/^[A-Za-z0-9]{10,40}$/.test(matchId)) throw new HttpsError('invalid-argument', '試合が見つかりません');
+  return db.runTransaction(async tx => {
+    const [md, sd] = await Promise.all([tx.get(amRef(matchId)), tx.get(asRef(matchId))]);
+    if (!md.exists || !sd.exists) throw new HttpsError('not-found', '試合が見つかりません');
+    const m = md.data(), s = sd.data();
+    if (!m.uids.includes(uid)) throw new HttpsError('permission-denied', 'この試合の参加者ではありません');
+    const t = now(), wasEnd = m.phase === 'end';
+    const before = JSON.stringify([m.phase, m.round, m.players, m.ev.length, m.stamps]);
+    const out = fn(m, s, t) || {};
+    const after = JSON.stringify([m.phase, m.round, m.players, m.ev.length, m.stamps]);
+    // 「いる」の合図だけのときは、5秒に1回だけ書く（費用の節約）
+    const onlySeen = before.replace(/"seen":\d+/g, '') === after.replace(/"seen":\d+/g, '');
+    if (before === after || (onlySeen && t - (m.wrote || 0) < 5000)) return Object.assign({ now: t, match: clean(m) }, out);
+    m.v = (m.v || 0) + 1; m.wrote = t;
+    let pw = null;
+    if (!wasEnd && m.phase === 'end') {
+      const [a, b] = m.uids;
+      const [da, dbb] = await Promise.all([tx.get(apRef(a)), tx.get(apRef(b))]);
+      const pa = da.exists ? da.data() : newAP(m.players[a].name, m.players[a].char), pb = dbb.exists ? dbb.data() : newAP(m.players[b].name, m.players[b].char);
+      AL.settle(m, pa, pb, t); pw = [[apRef(a), pa], [apRef(b), pb]];
+    }
+    tx.set(amRef(matchId), m); tx.set(asRef(matchId), s);
+    if (pw) pw.forEach(([r, x]) => tx.set(r, x));
+    return Object.assign({ now: t, match: clean(m) }, out);
+  });
 }
 
 // 試合を読み、ルールで変えて、書く（トランザクション）
@@ -177,7 +212,63 @@ const OPS = {
   },
 
   // サーバーを温めるだけ
-  async ping() { return {}; }
+  async ping() { return {}; },
+
+  // ===================== 記述ファイト・オンライン版（/lb/online/） =====================
+  // 自分の記録（キャラ固定のランキング。キャラを変えるとポイントは最初から）
+  async arMe(uid, d) {
+    const name = d.name != null ? needName(d.name) : null, char = d.char != null ? AL.cleanChar(d.char) : null;
+    const p = await db.runTransaction(async tx => {
+      const doc = await tx.get(apRef(uid)); let p = doc.exists ? doc.data() : null, ch = false;
+      if (!p) { if (!name || !char) return null; p = newAP(name, char); ch = true; }
+      if (name && name !== p.name) { p.name = name; ch = true; }
+      if (char && char !== p.char) { Object.assign(p, newAP(p.name, char)); ch = true; }
+      if (ch) { p.updated = now(); tx.set(apRef(uid), p); }
+      return p;
+    });
+    return { player: p };
+  },
+  // 相手を探す（来なければ、スマホ側が20秒でCPU戦にする）
+  async arFind(uid, d) {
+    const name = needName(d.name), char = AL.cleanChar(d.char);
+    const q0 = await aqRef.get(), w0 = q0.exists ? q0.data().waiting : null;
+    const alive = w0 && w0.uid !== uid ? await online(w0.uid) : false;
+    return db.runTransaction(async tx => {
+      const [qd, me] = await Promise.all([tx.get(aqRef), tx.get(apRef(uid))]);
+      const w = qd.exists ? qd.data().waiting : null, t = now();
+      let p = me.exists ? me.data() : newAP(name, char), meCh = !me.exists;
+      if (p.name !== name) { p.name = name; meCh = true; }
+      if (p.char !== char) { Object.assign(p, newAP(name, char)); meCh = true; }
+      if (w && w0 && w.uid === w0.uid && w.uid !== uid && alive && t - w.at < AL.A.QUEUE_FRESH) {
+        const od = await tx.get(apRef(w.uid)); const op = od.exists ? od.data() : newAP(w.name, w.char);
+        const id = db.collection('arenaMatches').doc().id;
+        const { m, s } = AL.build({ uid: w.uid, p: op }, { uid, p }, t, K);
+        m.expireAt = expire(t); s.expireAt = expire(t);
+        tx.set(amRef(id), m); tx.set(asRef(id), s);
+        tx.set(tRef(w.uid), { matchId: id, at: t, kind: 'arena' }); tx.set(tRef(uid), { matchId: id, at: t, kind: 'arena' });
+        tx.set(aqRef, { waiting: null });
+        if (meCh) tx.set(apRef(uid), p);
+        return { matchId: id, match: clean(m) };
+      }
+      tx.set(aqRef, { waiting: { uid, name, char, at: t } });
+      if (meCh) tx.set(apRef(uid), p);
+      return { waiting: true, since: t };
+    });
+  },
+  async arCancel(uid) {
+    await db.runTransaction(async tx => { const qd = await tx.get(aqRef), w = qd.exists ? qd.data().waiting : null; if (w && w.uid === uid) tx.set(aqRef, { waiting: null }); });
+    // 待っている間に組めていたら、それを返す（スマホはそちらに入る）
+    const td = await tRef(uid).get();
+    return td.exists && td.data().kind === 'arena' && now() - td.data().at < 30000 ? { matchId: td.data().matchId } : {};
+  },
+  async arReady(uid, d) { return amutate(d.matchId, uid, (m, s, t) => { AL.tick(m, uid, t); return AL.ready(m, uid, t); }); },
+  async arAttack(uid, d) {
+    const picks = Array.isArray(d.picks) ? d.picks.slice(0, 8) : null;
+    if (!picks || !picks.every(Number.isInteger)) throw new HttpsError('invalid-argument', 'キーワードが正しくありません');
+    return amutate(d.matchId, uid, (m, s, t) => { AL.tick(m, uid, t); return AL.attack(m, s, uid, picks, t); });
+  },
+  async arTick(uid, d) { return amutate(d.matchId, uid, (m, s, t) => { AL.tick(m, uid, t); }); },
+  async arStamp(uid, d) { return amutate(d.matchId, uid, (m, s, t) => AL.stamp(m, uid, String(d.k || ''), d.i, t)); }
 };
 
 exports.battle = onCall(CALL, async req => {

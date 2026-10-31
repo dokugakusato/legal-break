@@ -18,6 +18,15 @@ service cloud.firestore {
       allow read: if request.auth != null && request.auth.uid == uid;
       allow write: if false;
     }
+    // 記述ファイト・オンライン版：選手の記録（ランキング）は誰でも読める。試合は2人だけ
+    match /arenaPlayers/{uid} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+    match /arenaMatches/{id} {
+      allow read: if request.auth != null && request.auth.uid in resource.data.uids;
+      allow write: if false;
+    }
     // 正解・CPUの予定・相手探しの列：誰も読めない（サーバー専用）
     match /{document=**} {
       allow read, write: if false;

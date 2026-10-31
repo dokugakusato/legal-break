@@ -1,4 +1,8 @@
-{ "indexes": [], "fieldOverrides": [
+{ "indexes": [
+  { "collectionGroup": "arenaPlayers", "queryScope": "COLLECTION", "fields": [ { "fieldPath": "char", "order": "ASCENDING" }, { "fieldPath": "rp", "order": "DESCENDING" } ] }
+], "fieldOverrides": [
   { "collectionGroup": "battleMatches", "fieldPath": "expireAt", "ttl": true, "indexes": [] },
-  { "collectionGroup": "battleSecrets", "fieldPath": "expireAt", "ttl": true, "indexes": [] }
+  { "collectionGroup": "battleSecrets", "fieldPath": "expireAt", "ttl": true, "indexes": [] },
+  { "collectionGroup": "arenaMatches", "fieldPath": "expireAt", "ttl": true, "indexes": [] },
+  { "collectionGroup": "arenaSecrets", "fieldPath": "expireAt", "ttl": true, "indexes": [] }
 ] }
