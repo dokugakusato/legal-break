@@ -1,2 +1,2 @@
-/* オンライン版の声の目次（録音前は空） */
-window.OL_AUDIO=[];
+/* オンライン版の声の目次（tools/gen_voice.mjs が作る） */
+window.OL_AUDIO=["ann_round1","ann_fight","ann_ko","ann_perfect","ann_timeup","ann_win","ann_lose","ann_select","ann_vs","ann_title","hero_a1","hero_a2","hero_rush","hero_sp","hero_taunt","hero_win","hero_lose","hero_counter","hero_pick","mina_a1","mina_a2","mina_rush","mina_sp","mina_taunt","mina_win","mina_lose","mina_counter","mina_pick","dogra_a1","dogra_a2","dogra_rush","dogra_sp","dogra_taunt","dogra_win","dogra_lose","dogra_counter","dogra_pick","boss_a1","boss_a2","boss_rush","boss_sp","boss_taunt","boss_win","boss_lose","boss_counter","boss_pick"];
