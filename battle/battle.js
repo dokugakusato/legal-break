@@ -34,7 +34,7 @@
   function speak(text, who) {
     if (!SOUND || !('speechSynthesis' in window)) return;
     try {
-      const u = new SpeechSynthesisUtterance(text); u.lang = 'ja-JP'; u.rate = 1.1; u.pitch = who === 'op' ? 0.75 : who === 'waza' ? 0.6 : 1.15; u.volume = 1;
+      const u = new SpeechSynthesisUtterance(text); u.lang = 'ja-JP'; u.rate = 1.1; u.pitch = who === 'op' ? 0.75 : who === 'waza' ? 0.6 : who === 'nar' ? 0.85 : 1.15; if (who === 'nar') u.rate = 1.15; u.volume = 1;
       const v = speechSynthesis.getVoices().filter(v => /ja/i.test(v.lang)); if (v.length) u.voice = who === 'op' && v[1] ? v[1] : v[0];
       speechSynthesis.cancel(); speechSynthesis.speak(u);
     } catch (e) {}
@@ -144,8 +144,9 @@
   }
 
   // ---------- 相手探し ----------
-  let search = null;
-  async function find() {
+  let search = null, MODE = 'kj';
+  async function find(mode) {
+    if (mode === 'kj' || mode === 'choice') MODE = mode;
     unlock(); msg('');
     const name = readName(); if (!name) return;
     saveName(name);
@@ -154,7 +155,7 @@
     show('s-search'); $('#found').hidden = true; $('#cancelBtn').hidden = false; music('wait');
     $('#searchTxt').textContent = '対戦相手を待っています…'; $('#searchLeft').textContent = '';
     let r;
-    try { r = await call('find', { name, chara: myChara() }); }
+    try { r = await call('find', { name, chara: myChara(), mode: MODE }); }
     catch (e) { if (search === my) { search = null; show('s-home'); msg(errText(e)); } return; }
     if (search !== my) return;
     if (r.matchId) return matched(r.matchId, false);
@@ -166,13 +167,13 @@
       $('#searchLeft').textContent = left > 0 ? `あと ${left} 秒で修行相手（CPU）と戦う` : '修行相手を呼んでいます…';
       if (left <= 0 && !my.cpuAsked) {
         my.cpuAsked = true;
-        try { const c = await call('cpu', { since }); if (search === my) matched(c.matchId, true); }
+        try { const c = await call('cpu', { since, mode: MODE }); if (search === my) matched(c.matchId, true); }
         catch (e) { if (search === my) { stopSearch(); show('s-home'); msg(errText(e)); } }
       }
     }, 250);
   }
   function stopSearch() { if (!search) return; clearInterval(search.timer); search.unTicket && search.unTicket(); search = null; }
-  async function cancel() { stopSearch(); show('s-home'); music('title'); try { await call('cancel'); } catch (e) {} }
+  async function cancel() { stopSearch(); show('s-home'); music('title'); try { await call('cancel', { mode: MODE }); } catch (e) {} }
   function matched(id, viaCpu) {
     stopSearch();
     $('#cancelBtn').hidden = true;
@@ -190,6 +191,7 @@
     ['#vs', '#review', '#endL', '#pauseB'].forEach(s => $(s).hidden = true);
     $('#qText').textContent = ''; $('#choices').innerHTML = ''; $('#qMeta').textContent = ''; $('#qNo').textContent = 'VS';
     figsFor = ''; $('#figMe').innerHTML = ''; $('#figOp').innerHTML = '';
+    kjMine = []; kjDrawn = false; storyShown = -1; $('#story').hidden = true; $('#kjarea').hidden = true; $('#qarea').hidden = false;
     unM = API.watchMatch(id, m => { if (MID === id && m) applyMatch(m); }, () => {});
     clearInterval(loopTimer); loopTimer = setInterval(loop, 100);
   }
@@ -230,6 +232,9 @@
     // 場面ごと
     $('#vs').hidden = m.phase !== 'vs';
     if (m.phase === 'vs' && (!prev || prev.phase !== 'vs')) drawVS(m);
+    if (m.mode === 'kj') { $('#qarea').hidden = true; $('#kjarea').hidden = m.phase === 'vs' || m.phase === 'story'; }
+    $('#story').hidden = m.phase !== 'story';
+    if (m.phase === 'kj') { if (!kjDrawn) { kjDrawn = true; SND.go(); pop('FIGHT!', 'gold'); speak('ファイト！', 'waza'); } drawKJ(m); }
     if (m.phase === 'q' && m.qi !== lastQi) { lastQi = m.qi; drawQuestion(m); }
     if (m.phase === 'q') lockChoices(m);
     events(m);
@@ -244,7 +249,7 @@
     const pb = $('#pauseB');
     if (m.paused && m.phase !== 'end') { pb.hidden = false; pb.textContent = m.paused.uid === uid ? '通信が切れました。つなぎ直しています…' : '相手の接続を待っています…（15秒で不戦勝）'; }
     else pb.hidden = true;
-    $('#qNo').textContent = m.phase === 'vs' ? 'VS' : m.sd ? '延長' : `${Math.min(m.qi + 1, m.total)}/${m.total}`;
+    $('#qNo').textContent = m.mode === 'kj' ? (m.phase === 'vs' ? 'VS' : m.phase === 'story' ? '事件' : '記述') : m.phase === 'vs' ? 'VS' : m.sd ? '延長' : `${Math.min(m.qi + 1, m.total)}/${m.total}`;
     scheduleTick();
   }
   function hpBar(bar, num, hp) { const b = $(bar); b.style.width = Math.max(0, hp / 10) + '%'; b.classList.toggle('low', hp <= 300); $(num).textContent = hp; }
@@ -334,7 +339,7 @@
     if (!draw) { const loser = win ? '#figOp' : '#figMe', winner = win ? '#figMe' : '#figOp'; emo(winner, 'happy'); emo(loser, 'sad'); if (res.reason === 'ko') $(loser).classList.add('down'); }
     music(null); if (window.LBMusic) LBMusic.jingle(win || draw ? 'win' : 'lose'); speak(draw ? '引き分け' : win ? 'あなたの勝ち！' : '負けてしまった…', 'me');
     let big = draw ? 'DRAW' : win ? (res.reason === 'ko' ? 'K.O.!' : 'WIN!') : 'LOSE…';
-    let sub = draw ? '引き分け' : win ? (res.reason === 'forfeit' ? '相手が戻らなかった（不戦勝）' : res.reason === 'judge' ? '判定勝ち' : 'あなたの勝ち') : (res.reason === 'forfeit' ? '接続が切れて不戦敗' : res.reason === 'judge' ? '判定負け' : 'K.O.された…');
+    let sub = draw ? '引き分け' : win ? (res.reason === 'forfeit' ? '相手が戻らなかった（不戦勝）' : res.reason === 'judge' ? '判定勝ち' : m.mode === 'kj' ? '満点答案で一撃！' : 'あなたの勝ち') : (res.reason === 'forfeit' ? '接続が切れて不戦敗' : res.reason === 'judge' ? '判定負け' : 'K.O.された…');
     let rate = '';
     if (m.cpu) rate = '<p class="cpunote">CPU戦なので、ランクは変わりません</p>';
     else if (res.delta && res.delta[uid] != null) {
@@ -342,11 +347,19 @@
       rate = `<p class="rchange">レート ${a.rating - d} → <b class="${d >= 0 ? 'up' : 'dn'}">${a.rating}（${d >= 0 ? '+' : ''}${d}）</b></p><div class="newrank r${esc(a.rank)}">${esc(a.rank)}</div><p class="cpunote">ランク</p>`;
       player = Object.assign({}, player || {}, { rating: a.rating, rank: a.rank });
     }
-    $('#endL').innerHTML = `<div class="ko ${win || draw ? '' : 'lose'}">${big}</div><p class="endsub">${esc(sub)}</p>${rate}${stampBar()}
+    let model = '';
+    if (m.mode === 'kj' && m.rv) {
+      const k = m.kj, my = k.prog[uid], opp = k.prog[opUid()];
+      model = `<p class="rchange">答案 あなた <b class="up">${my.pts}点</b> ／ 相手 ${opp.pts}点</p>
+        <div class="modelans"><span class="lb">解答例（${esc(k.topic)}）</span>${esc(m.rv.model)}</div>
+        <div class="keys">${(m.rv.keys || []).map(x => `<span>${esc(x)}</span>`).join('')}</div>
+        <p class="modelexp">${esc(m.rv.exp)}</p>${m.rv.note ? `<p class="cpunote">出典：行政書士独学応援チャンネルのノート（${esc(m.rv.note)}）</p>` : ''}`;
+    }
+    $('#endL').innerHTML = `<div class="ko ${win || draw ? '' : 'lose'}">${big}</div><p class="endsub">${esc(sub)}</p>${rate}${model}${stampBar()}
       <button class="btn" type="button" id="againBtn">もう一度さがす</button><button class="btn ghost" type="button" id="menuBtn">メニューへ</button>`;
     $('#endL').hidden = false; $('#review').hidden = true;
     bindStamps($('#endL'));
-    $('#againBtn').onclick = () => { leaveMatch(); find(); };
+    $('#againBtn').onclick = () => { leaveMatch(); find(MODE); };
     $('#menuBtn').onclick = goHome;
   }
 
@@ -356,10 +369,14 @@
       const key = m.qi + ':' + i; if (seen[key]) return; seen[key] = 1;
       if (sNow() - (m.phaseAt + e.at) > 8000 && m.phase !== 'q') return; // 古いものは演出しない
       const mine = e.by === uid, fBy = mine ? '#figMe' : '#figOp', fTo = e.to === uid ? '#figMe' : '#figOp';
+      if (e.t === 'kjfin') e.t = 'hit';
+      if (e.t === 'kjhit') { SND.hit(); pop(mine ? `部分点 +${M.kj.pts[e.slot]}点！` : '相手が部分点！', mine ? 'gold small' : 'small');
+        anim(fBy, 'lunge', 260); setTimeout(() => { anim(fTo, 'hit', 450); anim(fTo, 'knock', 500); emo(fTo, 'shock', 900); shake(); dmgNum(e.to === uid ? 'me' : 'op', e.dmg); }, 180); return; }
+      if (e.t === 'kjmiss') { SND.miss(); pop(mine ? 'ちがう札！' : '相手がミス！', 'small'); anim(fTo, 'hit', 450); emo(fTo, 'sad', 1200); dmgNum(e.to === uid ? 'me' : 'op', e.dmg); return; }
       if (e.t === 'hit' || e.t === 'counter') {
         const finish = m.phase === 'end' && m.players[e.to].hp <= 0;
         if (e.t === 'counter' || finish) {
-          pop(e.t === 'counter' ? 'COUNTER!' : 'とどめ！', 'gold'); special(e.by, e.to);
+          pop(e.t === 'counter' ? 'COUNTER!' : m.mode === 'kj' ? '満点答案！' : 'とどめ！', 'gold'); special(e.by, e.to);
           setTimeout(() => dmgNum(e.to === uid ? 'me' : 'op', e.dmg), 1500);
           if (finish) setTimeout(() => SND.ko(), 1600);
         } else {
@@ -380,6 +397,51 @@
   function pop(t, cls) { const p = $('#pop'); p.innerHTML = `<b class="${cls || ''}">${esc(t)}</b>`; }
   function dmgNum(side, n) { const d = document.createElement('div'); d.className = 'dmgnum ' + side; d.textContent = '-' + n; $('#stage').appendChild(d); setTimeout(() => d.remove(), 1200); }
 
+  // ---------- 記述バトル ----------
+  let kjMine = [], kjDrawn = false, storyShown = -1, kjBusy = false, kjLockTo = 0, kjPending = null;
+  function drawStory(m, i) {
+    const k = m.kj, p = k.story[i]; if (!p) return;
+    const sato = window.FIGHTERS && FIG('sato');
+    const art = p.who === '佐藤' ? `<span class="art">${window.SATO_SVG}</span>` : '';
+    $('#story').innerHTML = `<p class="topic">${esc(k.field)}｜${esc(k.topic)}</p>
+      <div class="kami"><span class="no">事件 ${i + 1}/${k.story.length}</span>
+      ${p.nar ? `<p class="nar">${esc(p.nar)}</p>` : ''}${p.say ? `<div class="say">${art}<div class="bub"><span class="who">${esc(p.who || '')}</span>${esc(p.say)}</div></div>` : ''}</div>
+      <div class="dots">${k.story.map((_, j) => `<i class="${j <= i ? 'on' : ''}"></i>`).join('')}</div>
+      <p class="soon">${i + 1 >= k.story.length ? 'まもなく FIGHT！ 答案づくり開始' : ''}</p>`;
+    speak(p.nar || p.say, p.nar ? 'nar' : 'me');
+  }
+  function drawKJ(m) {
+    const k = m.kj, pg = k.prog[uid], op = k.prog[opUid()];
+    while (kjMine.length < pg.n) kjMine.push(kjPending && kjPending.slot === kjMine.length ? kjPending.text : '（済）'); // 出した札（読み込み直したときは（済））
+    $('#kjMeta').textContent = `${k.field}｜${k.topic}`;
+    $('#kjQ').textContent = k.q;
+    const parts = k.tpl.split('[]'); let h = '';
+    parts.forEach((t, i) => { h += esc(t); if (i < k.n) h += `<span class="bl ${i < pg.n ? 'done' : i === pg.n ? 'now' : ''}">${i < pg.n ? esc(kjMine[i]) : (i === pg.n ? '？' : '　　')}</span>`; });
+    $('#kjAns').innerHTML = h;
+    $('#kjMyPts').textContent = pg.pts; $('#kjOpPts').textContent = `${op.pts}（${op.n}/${k.n}）`;
+    $('#kjHint').innerHTML = pg.n < k.n ? `空欄${pg.n + 1}のヒント：<b>${esc(k.labels[pg.n] || '')}</b>` : '完成！';
+    const box = $('#chips');
+    if (box.dataset.for !== MID) { box.dataset.for = MID; box.innerHTML = k.chips.map((c, i) => `<button type="button" class="chip" data-c="${i}">${esc(c)}</button>`).join(''); box.querySelectorAll('.chip').forEach(b => b.onclick = () => playChip(+b.dataset.c, b)); }
+    box.querySelectorAll('.chip').forEach(b => b.classList.toggle('used', kjMine.includes(b.textContent)));
+    if (pg.lock > sNow()) lockChips(pg.lock);
+  }
+  function lockChips(until) {
+    kjLockTo = until; const box = $('#chips'); box.classList.add('locked');
+    clearTimeout(box._t); box._t = setTimeout(() => { if (sNow() >= kjLockTo) box.classList.remove('locked'); }, Math.max(0, until - sNow()) + 30);
+  }
+  function playChip(i, btn) {
+    if (!M || M.mode !== 'kj' || M.phase !== 'kj' || kjBusy || M.paused) return;
+    if (sNow() < kjLockTo) return;
+    unlock(); kjBusy = true;
+    const slot = M.kj.prog[uid].n, text = M.kj.chips[i];
+    btn.classList.add('mine'); kjPending = { slot, text };
+    call('kj', { matchId: MID, slot, chip: i }).then(r => {
+      kjBusy = false; btn.classList.remove('mine');
+      if (r && r.accepted && r.ok) { if (kjMine.length === slot) kjMine.push(text); if (M) drawKJ(M); }
+      else if (r && r.accepted && !r.ok) { btn.classList.remove('bad'); void btn.offsetWidth; btn.classList.add('bad'); lockChips(sNow() + 2000); toast('ちがう札！ 2秒動けない', 'op'); }
+    }).catch(() => { kjBusy = false; btn.classList.remove('mine'); });
+  }
+
   // 毎0.1秒：残り時間・カウントダウン
   let lastSec = -1;
   function loop() {
@@ -389,10 +451,11 @@
       const left = M.until - t, c = $('#count');
       if (c) { const v = left > 3000 ? '' : left > 0 ? String(Math.ceil(left / 1000)) : 'FIGHT!'; if (c.dataset.v !== v) { c.dataset.v = v; c.innerHTML = v ? `<b>${v}</b>` : ''; if (v) SND.tick(); } }
     }
+    if (M.phase === 'story') { const i = Math.min(M.kj.story.length - 1, Math.floor((t - M.phaseAt) / 6500)); if (i !== storyShown && i >= 0) { storyShown = i; drawStory(M, i); } }
     const bar = $('#timerBar');
-    if (M.phase === 'q') {
-      const left = M.paused ? M.until - M.paused.since : M.until - t;
-      bar.style.transform = `scaleX(${Math.max(0, Math.min(1, left / QTIME))})`; bar.classList.toggle('hurry', left < 10000);
+    if (M.phase === 'q' || M.phase === 'kj') {
+      const left = M.paused ? M.until - M.paused.since : M.until - t, tot = M.phase === 'kj' ? 120000 : QTIME;
+      bar.style.transform = `scaleX(${Math.max(0, Math.min(1, left / tot))})`; bar.classList.toggle('hurry', left < 10000);
       const sec = Math.ceil(left / 1000); if (sec !== lastSec && sec <= 5 && sec > 0 && !M.paused) SND.tick(); lastSec = sec;
     } else bar.style.transform = 'scaleX(0)';
     if (M.phase === 'rv') { const n = $('#nextIn'); if (n) { const s = Math.max(0, Math.ceil((M.until - t) / 1000)); n.textContent = M.qi + 1 >= M.total ? `${s}秒後に結果` : `${s}秒後に次の問題`; } }
@@ -445,7 +508,7 @@
   async function boot() {
     inAppGuide();
     $('#nameIn').value = savedName();
-    $('#findBtn').onclick = find; $('#cancelBtn').onclick = cancel; $('#rankBtn').onclick = ranking;
+    $('#findBtn').onclick = () => find('choice'); $('#findKjBtn').onclick = () => find('kj'); $('#cancelBtn').onclick = cancel; $('#rankBtn').onclick = ranking;
     $('#soundBtn').onclick = () => setSound(!SOUND); setSound(SOUND);
     drawCharas();
     if ('speechSynthesis' in window) try { speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => {}; } catch (e) {}
@@ -453,16 +516,16 @@
     document.addEventListener('keydown', unlock, { once: true });
     renderMe();
     API = window.LB_MOCK_API || (window.LB_BATTLE_FIREBASE ? firebaseAPI(window.LB_BATTLE_FIREBASE) : null);
-    if (!API) { $('#findBtn').disabled = true; msg('準備中です（試験用の設定がまだ入っていません）'); return; }
-    $('#findBtn').disabled = true; msg('接続中…');
+    if (!API) { $('#findBtn').disabled = true; $('#findKjBtn').disabled = true; msg('準備中です（試験用の設定がまだ入っていません）'); return; }
+    $('#findBtn').disabled = true; $('#findKjBtn').disabled = true; msg('接続中…');
     try {
       uid = await API.init();
       API.onReconnect && API.onReconnect(() => { if (M && M.paused && M.phase !== 'end') tick(); });
-      $('#findBtn').disabled = false; msg('');
+      $('#findBtn').disabled = false; $('#findKjBtn').disabled = false; msg('');
       const r = await call('me');
       if (r.player) { player = r.player; renderMe(); if (!$('#nameIn').value) $('#nameIn').value = player.name; if (player.chara && !localStorage.getItem('lbBattleChara')) { try { localStorage.setItem('lbBattleChara', player.chara); } catch (e) {} drawCharas(); } }
       refreshOnline();
-    } catch (e) { $('#findBtn').disabled = true; msg(errText(e)); }
+    } catch (e) { $('#findBtn').disabled = true; $('#findKjBtn').disabled = true; msg(errText(e)); }
   }
 
   // ---------- Firebase（試験用プロジェクト）とのやり取り ----------

@@ -10,6 +10,7 @@ const { setGlobalOptions } = require('firebase-functions/v2');
 const admin = require('firebase-admin');
 const L = require('./logic');
 const Q = require('./questions');
+const K = require('./kijutsu');
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -26,7 +27,9 @@ const pRef = uid => db.collection('battlePlayers').doc(uid);
 const mRef = id => db.collection('battleMatches').doc(id);
 const sRef = id => db.collection('battleSecrets').doc(id);
 const tRef = uid => db.collection('battleTickets').doc(uid);
-const qRef = () => db.collection('battleQueue').doc('main');
+const MODES = ['choice', 'kj'];
+const modeOf = x => MODES.includes(x) ? x : 'choice';
+const qRef = mode => db.collection('battleQueue').doc(mode === 'kj' ? 'kj' : 'main');
 const expire = t => admin.firestore.Timestamp.fromMillis(t + 24 * 3600 * 1000);
 const clean = m => { const o = Object.assign({}, m); delete o.expireAt; return o; };
 
@@ -45,9 +48,9 @@ async function mutate(matchId, uid, fn, pre) {
     if (!md.exists || !sd.exists) throw new HttpsError('not-found', '試合が見つかりません');
     const m = md.data(), s = sd.data();
     if (!m.uids.includes(uid)) throw new HttpsError('permission-denied', 'この試合の参加者ではありません');
-    const t = now(), wasEnd = m.phase === 'end', before = JSON.stringify([m.phase, m.qi, m.ans, m.players, m.paused, m.stamps, m.ev && m.ev.seq]);
+    const t = now(), wasEnd = m.phase === 'end', before = JSON.stringify([m.phase, m.qi, m.ans, m.players, m.paused, m.stamps, m.ev && m.ev.seq, m.ev && m.ev.list.length, m.kj && m.kj.prog]);
     const out = fn(m, s, t, extra) || {};
-    const changed = before !== JSON.stringify([m.phase, m.qi, m.ans, m.players, m.paused, m.stamps, m.ev && m.ev.seq]);
+    const changed = before !== JSON.stringify([m.phase, m.qi, m.ans, m.players, m.paused, m.stamps, m.ev && m.ev.seq, m.ev && m.ev.list.length, m.kj && m.kj.prog]);
     if (!changed) return Object.assign({ now: t, phase: m.phase, match: clean(m) }, out); // 何も変わらなければ書かない（費用の節約）
     m.v = (m.v || 0) + 1;
     let pw = null;
@@ -65,9 +68,9 @@ async function mutate(matchId, uid, fn, pre) {
   });
 }
 
-function createMatch(tx, a, b, cpu, t) {
+function createMatch(tx, a, b, cpu, t, mode) {
   const id = db.collection('battleMatches').doc().id;
-  const { m, s } = L.buildMatch(a, b, cpu, t, Q.length);
+  const { m, s } = mode === 'kj' ? L.buildKJ(a, b, cpu, t, K) : L.buildMatch(a, b, cpu, t, Q.length);
   m.expireAt = expire(t); s.expireAt = expire(t);
   tx.set(mRef(id), m); tx.set(sRef(id), s);
   return id;
@@ -90,51 +93,52 @@ const OPS = {
 
   // 相手を探す。待っている人がいれば試合を作る、いなければ自分が待つ
   async find(uid, d) {
-    const name = needName(d.name), chara = L.cleanChara(d.chara);
-    const q0 = await qRef().get(), w0 = q0.exists ? q0.data().waiting : null;
+    const name = needName(d.name), chara = L.cleanChara(d.chara), mode = modeOf(d.mode);
+    const q0 = await qRef(mode).get(), w0 = q0.exists ? q0.data().waiting : null;
     const alive = w0 && w0.uid !== uid ? await online(w0.uid) : false; // ページを閉じた人と組まないように
     return db.runTransaction(async tx => {
-      const [qd, me] = await Promise.all([tx.get(qRef()), tx.get(pRef(uid))]);
+      const [qd, me] = await Promise.all([tx.get(qRef(mode)), tx.get(pRef(uid))]);
       const w = qd.exists ? qd.data().waiting : null, t = now();
       const p = me.exists ? me.data() : L.newPlayer(name, t);
       const meChanged = !me.exists || p.name !== name || p.chara !== chara; p.name = name; p.chara = chara;
       if (w && w0 && w.uid === w0.uid && w.uid !== uid && alive && t - w.at < R.QUEUE_FRESH) {
         const od = await tx.get(pRef(w.uid));
         const op = od.exists ? od.data() : L.newPlayer(w.name, t);
-        const id = createMatch(tx, { uid: w.uid, p: op }, { uid, p }, false, t);
+        const id = createMatch(tx, { uid: w.uid, p: op }, { uid, p }, false, t, mode);
         tx.set(tRef(w.uid), { matchId: id, at: t }); tx.set(tRef(uid), { matchId: id, at: t });
-        tx.set(qRef(), { waiting: null });
+        tx.set(qRef(mode), { waiting: null });
         if (meChanged) tx.set(pRef(uid), p);
         if (!od.exists) tx.set(pRef(w.uid), op);
         return { matchId: id };
       }
-      tx.set(qRef(), { waiting: { uid, name, rating: p.rating, at: t } });
+      tx.set(qRef(mode), { waiting: { uid, name, rating: p.rating, at: t } });
       if (meChanged) tx.set(pRef(uid), p);
       return { waiting: true, since: t };
     });
   },
 
   // 探すのをやめる
-  async cancel(uid) {
+  async cancel(uid, d) {
+    const mode = modeOf(d.mode);
     await db.runTransaction(async tx => {
-      const qd = await tx.get(qRef()), w = qd.exists ? qd.data().waiting : null;
-      if (w && w.uid === uid) tx.set(qRef(), { waiting: null });
+      const qd = await tx.get(qRef(mode)), w = qd.exists ? qd.data().waiting : null;
+      if (w && w.uid === uid) tx.set(qRef(mode), { waiting: null });
     });
     return {};
   },
 
   // 見つからなかったので CPU と戦う（その間に誰かと組めていたら、そちらを返す）
   async cpu(uid, d) {
-    const since = Number(d.since) || 0;
+    const since = Number(d.since) || 0, mode = modeOf(d.mode);
     return db.runTransaction(async tx => {
-      const [qd, td, me] = await Promise.all([tx.get(qRef()), tx.get(tRef(uid)), tx.get(pRef(uid))]);
+      const [qd, td, me] = await Promise.all([tx.get(qRef(mode)), tx.get(tRef(uid)), tx.get(pRef(uid))]);
       const w = qd.exists ? qd.data().waiting : null, t = now();
       if (since > 0 && td.exists && td.data().at >= since) return { matchId: td.data().matchId };
       if (!me.exists) throw new HttpsError('failed-precondition', '先に名前を決めてください');
-      if (w && w.uid === uid) tx.set(qRef(), { waiting: null });
+      if (w && w.uid === uid) tx.set(qRef(mode), { waiting: null });
       const cc = L.CHARAS[Math.floor(Math.random() * L.CHARAS.length)];
       const cpu = { uid: 'cpu' + Math.random().toString(36).slice(2, 10), p: { name: '修行相手（CPU）', rating: 0, rank: 'CPU', chara: cc } };
-      const id = createMatch(tx, { uid, p: me.data() }, cpu, true, t);
+      const id = createMatch(tx, { uid, p: me.data() }, cpu, true, t, mode);
       tx.set(tRef(uid), { matchId: id, at: t });
       return { matchId: id };
     });
@@ -158,6 +162,13 @@ const OPS = {
       const st = await Promise.all(humans.map(online));
       const on = {}; humans.forEach((u, i) => { on[u] = st[i]; }); return on;
     });
+  },
+
+  // 記述バトル：札を1枚出す
+  async kj(uid, d) {
+    const { matchId, slot, chip } = d;
+    if (!Number.isInteger(slot) || !Number.isInteger(chip)) throw new HttpsError('invalid-argument', '札が正しくありません');
+    return mutate(matchId, uid, (m, s, t) => L.kjAnswer(m, s, uid, slot, chip, t));
   },
 
   // ひとこと（問題を解いている間は送れない）

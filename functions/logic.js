@@ -16,7 +16,12 @@
     QUEUE_FRESH: 25000,    // 相手探しの受付が有効な時間
     SD_MAX: 3,             // サドンデスの最大問題数
     STAMP_GAP: 3000,
-    K: 32, INIT: 1500
+    K: 32, INIT: 1500,
+    // 記述バトル
+    PANEL_MS: 6500,        // 紙芝居1枚の時間
+    KJ_TIME: 120000,       // 答案づくりの制限時間
+    KJ_DMG: 600,           // 部分点のダメージの合計（満点の最後の1つは必殺技で一撃K.O.）
+    KJ_MISS: 50, KJ_LOCK: 2000
   };
   const STAMPS = ['よろしく！', 'ナイス！', '参った！', 'もう1戦！', 'ありがとう！', 'くっ…！'];
   const CHARAS = ['sato', 'bando', 'sasaki', 'tanaka', 'gonda', 'miura'];
@@ -106,9 +111,93 @@
     startQuestion(m, s, t, Q, rnd);
   }
 
+  // ===================== 記述バトル =====================
+  // K＝記述の問題（kijutsu.js）。1試合＝1論点。紙芝居 → FIGHT → キーワードの札で答案を組み立てる（20点満点）
+  function buildKJ(a, b, cpu, t, K, rnd) {
+    rnd = rnd || Math.random;
+    const k = K[Math.floor(rnd() * K.length)];
+    const n = k.slots.length;
+    const pts = k.slots.map((_, i) => Math.floor(20 / n) + (i < 20 % n ? 1 : 0));
+    const chips = shuffle(k.slots.map(x => x.a).concat(k.wrong), rnd);
+    const ans = k.slots.map(x => chips.indexOf(x.a));
+    const players = {};
+    players[a.uid] = Object.assign(pub(a.p), { hp: R.HP, cpu: false });
+    players[b.uid] = Object.assign(pub(b.p), { hp: R.HP, cpu: !!cpu });
+    const prog = {}; [a.uid, b.uid].forEach(u => { prog[u] = { n: 0, pts: 0, lock: 0 }; });
+    const m = {
+      mode: 'kj', uids: [a.uid, b.uid], cpu: !!cpu, players,
+      phase: 'vs', phaseAt: t, until: t + R.VS_MS,
+      qi: 0, total: 1, sd: 0, q: null, ans: {}, cpuAt: null, ev: { seq: 0, list: [] }, rv: null,
+      kj: { id: k.id, field: k.field, topic: k.topic, story: k.story, q: k.q, tpl: k.tpl, labels: k.slots.map(x => x.hint || ''), n, pts, chips, prog },
+      paused: null, result: null, stamps: {}, created: t, v: 1
+    };
+    let cpuPlan = null;
+    if (cpu) { // CPU：1つの空欄に8〜20秒、ときどき間違える
+      cpuPlan = []; let at = 0;
+      for (let i = 0; i < n; i++) { at += 8000 + Math.round(rnd() * 12000); if (rnd() < 0.3) { cpuPlan.push({ at, ok: false }); at += 3000 + Math.round(rnd() * 3000); } cpuPlan.push({ at, ok: true }); }
+    }
+    return { m, s: { kj: { ans, model: k.model, exp: k.exp, keys: k.keys || [], note: k.note || '' }, cpuPlan, cpuI: 0 } };
+  }
+  function kjEnd(m, s, t, reason, winner) {
+    m.rv = { model: s.kj.model, exp: s.kj.exp, keys: s.kj.keys, note: s.kj.note, ans: s.kj.ans };
+    finish(m, t, reason, winner);
+  }
+  // 札を1枚出す。slot＝何番目の空欄か、chip＝札の番号
+  function kjPlay(m, s, uid, slot, chip, t) {
+    const pg = m.kj.prog[uid], op = other(m, uid);
+    if (pg.lock > t) return { accepted: false, why: 'lock' };
+    if (slot !== pg.n || pg.n >= m.kj.n) return { accepted: false, why: 'slot' };
+    const at = t - m.phaseAt;
+    if (chip === s.kj.ans[slot]) {
+      pg.n += 1; pg.pts += m.kj.pts[slot];
+      if (pg.n >= m.kj.n) { // 満点の完成答案 → 必殺技で一撃
+        const dmg = m.players[op].hp; m.players[op].hp = 0;
+        m.ev.list.push({ t: 'kjfin', by: uid, to: op, dmg, at, slot });
+        kjEnd(m, s, t, 'ko', uid);
+        return { accepted: true, ok: true, done: true };
+      }
+      const dmg = Math.round(R.KJ_DMG / m.kj.n);
+      m.players[op].hp = Math.max(0, m.players[op].hp - dmg);
+      m.ev.list.push({ t: 'kjhit', by: uid, to: op, dmg, at, slot });
+      return { accepted: true, ok: true };
+    }
+    pg.lock = t + R.KJ_LOCK;
+    m.players[uid].hp = Math.max(0, m.players[uid].hp - R.KJ_MISS);
+    m.ev.list.push({ t: 'kjmiss', by: uid, to: uid, dmg: R.KJ_MISS, at, slot });
+    if (m.players[uid].hp <= 0) kjEnd(m, s, t, 'ko', op);
+    return { accepted: true, ok: false };
+  }
+  function kjAnswer(m, s, uid, slot, chip, t) {
+    advance(m, s, t);
+    if (m.mode !== 'kj' || m.phase !== 'kj') return { accepted: false, why: 'closed' };
+    if (m.paused) return { accepted: false, why: 'paused' };
+    if (!Number.isInteger(chip) || chip < 0 || chip >= m.kj.chips.length) return { accepted: false, why: 'chip' };
+    return kjPlay(m, s, uid, slot, chip, t);
+  }
+  function kjAdvance(m, s, t) {
+    if (m.phase === 'vs' && t >= m.until) { m.phase = 'story'; m.phaseAt = m.until; m.until = m.phaseAt + m.kj.story.length * R.PANEL_MS; m.ev.seq += 1; }
+    if (m.phase === 'story' && t >= m.until) { m.phase = 'kj'; m.phaseAt = m.until; m.until = m.phaseAt + R.KJ_TIME; m.ev = { seq: m.ev.seq + 1, list: [] }; }
+    if (m.phase !== 'kj') return;
+    if (m.cpu && s.cpuPlan) { // CPUの番
+      const cu = m.uids[1];
+      while (m.phase === 'kj' && s.cpuI < s.cpuPlan.length && t - m.phaseAt >= s.cpuPlan[s.cpuI].at) {
+        const p = s.cpuPlan[s.cpuI++], pg = m.kj.prog[cu], tt = m.phaseAt + p.at;
+        const right = s.kj.ans[pg.n], wrong = m.kj.chips.findIndex((c, i) => !s.kj.ans.includes(i));
+        pg.lock = 0; kjPlay(m, s, cu, pg.n, p.ok ? right : wrong, tt);
+      }
+      m.cpuAt = s.cpuI < s.cpuPlan.length ? s.cpuPlan[s.cpuI].at : null;
+    }
+    if (m.phase === 'kj' && t >= m.until) { // 時間切れ：点の高い方、同点ならHPの多い方
+      const [a, b] = m.uids, pa = m.kj.prog[a].pts, pb = m.kj.prog[b].pts, ha = m.players[a].hp, hb = m.players[b].hp;
+      const w = pa !== pb ? (pa > pb ? a : b) : ha !== hb ? (ha > hb ? a : b) : null;
+      kjEnd(m, s, t, 'judge', w);
+    }
+  }
+
   // 時間で進める（CPUの回答・時間切れ・解説の終わり）
   function advance(m, s, t, Q, rnd) {
     if (m.phase === 'end' || m.paused) return;
+    if (m.mode === 'kj') return kjAdvance(m, s, t);
     if (m.phase === 'vs') { if (t >= m.until) startQuestion(m, s, t, Q, rnd); return; }
     if (m.phase === 'q') {
       const cu = cpuUid(m);
@@ -155,7 +244,7 @@
 
   function stamp(m, uid, id, t) {
     if (!Number.isInteger(id) || id < 0 || id >= STAMPS.length) return { accepted: false };
-    if (m.phase === 'q') return { accepted: false };
+    if (m.phase === 'q' || m.phase === 'kj') return { accepted: false };
     const last = m.stamps[uid];
     if (last && t - last.at < R.STAMP_GAP) return { accepted: false };
     m.stamps[uid] = { id, at: t, seq: (last ? last.seq : 0) + 1 };
@@ -184,6 +273,6 @@
     return n && !/[@＠]/.test(n) ? n : null;
   }
 
-  const api = { R, STAMPS, CHARAS, cleanChara, rankOf, shuffle, newPlayer, pub, other, buildMatch, startQuestion, applyAnswer, advance, answer, presence, stamp, eloDelta, settle, cleanName };
+  const api = { R, STAMPS, CHARAS, cleanChara, rankOf, shuffle, newPlayer, pub, other, buildMatch, buildKJ, kjAnswer, startQuestion, applyAnswer, advance, answer, presence, stamp, eloDelta, settle, cleanName };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.LBLogic = api;
 })(typeof self !== 'undefined' ? self : this);

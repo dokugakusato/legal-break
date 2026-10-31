@@ -2,7 +2,7 @@
 <html lang="ja"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
-<title>ONLINE BATTLE｜LEGAL BREAK 法の拳（試作）</title>
+<title>ONLINE BATTLE｜行政書士独学応援 LEGAL BREAK 法の拳（試作）</title>
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#120c0a">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,7 +16,7 @@
 <main id="app">
   <!-- メニュー -->
   <section class="scr" id="s-home">
-    <h1 class="logo"><span class="pre">LEGAL BREAK 法の拳</span>ONLINE BATTLE</h1>
+    <h1 class="logo"><span class="tm">行政書士独学応援</span><span class="pre">LEGAL BREAK 法の拳</span>ONLINE BATTLE</h1>
     <p class="beta">試作版</p>
     <div class="mecard">
       <div class="rankbig" id="meRank">C</div>
@@ -28,10 +28,11 @@
     <p class="sec">キャラクターを選ぶ</p>
     <div class="charas" id="charas"></div>
     <p class="charainfo" id="charaInfo"></p>
-    <button class="btn" id="findBtn" type="button">対戦相手をさがす</button>
+    <button class="btn" id="findKjBtn" type="button">記述バトル<small>20点満点の答案で勝負</small></button>
+    <button class="btn sub" id="findBtn" type="button">択一バトル<small>5択の早押し</small></button>
     <button class="btn ghost" id="rankBtn" type="button">全国ランキング</button>
     <p class="online" id="onlineN"></p>
-    <p class="note">5択を2人に同時出題。先に正解した方が攻撃。速いほど大ダメージ。<br>相手が見つからないときは修行相手（CPU）と戦う。CPU戦はランクが変わらない。</p>
+    <p class="note"><b>記述バトル</b>：紙芝居で事件を見たら、FIGHT！でキーワードの札を選んで答案を組み立てる。正しい札を出すたびに部分点でダメージ、先に20点満点の答案を完成させたら必殺技で一撃K.O.！<br><b>択一バトル</b>：5択の早押し。先に正解した方が攻撃。<br>相手が見つからないときは修行相手（CPU）と戦う。CPU戦はランクが変わらない。</p>
     <p class="msg" id="homeMsg"></p>
     <a class="back" href="https://legal-break.5ukaku.com/">◀ ストーリーモードへ</a>
   </section>
@@ -62,6 +63,13 @@
       <div class="stampbub op" id="bubOp" hidden></div>
     </div>
     <div class="timer"><i id="timerBar"></i></div>
+    <div class="kjarea" id="kjarea" hidden>
+      <div class="kjtop"><span class="kjmeta" id="kjMeta"></span><span class="kjpts"><b id="kjMyPts">0</b>/20点　相手 <b id="kjOpPts">0</b>点</span></div>
+      <div class="kjq" id="kjQ"></div>
+      <div class="kjans" id="kjAns"></div>
+      <div class="kjhint" id="kjHint"></div>
+      <div class="chips" id="chips"></div>
+    </div>
     <div class="qarea" id="qarea">
       <div class="qmeta" id="qMeta"></div>
       <div class="qtext" id="qText"></div>
@@ -69,6 +77,7 @@
     </div>
     <div class="layer" id="vs" hidden></div>
     <div class="layer" id="review" hidden></div>
+    <div class="layer story" id="story" hidden></div>
     <div class="layer" id="endL" hidden></div>
     <div class="banner" id="pauseB" hidden></div>
   </section>

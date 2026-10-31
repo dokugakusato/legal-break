@@ -4,7 +4,7 @@
    ?opp=none   … 誰も来ない（20秒後にCPU戦）
    ?opp=drop   … 人間役が2問目で通信を切る（15秒で不戦勝になるか確認） */
 (function () {
-  const L = window.LBLogic, Q = window.LB_Q, R = L.R;
+  const L = window.LBLogic, Q = window.LB_Q, K = window.LB_K, R = L.R;
   const opp = new URLSearchParams(location.search).get('opp') || 'human';
   const ME = 'me_' + Math.random().toString(36).slice(2, 8), BOT = 'bot_hito';
   const players = {}, tickets = {}, matches = {}, watchers = {}, ticketW = {}, status = {};
@@ -18,9 +18,9 @@
 
   function emit(id) { const m = matches[id]; (watchers[id] || []).forEach(cb => setTimeout(() => cb(JSON.parse(JSON.stringify(m.m))), 20)); }
   function setTicket(u, v) { tickets[u] = v; (ticketW[u] || []).forEach(cb => setTimeout(() => cb(v), 20)); }
-  function create(a, b, cpu) {
+  function create(a, b, cpu, mode) {
     const id = 'mock' + Math.random().toString(36).slice(2, 12);
-    const { m, s } = L.buildMatch(a, b, cpu, now(), Q.length);
+    const { m, s } = mode === 'kj' ? L.buildKJ(a, b, cpu, now(), K) : L.buildMatch(a, b, cpu, now(), Q.length);
     matches[id] = { m, s }; return id;
   }
   function mutate(id, u, fn) {
@@ -45,6 +45,9 @@
     if (status[BOT] === 'offline') return;
     st.tt = setTimeout(() => api.call('tick', { matchId: id }, BOT), Math.max(30, m.until - now() + 300));
     if (m.phase === 'vs' && !st.hello) { st.hello = 1; setTimeout(() => api.call('stamp', { matchId: id, id: 0 }, BOT).catch(() => {}), 1200); }
+    if (m.mode === 'kj' && m.phase === 'kj') { // 記述：6〜12秒ごとに札を出す（3割まちがう）
+      const pg = m.kj.prog[BOT]; if (pg.n < m.kj.n && !st.kjt) st.kjt = setTimeout(() => { st.kjt = null; const ok = Math.random() > 0.3; api.call('kj', { matchId: id, slot: pg.n, chip: ok ? x.s.kj.ans[pg.n] : m.kj.chips.findIndex((c, i) => !x.s.kj.ans.includes(i)) }, BOT).catch(() => {}); }, 6000 + Math.random() * 6000);
+    }
     if (m.phase === 'q' && !m.ans[BOT] && st.q !== m.qi) {
       st.q = m.qi;
       const ok = Math.random() < 0.5, at = 4000 + Math.random() * 16000;
@@ -67,14 +70,14 @@
         const n = L.cleanName(d.name); if (!n) throw err('invalid-argument', '名前は1〜12文字');
         players[u] = players[u] || L.newPlayer(n, now()); players[u].name = n; players[u].chara = L.cleanChara(d.chara);
         const t = now();
-        if (queue && queue.uid !== u && t - queue.at < R.QUEUE_FRESH && status[queue.uid] !== 'offline') {
-          const id = create({ uid: queue.uid, p: players[queue.uid] }, { uid: u, p: players[u] }, false);
+        if (queue && queue.uid !== u && queue.mode === (d.mode || 'choice') && t - queue.at < R.QUEUE_FRESH && status[queue.uid] !== 'offline') {
+          const id = create({ uid: queue.uid, p: players[queue.uid] }, { uid: u, p: players[u] }, false, d.mode);
           setTicket(queue.uid, { matchId: id, at: t }); setTicket(u, { matchId: id, at: t }); queue = null;
           if (matches[id].m.uids.includes(BOT)) bot(id);
           return wait({ now: t, matchId: id });
         }
-        queue = { uid: u, at: t };
-        if (u === ME && (opp === 'human' || opp === 'drop')) { status[BOT] = 'online'; setTimeout(() => api.call('find', { name: players[BOT].name, chara: 'bando' }, BOT), 3000); }
+        queue = { uid: u, at: t, mode: d.mode || 'choice' };
+        if (u === ME && (opp === 'human' || opp === 'drop')) { status[BOT] = 'online'; setTimeout(() => api.call('find', { name: players[BOT].name, chara: 'bando', mode: d.mode }, BOT), 3000); }
         return wait({ now: t, waiting: true, since: t });
       }
       if (name === 'cancel') { if (queue && queue.uid === u) queue = null; return wait({ now: now() }); }
@@ -82,7 +85,7 @@
         const t = now();
         if (d.since && tickets[u] && tickets[u].at >= d.since) return wait({ now: t, matchId: tickets[u].matchId });
         if (queue && queue.uid === u) queue = null;
-        const id = create({ uid: u, p: players[u] }, { uid: 'cpuX', p: { name: '修行相手（CPU）', rating: 0, rank: 'CPU', chara: L.CHARAS[Math.floor(Math.random() * 6)] } }, true);
+        const id = create({ uid: u, p: players[u] }, { uid: 'cpuX', p: { name: '修行相手（CPU）', rating: 0, rank: 'CPU', chara: L.CHARAS[Math.floor(Math.random() * 6)] } }, true, d.mode);
         setTicket(u, { matchId: id, at: t });
         return wait({ now: t, matchId: id });
       }
@@ -91,6 +94,7 @@
         const on = {}; m.uids.filter(x => !m.players[x].cpu).forEach(x => on[x] = status[x] !== 'offline');
         L.presence(m, t, on); L.advance(m, s, t, Q);
       }));
+      if (name === 'kj') return wait(mutate(d.matchId, u, (m, s, t) => L.kjAnswer(m, s, u, d.slot, d.chip, t)));
       if (name === 'stamp') return wait(mutate(d.matchId, u, (m, s, t) => L.stamp(m, u, d.id, t)));
       throw err('not-found', name);
     },
