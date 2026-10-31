@@ -681,7 +681,7 @@ async function fightStart(){
   ST=null;if(VO)VO.pause();show('s-battle');BGM.stop();
   Object.assign(B,{hp1:20,hp2:20,sel:new Set(),used1:new Set(),used2:new Set(),cpuSel:[],busy:false,over:false,time:90,acted:0});
   $('#n1').textContent=NM?myName():P1.name;$('#n2').textContent=NM?P2.name:P2.name+'（CPU）';drawRounds();hpDraw();
-  const EDMG=FIG.EDMG||'';$('#arena').innerHTML=`<div class="fighter p1 idle" id="F1">${fig(P1.id)}${EDMG}<span class="tag">1P</span></div><div class="fighter p2 idle" id="F2">${fig(P2.id)}${EDMG}<span class="tag">CPU</span></div>`;
+  const EDMG=FIG.EDMG||'';$('#arena').innerHTML=`<div class="fighter p1 idle" id="F1">${fig(P1.id)}${EDMG}<span class="tag">1P</span></div><div class="fighter p2 idle" id="F2">${fig(P2.id)}${EDMG}<span class="tag">${NM?'相手':'CPU'}</span></div>`;
   $('#qtext').textContent=qShort(Q.q);
   B.order=Q.keys.map((_,i)=>i).sort(()=>Math.random()-.5);drawKeys();charge();$('#why').className='why';$('#why').textContent='';
   $('#timer').textContent=B.time;$('#atkBtn').disabled=true;
