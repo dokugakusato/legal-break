@@ -44,6 +44,31 @@ Object.assign(TR,{
   if(s%4===0)I.kick(a,o,t,.65);if(s%4===2)I.snare(a,o,t,.28);if(s%2===1)I.hat(a,o,t,.03);if(s%8===0)I.choir(a,o,[[64,67,71],[64,67,71],[60,64,67],[62,66,69]][bar],t,8*d,.03);
   const m={0:[76,3],3:[79,1],4:[78,4],8:[76,2],10:[74,2],12:[71,4],16:[72,3],19:[74,1],20:[76,4],24:[79,6]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d,.075);if(s===31)I.whip(a,o,t,.35)}}
 });
+/* ---------- 第13話〜の曲（4話ごとに入れかえる）：夜の荒野・ノワール ---------- */
+Object.assign(TR,{
+ // 物語：ウッドベースの歩く低音とピアノ、ブラシのスネア（夜の酒場のジャズ）
+ k13case:{bpm:92,f(a,o,s,t,d){const bar=s>>3,ch=[[45,52,57,60],[41,48,53,57],[38,45,50,53],[40,47,52,56]][bar];
+  if(s%2===0){const w=[ch[0],ch[0]+3,ch[0]+5,ch[0]+7][(s>>1)%4];I.bass(a,o,w-12,t,d*1.8,.14)}
+  if(s%8===0)ch.slice(1).forEach(n=>I.piano(a,o,n+12,t,.035));if(s%8===5)ch.slice(1,3).forEach(n=>I.piano(a,o,n+12,t,.025));
+  if(s%2===1)I.hat(a,o,t,.018);if(s%4===2)I.snare(a,o,t,.035);if(s%8===0)I.kick(a,o,t,.22);
+  const m={0:[69,2],2:[72,2],4:[76,3],8:[74,2],10:[72,2],12:[69,4],16:[67,2],18:[69,1],19:[71,1],20:[72,4],24:[71,3],27:[68,1],28:[69,4]}[s];
+  if(m)I.whistle(a,o,m[0],t,m[1]*d,.045)}},
+ // 対戦：オルガンとうなるベースの、速いファンク・ロック
+ k13battle:{bpm:174,f(a,o,s,t,d){const r=[45,45,41,43][s>>3];I.bass(a,o,[r,r,r+12,r,r+10,r,r+7,r+12][s%8],t,d*.8,.16,1);
+  if(s%4===0)I.kick(a,o,t,.6);if(s%4===2)I.snare(a,o,t,.24);I.hat(a,o,t,s%2?.02:.035);
+  if(s%8===3||s%8===6)I.organ(a,o,[r+12,r+19,r+24],t,d*.9,.025);if(s===0||s===16)I.brass(a,o,r+24,t,2*d,.06);
+  const m={8:[69,1],9:[72,1],10:[74,2],12:[76,2],14:[74,2],24:[79,2],26:[76,2],28:[74,1],29:[72,1],30:[69,2]}[s];if(m)I.twang(a,o,m[0],t,.05);
+  if(s===31)I.whip(a,o,t,.3)}},
+ // ボス登場：低いチェロと時計の鐘、遠い太鼓
+ k13bossin:{bpm:58,f(a,o,s,t,d){if(s%8===0)I.cello(a,o,[33,33,29,28][s>>3],t,8*d,.06);if(s%4===0)I.tick(a,o,t,1500,.03);
+  if(s===12||s===28)I.bell(a,o,57,t,.05,3);if(s===24)I.taiko(a,o,t,.55);if(s%8===6)I.kick(a,o,t,.3)}},
+ // ボス戦：金管と合唱、地をはうベースのマイナー・ロック
+ k13boss:{bpm:156,f(a,o,s,t,d){const bar=s>>3,r=[45,41,43,40][bar];I.bass(a,o,[r,r,r+12,r,r+3,r+5,r+7,r+10][s%8],t,d*.9,.18,1);
+  if(s%4===0)I.kick(a,o,t,.65);if(s%4===2)I.snare(a,o,t,.28);if(s%2===1)I.hat(a,o,t,.03);
+  if(s%8===0)I.choir(a,o,[[57,60,64],[53,57,60],[55,59,62],[52,56,59]][bar],t,8*d,.03);
+  const m={0:[81,2],2:[79,1],3:[77,1],4:[76,4],8:[77,2],10:[76,1],11:[74,1],12:[72,4],16:[74,3],19:[76,1],20:[77,2],22:[79,2],24:[80,6]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d,.075);
+  if(s===31)I.whip(a,o,t,.35)}}
+});
 if(!I.tom)I.tom=(a,o,f,t,v=.5)=>{const x=a.createOscillator();x.frequency.setValueAtTime(f*1.5,t);x.frequency.exponentialRampToValueAtTime(f,t+.08);const g=a.createGain();g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+.4);x.connect(g).connect(o);x.start(t);x.stop(t+.42)};
 
 /* ---------- 記述の章の流れ ---------- */
@@ -103,8 +128,8 @@ function kjJudge(i,ok,picked){
   if(q.after)setTimeout(()=>say(q.after.map(([t,k])=>[t,k])),900);
   kjNextBtn(fb,i,true);
 }
-// 正解のあとの、短いやりとり（step.after：[[せりふ, 話す人], …]）
-function kjAfter(q){return q.after?`<div class="kjafter">${q.after.map(([t,k])=>`<div class="${k==='hero'?'h':''}"><b>${k==='hero'?'佐藤':(NAMES[k]||'')}</b>${t}</div>`).join('')}</div>`:''}
+// 正解のあとの、短いやりとり（step.after：[[せりふ, 話す人, 名前（なくてよい）], …]。名前がなければ、その話の敵なら efigName、ほかは NAMES）
+function kjAfter(q){return q.after?`<div class="kjafter">${q.after.map(([t,k,nm])=>`<div class="${k==='hero'?'h':''}"><b>${k==='hero'?'佐藤':(nm||(k===CH.efig&&CH.efigName)||NAMES[k]||'')}</b>${t}</div>`).join('')}</div>`:''}
 function kjCardHTML(c){return `<div class="kjcard"><small>法律カード</small><b>${c.name}</b><span class="law">${c.law||''}</span><p>${c.text||''}</p></div>`}
 function kjNextBtn(fb,i,ok){
   const n=CH.steps.length,last=i===n-1,b=document.createElement('button');b.className='btn';b.type='button';
