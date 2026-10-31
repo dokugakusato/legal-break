@@ -121,8 +121,11 @@
     const k = K[Math.floor(rnd() * K.length)];
     const n = k.slots.length;
     const pts = k.slots.map((_, i) => Math.floor(20 / n) + (i < 20 % n ? 1 : 0));
-    const chips = shuffle(k.slots.map(x => x.a).concat(k.wrong), rnd);
+    // ひっかけは、たくわえ（6つ）から毎回ランダムに4つ。why＝自爆したときの解説（本人にだけ返す）
+    const W = shuffle(k.wrong.map(w => typeof w === 'string' ? { t: w, why: '' } : w), rnd).slice(0, 4);
+    const chips = shuffle(k.slots.map(x => x.a).concat(W.map(w => w.t)), rnd);
     const ans = k.slots.map(x => chips.indexOf(x.a));
+    const why = chips.map(c => { const w = W.find(x => x.t === c); return w ? w.why : ''; });
     const players = {};
     players[a.uid] = Object.assign(pub(a.p), { hp: R.HP, cpu: false });
     players[b.uid] = Object.assign(pub(b.p), { hp: R.HP, cpu: !!cpu });
@@ -131,7 +134,7 @@
       mode: 'kj', uids: [a.uid, b.uid], cpu: !!cpu, players,
       phase: 'vs', phaseAt: t, until: t + R.VS_MS,
       qi: 0, total: 1, sd: 0, q: null, ans: {}, cpuAt: null, ev: { seq: 0, list: [] }, rv: null,
-      kj: { id: k.id, field: k.field, topic: k.topic, storyJson: JSON.stringify(k.story), storyN: k.story.length, q: k.q, tpl: k.tpl, labels: k.slots.map(x => x.hint || ''), n, pts, chips, prog },
+      kj: { id: k.id, field: k.field, topic: k.topic, storyJson: JSON.stringify(k.story), storyN: k.story.length, q: k.q, tpl: k.tpl, labels: k.slots.map(() => ''), n, pts, chips, prog },
       paused: null, result: null, stamps: {}, created: t, v: 1
     };
     let cpuPlan = null;
@@ -139,10 +142,10 @@
       cpuPlan = []; let at = 0;
       for (let i = 0; i < 40; i++) { at += 9000 + Math.round(rnd() * 9000); cpuPlan.push({ at, ok: rnd() >= 0.25, k: rnd() < 0.35 ? 2 : 1, all: i === 0 && rnd() < 0.04 }); }
     }
-    return { m, s: { kj: { ans, model: k.model, exp: k.exp, keys: k.keys || [], note: k.note || '' }, cpuPlan, cpuI: 0 } };
+    return { m, s: { kj: { ans, why, hints: k.slots.map(x => x.hint || ''), model: k.model, exp: k.exp, keys: k.keys || [], note: k.note || '' }, cpuPlan, cpuI: 0 } };
   }
   function kjEnd(m, s, t, reason, winner, fin) {
-    m.rv = { model: s.kj.model, exp: s.kj.exp, keys: s.kj.keys, note: s.kj.note, ans: s.kj.ans };
+    m.rv = { model: s.kj.model, exp: s.kj.exp, keys: s.kj.keys, note: s.kj.note, ans: s.kj.ans, hints: s.kj.hints };
     finish(m, t, reason, winner);
     if (fin) m.result.fin = fin;
   }
@@ -163,7 +166,8 @@
       m.players[uid].hp = Math.max(0, m.players[uid].hp - dmg);
       m.ev.list.push({ t: 'kjmiss', by: uid, to: uid, dmg, at, k: chips.length });
       if (m.players[uid].hp <= 0) kjEnd(m, s, t, 'ko', op, 'self');
-      return { accepted: true, ok: false, dmg };
+      const bad = chips.find(c => s.kj.ans.indexOf(c) < 0);
+      return { accepted: true, ok: false, dmg, bad, why: (s.kj.why || [])[bad] || '' };
     }
     const pts = slots.reduce((a, x) => a + m.kj.pts[x], 0), k = slots.length;
     // 4つ以上を同時に＝天変地異（超ウルトラ技）。キーワードが3つの論点は、最初の一撃で全部なら天変地異
@@ -177,10 +181,10 @@
       m.players[op].hp = 0;
       m.ev.list.push({ t: 'kjfin', by: uid, to: op, dmg, at, pts, k, kind });
       kjEnd(m, s, t, 'ko', uid, kind);
-      return { accepted: true, ok: true, slots, kind, done: true };
+      return { accepted: true, ok: true, slots, kind, done: true, hints: slots.map(x => s.kj.hints[x]) };
     }
     m.ev.list.push({ t: 'kjhit', by: uid, to: op, dmg, at, pts, k, kind });
-    return { accepted: true, ok: true, slots, kind };
+    return { accepted: true, ok: true, slots, kind, hints: slots.map(x => s.kj.hints[x]) };
   }
   function kjAnswer(m, s, uid, chips, t) {
     advance(m, s, t);

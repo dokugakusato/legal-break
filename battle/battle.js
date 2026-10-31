@@ -380,7 +380,7 @@
       const k = m.kj, my = k.prog[uid], opp = k.prog[opUid()];
       model = `<p class="rchange">答案 あなた <b class="up">${my.pts}点</b> ／ 相手 ${opp.pts}点</p>
         <div class="modelans"><span class="lb">解答例（${esc(k.topic)}）</span>${esc(m.rv.model)}</div>
-        <div class="keys">${(m.rv.keys || []).map(x => `<span>${esc(x)}</span>`).join('')}</div>
+        <div class="keys">${(m.rv.ans || []).map((c, i) => `<span>${esc(k.chips[c])}${m.rv.hints && m.rv.hints[i] ? `（${esc(m.rv.hints[i])}）` : ''}</span>`).join('')}</div>
         <p class="modelexp">${esc(m.rv.exp)}</p>${m.rv.note ? `<p class="cpunote">出典：行政書士独学応援チャンネルのノート（${esc(m.rv.note)}）</p>` : ''}`;
     }
     $('#endL').innerHTML = `<div class="ko ${win || draw ? '' : 'lose'}">${big}</div><p class="endsub">${esc(sub)}</p>${rate}${model}${stampBar()}
@@ -442,7 +442,7 @@
   function dmgNum(side, n) { const d = document.createElement('div'); d.className = 'dmgnum ' + side; d.textContent = '-' + n; $('#stage').appendChild(d); setTimeout(() => d.remove(), 1200); }
 
   // ---------- 記述バトル ----------
-  let kjMine = {}, kjDrawn = false, storyShown = -1, kjBusy = false, kjLockTo = 0, kjSel = [], kjFresh = [], kjShout = [];
+  let kjMine = {}, kjDrawn = false, storyShown = -1, kjBusy = false, kjLockTo = 0, kjSel = [], kjFresh = [], kjShout = [], kjWhyShown = false;
   // 紙芝居：ストーリーモードの4コマと同じ見た目（登場人物・吹き出し・背景・小道具）
   function komaFig(t) { const S = window.KOMA_SIL || {}; return S[t] || S.hero || ''; }
   function komaProp([k, pos]) { const P = (window.KOMA_PROPS || {})[k]; if (!P) return ''; return `<div class="prop ${pos}" style="--s:${P.s};aspect-ratio:${P.vb[0]}/${P.vb[1]}"><svg viewBox="0 0 ${P.vb[0]} ${P.vb[1]}" aria-hidden="true">${P.svg}</svg></div>`; }
@@ -469,18 +469,15 @@
     for (const ch of got) if (!(ch in kjMine)) kjMine[ch] = kjBusy ? '…' : '（済）';
     $('#kjMeta').textContent = `${k.field}｜${k.topic}`;
     $('#kjQ').textContent = k.q;
-    // 答案のひな形に、当てたキーワードがはまっていく（順番は自由。日本語の文としてつながって見える）
-    const parts = String(k.tpl || '').split('[]');
+    // あなたの答案：当てたキーワード（それだけで意味の通る文）がたまっていく。残りは「？」
     let h = `<span class="kjlab">あなたの答案（${pg.n}/${k.n}）</span><span class="kjtxt">`;
-    parts.forEach((t, i) => {
-      h += esc(t);
-      if (i >= k.n) return;
+    for (let i = 0; i < k.n; i++) {
       if (got.includes(String(i))) h += `<span class="bl done${kjFresh.includes(i) ? ' fresh' : ''}">${esc(kjMine[i])}<i>+${k.pts[i]}</i></span>`;
-      else h += `<span class="bl"><small>${esc(k.labels[i] || '？')}</small><i>${k.pts[i]}点</i></span>`;
-    });
+      else h += `<span class="bl"><small>？</small><i>${k.pts[i]}点</i></span>`;
+    }
     $('#kjAns').innerHTML = h + '</span>'; kjFresh = [];
     $('#kjMyPts').textContent = pg.pts; $('#kjOpPts').textContent = `${op.pts}`;
-    $('#kjHint').innerHTML = pg.n < k.n ? '空欄に入る札を選んで攻撃発動。<b>2枚同時で中技、3枚で大技、4枚以上で天変地異</b>。1枚でも違えば自爆' : '完成答案！';
+    if (!kjWhyShown) $('#kjHint').innerHTML = pg.n < k.n ? '答案に書くキーワードを選んで攻撃発動。<b>2つ同時で中技、3つで大技、4つで天変地異</b>。ひっかけが1つでも混じれば自爆' : '完成答案！';
     const box = $('#chips');
     if (box.dataset.for !== MID) {
       box.dataset.for = MID; kjSel = [];
@@ -520,6 +517,7 @@
     if (sNow() < kjLockTo) { toast('まだ動けない！'); return; }
     unlock(); kjBusy = true;
     const pick = kjSel.slice(), texts = pick.map(i => M.kj.chips[i]), box = $('#chips');
+    if (kjWhyShown) { kjWhyShown = false; $('#kjHint').className = 'kjhint'; }
     kjShout = texts; pick.forEach(i => box.querySelector(`[data-c="${i}"]`).classList.add('mine'));
     drawSel();
     call('kj', { matchId: MID, chips: pick }).then(r => {
@@ -527,7 +525,10 @@
       if (r && r.accepted && r.ok) { (r.slots || []).forEach((sl, j) => kjMine[sl] = texts[j]); kjFresh = (r.slots || []).slice(); kjSel = []; if (M) drawKJ(M); }
       else if (r && r.accepted && !r.ok) {
         pick.forEach(i => { const b = box.querySelector(`[data-c="${i}"]`); b.classList.remove('bad'); void b.offsetWidth; b.classList.add('bad'); setTimeout(() => b.classList.remove('bad'), 700); });
-        kjSel = []; lockChips(sNow() + 2000); toast(`自爆！ 答案に入らない札が混じってた（-${r.dmg || ''}）2秒動けない`, 'op'); drawSel();
+        kjSel = []; lockChips(sNow() + 2000); drawSel();
+        const hint = $('#kjHint'); kjWhyShown = true; hint.className = 'kjhint why';
+        hint.innerHTML = `<b>自爆！ ひっかけだ（-${r.dmg || ''}）</b>「${esc(M.kj.chips[r.bad] || '')}」… ${esc(r.why || '答案に入れてはいけない言葉だ。')}`;
+        clearTimeout(hint._t); hint._t = setTimeout(() => { kjWhyShown = false; hint.className = 'kjhint'; if (M && M.phase === 'kj') drawKJ(M); }, 7000);
       } else drawSel();
     }).catch(() => { kjBusy = false; box.querySelectorAll('.chip').forEach(b => b.classList.remove('mine')); drawSel(); });
   }
