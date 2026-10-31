@@ -9,11 +9,16 @@ K.forEach(k => {
   ok(k.story.length >= 3 && k.q && k.model && k.exp, k.id + ' 物語・問題・解答');
   const all = k.slots.map(x => x.a).concat(k.wrong);
   ok(new Set(all).size === all.length, k.id + ' 札が重複しない');
+  ok(k.slots.map(x => x.a).join('') === k.model, k.id + ' 札を全部つなげると完成答案');
+  ok(k.model.length <= 60 && k.slots.length >= 5, k.id + ' 40字前後・札5つ以上');
   let filled = k.tpl; k.slots.forEach(x => { filled = filled.replace('[]', x.a); });
   ok(filled.replace(/[（）()「」、。]/g, '').length > 10, k.id);
 });
+// ルールの確認用：キーワード4つ（5点ずつ）・3つの論点を作る（本物の論点はキーワード5〜7つ）
+const cut = n => Object.assign({}, K[0], { slots: K[0].slots.slice(0, n), tpl: '[]'.repeat(n) });
+const K4 = cut(4), K3x = cut(3); K4.model = K4.slots.map(x => x.a).join('');
 function mk(cpu) {
-  const { m, s } = L.buildKJ({ uid: 'A', p: P('あ') }, { uid: cpu ? 'cpuX' : 'B', p: cpu ? { name: 'CPU', rating: 0, rank: 'CPU' } : P('い') }, cpu, 0, [K[0]]);
+  const { m, s } = L.buildKJ({ uid: 'A', p: P('あ') }, { uid: cpu ? 'cpuX' : 'B', p: cpu ? { name: 'CPU', rating: 0, rank: 'CPU' } : P('い') }, cpu, 0, [K4]);
   return { m, s };
 }
 const T0 = R.VS_MS + K[0].story.length * R.PANEL_MS;
@@ -40,7 +45,7 @@ function fight(cpu) { const x = mk(cpu); L.advance(x.m, x.s, T0); return x; }
   // 残り3つを同時に＝大技 → 20点になったのでとどめ
   r = L.kjAnswer(m, s, 'A', [s.kj.ans[0], s.kj.ans[1], s.kj.ans[3]], T0 + 7000);
   ok(r.ok && r.done && r.kind === 'big' && m.phase === 'end' && m.result.winner === 'A' && m.result.fin === 'big' && m.players.B.hp === 0, '大技（3つ同時）で20点、とどめ');
-  ok(m.rv && m.rv.model === K[0].model, '終わったら解答例');
+  ok(m.rv && m.rv.model === K4.model, '終わったら解答例');
 }
 { // 天変地異：最初の一撃で全部
   const { m, s } = fight(false);
@@ -51,7 +56,7 @@ function fight(cpu) { const x = mk(cpu); L.advance(x.m, x.s, T0); return x; }
   ok(m.result.delta.A === Math.round(base * 2) && m.result.delta.B === -base, '天変地異の勝ちは経験値2倍（負けた側は普通）');
 }
 { // 4つ以上同時は、途中からでも天変地異（キーワード5つの論点）
-  const k5 = K.find(k => k.slots.length === 5);
+  const k5 = K.find(k => k.slots.length >= 5);
   const { m, s } = L.buildKJ({ uid: 'A', p: P('あ') }, { uid: 'B', p: P('い') }, false, 0, [k5]);
   const t0 = R.VS_MS + k5.story.length * R.PANEL_MS; L.advance(m, s, t0);
   L.kjAnswer(m, s, 'A', [s.kj.ans[0]], t0 + 1000); ok(m.phase === 'kj', '5つの論点：1つ目は単発');
@@ -59,7 +64,7 @@ function fight(cpu) { const x = mk(cpu); L.advance(x.m, x.s, T0); return x; }
   ok(r.kind === 'tenpen' && m.result.fin === 'tenpen' && m.players.B.hp === 0, '4つ同時で天変地異');
 }
 { // キーワード3つの論点：最初の一撃で全部なら天変地異、途中からの3つは無い（2つ以下）
-  const k3 = K.find(k => k.slots.length === 3);
+  const k3 = K3x;
   const { m, s } = L.buildKJ({ uid: 'A', p: P('あ') }, { uid: 'B', p: P('い') }, false, 0, [k3]);
   const t0 = R.VS_MS + k3.story.length * R.PANEL_MS; L.advance(m, s, t0);
   const r = L.kjAnswer(m, s, 'A', s.kj.ans.slice(), t0 + 1000);
