@@ -398,15 +398,22 @@
       const mine = e.by === uid, fBy = mine ? '#figMe' : '#figOp', fTo = e.to === uid ? '#figMe' : '#figOp';
       if (e.t === 'kjfin' && e.kind === 'tenpen') { pop('天変地異！！', 'gold'); tenpen(e.by, e.to); setTimeout(() => dmgNum(e.to === uid ? 'me' : 'op', e.dmg), 1800); return; }
       if (e.t === 'kjfin') e.t = 'hit';
-      if (e.t === 'kjhit' && e.kind === 'combo') { pop(mine ? `大技！ ${e.k}連 +${e.pts}点` : `相手の大技 ${e.k}連`, 'gold');
-        special(e.by, e.to, { sub: '大技', w: `${e.k}連コンボ！`, say: `${e.k}連コンボ！` }); setTimeout(() => dmgNum(e.to === uid ? 'me' : 'op', e.dmg), 1500); return; }
-      if (e.t === 'kjhit') { SND.hit(); pop(mine ? `キーワード！ +${e.pts}点` : `相手 +${e.pts}点`, mine ? 'gold small' : 'small');
+      if (e.t === 'kjhit' && e.kind === 'combo') { // 大技：キャラの必殺技カットイン → 連続ヒット
+        const kw = mine && kjShout.length ? kjShout.map(x => `「${x}」`).join('') : '';
+        pop(mine ? `大技 ${e.k}連！ +${e.pts}点` : `相手の大技 ${e.k}連！`, 'gold');
+        special(e.by, e.to, { sub: `大技 ${e.k}連！ ${kw}` });
+        for (let j = 1; j < e.k; j++) setTimeout(() => { anim(fTo, 'hit', 300); SND.hit(); shake(); }, 1480 + j * 220);
+        setTimeout(() => dmgNum(e.to === uid ? 'me' : 'op', e.dmg), 1500 + e.k * 220); return; }
+      if (e.t === 'kjhit') { // 単発：キーワードを叫んで殴る
+        const kw = mine && kjShout[0] ? kjShout[0] : '';
+        SND.hit(); pop(mine ? `「${kw}」！ +${e.pts}点` : `相手の攻撃！ +${e.pts}点`, mine ? 'gold' : 'small');
+        speak(mine ? kw + '！' : 'くらえ！', mine ? 'me' : 'op'); emo(fBy, 'angry', 900);
         anim(fBy, 'lunge', 260); setTimeout(() => { anim(fTo, 'hit', 450); anim(fTo, 'knock', 500); emo(fTo, 'shock', 900); shake(); dmgNum(e.to === uid ? 'me' : 'op', e.dmg); }, 180); return; }
       if (e.t === 'kjmiss') { SND.miss(); SND.hit(); pop(mine ? `自爆！ 間違いが混じってた` : '相手が自爆！', mine ? '' : 'gold small'); anim(fTo, 'hit', 450); anim(fTo, 'knock', 500); emo(fTo, 'sad', 1200); shake(); dmgNum(e.to === uid ? 'me' : 'op', e.dmg); return; }
       if (e.t === 'hit' || e.t === 'counter') {
         const finish = m.phase === 'end' && m.players[e.to].hp <= 0;
         if (e.t === 'counter' || finish) {
-          pop(e.t === 'counter' ? 'COUNTER!' : m.mode === 'kj' ? (e.kind === 'combo' ? `大技${e.k}連で完成答案！` : '20点！完成答案！') : 'とどめ！', 'gold'); special(e.by, e.to);
+          pop(e.t === 'counter' ? 'COUNTER!' : m.mode === 'kj' ? (e.kind === 'combo' ? `大技${e.k}連で完成答案！` : '20点！完成答案！') : 'とどめ！', 'gold'); special(e.by, e.to, m.mode === 'kj' ? { sub: e.kind === 'combo' ? `とどめの大技 ${e.k}連！` : 'とどめの必殺技！' } : null);
           setTimeout(() => dmgNum(e.to === uid ? 'me' : 'op', e.dmg), 1500);
           if (finish) setTimeout(() => SND.ko(), 1600);
         } else {
@@ -428,7 +435,7 @@
   function dmgNum(side, n) { const d = document.createElement('div'); d.className = 'dmgnum ' + side; d.textContent = '-' + n; $('#stage').appendChild(d); setTimeout(() => d.remove(), 1200); }
 
   // ---------- 記述バトル ----------
-  let kjMine = {}, kjDrawn = false, storyShown = -1, kjBusy = false, kjLockTo = 0, kjSel = [];
+  let kjMine = {}, kjDrawn = false, storyShown = -1, kjBusy = false, kjLockTo = 0, kjSel = [], kjFresh = [], kjShout = [];
   // 紙芝居：ストーリーモードの4コマと同じ見た目（登場人物・吹き出し・背景・小道具）
   function komaFig(t) { const S = window.KOMA_SIL || {}; return S[t] || S.hero || ''; }
   function komaProp([k, pos]) { const P = (window.KOMA_PROPS || {})[k]; if (!P) return ''; return `<div class="prop ${pos}" style="--s:${P.s};aspect-ratio:${P.vb[0]}/${P.vb[1]}"><svg viewBox="0 0 ${P.vb[0]} ${P.vb[1]}" aria-hidden="true">${P.svg}</svg></div>`; }
@@ -455,11 +462,18 @@
     for (const ch of got) if (!(ch in kjMine)) kjMine[ch] = kjBusy ? '…' : '（済）';
     $('#kjMeta').textContent = `${k.field}｜${k.topic}`;
     $('#kjQ').textContent = k.q;
-    const hits = got.split('').map(i => `<span class="kw-hit">${esc(kjMine[i])}<i>+${k.pts[i]}</i></span>`).join('');
-    $('#kjAns').innerHTML = `<span class="kjlab">答案のキーワード（${pg.n}/${k.n}）</span>${hits || '<span class="kjempty">札を選んで攻撃発動！ つなげるほど大技、全部一発で天変地異</span>'}`;
+    // 答案のひな形に、当てたキーワードがはまっていく（順番は自由。日本語の文としてつながって見える）
+    const parts = String(k.tpl || '').split('[]');
+    let h = `<span class="kjlab">あなたの答案（${pg.n}/${k.n}）</span><span class="kjtxt">`;
+    parts.forEach((t, i) => {
+      h += esc(t);
+      if (i >= k.n) return;
+      if (got.includes(String(i))) h += `<span class="bl done${kjFresh.includes(i) ? ' fresh' : ''}">${esc(kjMine[i])}<i>+${k.pts[i]}</i></span>`;
+      else h += `<span class="bl"><small>${esc(k.labels[i] || '？')}</small><i>${k.pts[i]}点</i></span>`;
+    });
+    $('#kjAns').innerHTML = h + '</span>'; kjFresh = [];
     $('#kjMyPts').textContent = pg.pts; $('#kjOpPts').textContent = `${op.pts}`;
-    const left = k.labels.map((l, i) => got.includes(String(i)) ? '' : `<b>${esc(l)}</b><i class="pt">${k.pts[i]}点</i>`).filter(Boolean);
-    $('#kjHint').innerHTML = left.length ? `残りのキーワード：${left.join('・')}` : '20点！';
+    $('#kjHint').innerHTML = pg.n < k.n ? '空欄に入る札を選んで攻撃発動。<b>2枚以上で大技</b>、<b>一発で全部なら天変地異</b>。1枚でも違えば自爆' : '完成答案！';
     const box = $('#chips');
     if (box.dataset.for !== MID) {
       box.dataset.for = MID; kjSel = [];
@@ -499,11 +513,11 @@
     if (sNow() < kjLockTo) { toast('まだ動けない！'); return; }
     unlock(); kjBusy = true;
     const pick = kjSel.slice(), texts = pick.map(i => M.kj.chips[i]), box = $('#chips');
-    pick.forEach(i => box.querySelector(`[data-c="${i}"]`).classList.add('mine'));
+    kjShout = texts; pick.forEach(i => box.querySelector(`[data-c="${i}"]`).classList.add('mine'));
     drawSel();
     call('kj', { matchId: MID, chips: pick }).then(r => {
       kjBusy = false; box.querySelectorAll('.chip').forEach(b => b.classList.remove('mine'));
-      if (r && r.accepted && r.ok) { (r.slots || []).forEach((sl, j) => kjMine[sl] = texts[j]); kjSel = []; if (M) drawKJ(M); }
+      if (r && r.accepted && r.ok) { (r.slots || []).forEach((sl, j) => kjMine[sl] = texts[j]); kjFresh = (r.slots || []).slice(); kjSel = []; if (M) drawKJ(M); }
       else if (r && r.accepted && !r.ok) {
         pick.forEach(i => { const b = box.querySelector(`[data-c="${i}"]`); b.classList.remove('bad'); void b.offsetWidth; b.classList.add('bad'); setTimeout(() => b.classList.remove('bad'), 700); });
         kjSel = []; lockChips(sNow() + 2000); toast(`自爆！ 答案に入らない札が混じってた（-${r.dmg || ''}）2秒動けない`, 'op'); drawSel();
@@ -649,5 +663,12 @@
   }
 
   window.LBDrawStory = drawStory; // 動作確認用
+  window.LBTestKJ = (m, n) => { // 動作確認用：全部はまった答案が1画面に収まるか
+    M = m; MID = 'test' + Math.random(); kjMine = {}; const pg = m.kj.prog[uid]; pg.got = [...Array(n).keys()].join(''); pg.n = n;
+    for (let i = 0; i < n; i++) kjMine[i] = m.kj.chips[i];
+    drawKJ(m); const a = $('#kjarea'), sc = $('#s-battle');
+    const over = Math.max(a.scrollHeight - a.clientHeight, sc.scrollHeight - sc.clientHeight, $('#kjAns').scrollHeight - $('#kjAns').clientHeight);
+    return over > 2 ? 'over' + over + ' kf' + getComputedStyle(a).getPropertyValue('--kf') : 'ok';
+  };
   boot();
 })();
