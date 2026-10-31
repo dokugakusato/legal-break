@@ -14,7 +14,10 @@ rep('`記述ファイト｜第${Q.no}話 ${Q.title}`', '`記述ファイト｜${
 rep('Q.panels.slice(0,3)', 'Q.panels.slice(0,Q.pn||3)');
 // 4) 通常版の index.html はページとして置かず、絵を借りるための文字として読む
 rep("fetch('../index.html')", "fetch('../main-index.txt')");
-// 5) 試作の表示
+// 5) 声は本番のサイトのファイルをそのまま使う
+rep("'../audio/'+h+'.mp3'", "'https://legal-break.5ukaku.com/audio/'+h+'.mp3'");
+rep("'audio/'+id+'.mp3'", "'https://legal-break.5ukaku.com/online/audio/'+id+'.mp3'");
+// 6) 試作の表示
 s = s.replace('試作版・CPUと練習', '試作版・CPUと練習（全論点）');
 fs.writeFileSync(F, s);
 // 追加の問題（オンライン版の問題の形に変える）

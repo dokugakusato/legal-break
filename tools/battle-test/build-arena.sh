@@ -6,6 +6,8 @@ cd "$(dirname "$0")/../.."
 REF="${1:-origin/main}"
 OUT=battle/lb
 rm -rf "$OUT"; mkdir -p "$OUT"
-git archive "$REF" online episodes audio icons faces kijutsu.js | tar -x -C "$OUT"
+# 声のファイル（mp3）は本番のサイトから直接読む（ここにはコピーしない）。目次の index.js だけ持ってくる
+git archive "$REF" online episodes icons faces kijutsu.js audio/index.js | tar -x -C "$OUT" --exclude='online/audio/*.mp3'
+
 git show "$REF":index.html > "$OUT/main-index.txt"   # 登場人物の絵を借りるためだけに読む（ページとしては置かない）
 node tools/battle-test/arena-patch.js "$OUT"
