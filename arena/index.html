@@ -186,6 +186,7 @@ body.shake .screen{animation:shakeA .4s}
 #announce{position:fixed;inset:0;z-index:22;display:flex;align-items:center;justify-content:center;pointer-events:none}
 #announce b{font-family:var(--display);font-size:clamp(48px,16vw,92px);color:#fff;-webkit-text-stroke:3px var(--blood);text-shadow:6px 6px 0 #000,0 0 40px #ff7a2a;animation:annA .9s cubic-bezier(.2,1.6,.4,1) both;white-space:nowrap}
 #announce b.gold{color:var(--gold)}
+#announce b.ranyu{font-size:clamp(64px,24vw,130px)}
 @keyframes annA{from{transform:scale(3.5);opacity:0}}
 /* 問題と答案 */
 .qbox{background:rgba(10,6,5,.85);border:1px solid rgba(242,230,208,.3);border-radius:10px;padding:8px 9px;display:flex;flex-direction:column;gap:5px;flex:1;min-height:0;overflow:hidden}
@@ -405,7 +406,9 @@ body.quake .screen{animation:quake .1s linear infinite}
 <script>
 /* ================== 下ごしらえ ================== */
 const $=s=>document.querySelector(s);
-const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+// GEN：試合の世代。CPU戦の途中で人が来て切りかえたとき、古い試合の続き（待ち時間のあと）が動かないように止める
+let GEN=0;
+const sleep=ms=>{const g=GEN;return new Promise(r=>setTimeout(()=>{if(g===GEN)r()},ms))};
 const S={mute:false};
 let FIG={SIL:{},NAMES:{}};          // 通常版から借りる登場人物の絵（読むだけ）
 const QS=[];                        // 問題（通常版の章ボスの記述）
@@ -500,7 +503,9 @@ const WINL={hero:'お前の主張は、もう死んでいる。',mina:'まいど
 if(window.LBAC){Object.assign(TAUNT,Object.fromEntries(LBAC.NEW.map(c=>[c.id,c.taunt])));
 Object.assign(WINL,Object.fromEntries(LBAC.NEW.map(c=>[c.id,c.win])));
 ['a1','a2','rush','lose','groan','counter'].forEach(k=>{CHAR_LINES[k]=CHAR_LINES[k]||{};LBAC.NEW.forEach(c=>{CHAR_LINES[k][c.id]=c[k]})});CHAR_LINES.laugh=Object.assign({},LBAC.LAUGH)}
-const ANN={round1:'ラウンド、ワン！',fight:'ファイト！',ko:'ケー、オー！',perfect:'パーフェクト！',timeup:'タイム、アップ！',win:'ユー、ウィン！',lose:'ユー、ルーズ',select:'キャラクターを、えらべ！',vs:'バーサス！',title:'リーガル、ブレイク、オンライン！'};
+const ANN={round1:'ラウンド、ワン！',fight:'ファイト！',ko:'ケー、オー！',perfect:'パーフェクト！',timeup:'タイム、アップ！',win:'ユー、ウィン！',lose:'ユー、ルーズ',select:'キャラクターを、えらべ！',vs:'バーサス！',ranyu:'らんにゅう！',title:'リーガル、ブレイク、オンライン！'};
+// 古い試合の声が終わっても、その続きは動かさない（GEN）
+voice=(f=>function(...a){const g=GEN;return Promise.resolve(f.apply(this,a)).then(v=>new Promise(r=>{if(g===GEN)r(v)}))})(voice);
 const ann=k=>voice('ann_'+k,ANN[k]);
 
 /* ---------- 音楽（すべて自作の合成。格闘ゲーム風） ---------- */
@@ -622,7 +627,7 @@ function story(inter){
   // 相手（いまはCPU）：物語の途中でSKIPすることがある。こちらが待っているときは、長く待たせない
   const cpuAt=NM?Infinity:t0+total*(.45+Math.random()*.5);
   const status=()=>{const w=$('#stWait');if(!w)return;if(NM)cpuReady=!!NM.m.players[NM.op].ready||NM.m.phase==='fight';w.innerHTML=myReady?(cpuReady?'<b>そろった！</b>':'<b>相手の準備を待っています…</b>'):(cpuReady?'<b>相手は準備OK。</b>出題を読んだら「準備OK」':'相手も物語を見ている')};
-  const tryStart=()=>{if(ST!==run)return;status();const go=NM?(NM.m.phase==='fight'&&NM.m.round===M3.round):(myReady&&cpuReady);if(go){ST=null;clearTimeout(timer);setTimeout(()=>{if(VO)VO.pause();fightStart()},600)}};
+  const tryStart=()=>{if(ST!==run)return;status();const go=NM?(NM.m.phase==='fight'&&NM.m.round===M3.round):(myReady&&cpuReady);if(go){ST=null;clearTimeout(timer);const g=GEN;setTimeout(()=>{if(g!==GEN)return;if(VO)VO.pause();fightStart()},600)}};
   if(NM){NM.onUpdate=tryStart}
   const tick=()=>{if(ST!==run)return;const now=Date.now(),el=now-t0;
     if(!cpuReady&&(now>=cpuAt||(myReady&&now>=waitFrom+cpuWait))){cpuReady=true;tryStart();if(ST!==run)return}
@@ -938,7 +943,7 @@ function netLeave(cancel){if(!NM)return;try{NM.unsub&&NM.unsub()}catch(e){}clear
 async function findMatch(){
   lobbyStop();if(!NET.on){cpuMatch();return}
   let name=myName();if(!name){name=(prompt('対戦で表示する名前（12文字まで）')||'').trim().slice(0,12);if(!name){openSelect();return}try{localStorage.setItem('lbArenaName',name)}catch(e){}$('#nameIn').value=name}
-  show('s-search');BGM.play('select');const my={};findMatch.cur=my;let done=false;
+  show('s-search');$('#srCancel').hidden=false;BGM.play('select');const my={};findMatch.cur=my;let done=false;
   const enter=async id=>{if(done)return;done=true;clearInterval(my.t);my.un&&my.un();await netEnter(id)};
   $('#srCancel').onclick=()=>{done=true;clearInterval(my.t);my.un&&my.un();netCall('arCancel',{}).catch(()=>{});openSelect()};
   let r;try{r=await netCall('arFind',{name,char:P1.id})}catch(e){done=true;$('#netMsg').textContent=(e.message||'')+'';cpuMatch();return}
@@ -965,8 +970,11 @@ function lobbyStart(){lobbyStop();if(!NET.on||!P1)return;const name=myName();if(
   LOBBY.un=NET.db.collection('battleTickets').doc(NET.uid).onSnapshot(d=>{const t=d.exists?d.data():null;if(t&&t.kind==='arena'&&t.at>=LOBBY.since&&!NM)lobbyJoin(t.matchId)},()=>{})}
 async function lobbyJoin(id){if(LOBBY.busy||NM)return;LOBBY.busy=true;lobbyStop();
   // CPUとの練習をやめて、オンラインの対戦へ（CPU戦はポイントに関係ないので、途中でやめても変わらない）
-  ST=null;if(B){B.over=true;clearInterval(B.clock);clearTimeout(B.cpuT)}try{if(VO)VO.pause()}catch(e){}BGM.stop();
-  sfx('gong');ann('vs');await announce('挑戦者あらわる！','gold',1600);
+  GEN++;ST=null;if(B){B.over=true;B.busy=false;clearInterval(B.clock);clearTimeout(B.cpuT)}try{if(VO)VO.pause()}catch(e){}BGM.stop();
+  // 技の演出などが画面に残らないように片づける
+  document.querySelectorAll('.ultra,.bubble,.kiai,.ux').forEach(x=>x.remove());const ci=$('#cutin');ci.hidden=true;ci.innerHTML='';$('#announce').hidden=true;document.body.classList.remove('quake');
+  show('s-search');$('#srLeft').textContent='対戦相手が見つかりました！';$('#srCancel').hidden=true;
+  sfx('gong');ann('ranyu');flash();document.body.classList.add('quake');await announce('乱入！！','gold ranyu',1800);document.body.classList.remove('quake');await announce('挑戦者あらわる！','',1100);
   try{await netEnter(id)}finally{LOBBY.busy=false}}
 
 /* ---------- 全国ランキング（上位100人・自分の順位・キャラ別） ---------- */

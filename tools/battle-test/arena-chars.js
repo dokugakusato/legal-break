@@ -76,7 +76,7 @@ const ROSTER = ['hero', 'old', 'oldwoman', 'mina', 'girl', 'thug', 'trick', 'nek
 const ANN = {
   ann_round1: 'ラウンドォォ……、ワンッ！！', ann_fight: 'ファイッ！！', ann_ko: 'ケーッ、オーーッ！！', ann_perfect: 'パーフェクトォーッ！！',
   ann_timeup: 'タイム、アーップ！', ann_win: 'ユー、ウィーンッ！！', ann_lose: 'ユー、ルーズ……', ann_vs: 'バーサースッ！！',
-  ann_round2: 'ラウンドォォ……、ツーッ！！', ann_round3: 'ファイナル、ラウンドォォッ！！', ann_winner: 'ウィナーッ！！',
+  ann_round2: 'ラウンドォォ……、ツーッ！！', ann_round3: 'ファイナル、ラウンドォォッ！！', ann_winner: 'ウィナーッ！！', ann_ranyu: 'らんにゅうーーっ！！ 挑戦者だぁっ！！',
   ann_select: 'キャラクターを、えらべッ！', ann_title: 'リーガル、ブレイクッ、オンラインッ！！'
 };
 // 録音の声（VOICEVOX のキャラ名, スタイル, 速さ, 高さ, 抑揚）。もとからいる10人は本番の設定（online/tools/gen_voice.mjs）と同じ
