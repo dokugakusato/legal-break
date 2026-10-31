@@ -3,7 +3,7 @@
    ひっかけが1つでも混じると自爆（4ダメージ）。同時に当てた数で 中技(2)・大技(3)・超ウルトラ技(4以上)。
    m＝試合（2人に見せてよい）、s＝秘密（正解の番号）、t＝サーバーの時刻 */
 (function (root) {
-  const A = { HP: 20, SELF: 4, FIGHT_MS: 90000, INTRO_MS: 5000, STORY_MS: 75000, INTER_MS: 45000, KO_MS: 6000, LEAD_MS: 14000, GONE_MS: 40000, QUEUE_FRESH: 25000 };
+  const A = { HP: 20, SELF: 4, FIGHT_MS: 90000, INTRO_MS: 5000, STORY_MS: 75000, INTER_MS: 45000, KO_MS: 6000, LEAD_MS: 14000, GONE_MS: 20000, QUEUE_FRESH: 25000 };
   const RANKS = [['D', 0], ['C', 100], ['B', 250], ['A', 450], ['S', 700]];
   const CHARS = ['hero', 'old', 'oldwoman', 'mina', 'girl', 'thug', 'trick', 'dogra', 'nekota', 'boss', 'kurosaki', 'kanshucho', 'keiji'];
   const cleanChar = c => CHARS.includes(c) ? c : 'hero';

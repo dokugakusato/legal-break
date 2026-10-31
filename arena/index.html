@@ -188,6 +188,7 @@ body.shake .screen{animation:shakeA .4s}
 #announce{position:fixed;inset:0;z-index:22;display:flex;align-items:center;justify-content:center;pointer-events:none}
 #announce b{font-family:var(--display);font-size:clamp(48px,16vw,92px);color:#fff;-webkit-text-stroke:3px var(--blood);text-shadow:6px 6px 0 #000,0 0 40px #ff7a2a;animation:annA .9s cubic-bezier(.2,1.6,.4,1) both;white-space:nowrap}
 #announce b.gold{color:var(--gold)}
+#announce b.flee{font-size:clamp(30px,9vw,52px);white-space:normal;text-align:center;max-width:92vw}
 #announce b.ranyu{font-size:clamp(64px,24vw,130px)}
 @keyframes annA{from{transform:scale(3.5);opacity:0}}
 /* 問題と答案 */
@@ -634,7 +635,7 @@ function story(inter){
   // 相手（いまはCPU）：物語の途中でSKIPすることがある。こちらが待っているときは、長く待たせない
   const cpuAt=NM?Infinity:t0+total*(.45+Math.random()*.5);
   const status=()=>{const w=$('#stWait');if(!w)return;if(NM)cpuReady=!!NM.m.players[NM.op].ready||NM.m.phase==='fight';w.innerHTML=myReady?(cpuReady?'<b>そろった！</b>':'<b>相手の準備を待っています…</b>'):(cpuReady?'<b>相手は準備OK。</b>出題を読んだら「準備OK」':'相手も物語を見ている')};
-  const tryStart=()=>{if(ST!==run)return;if(NM&&NM.m.phase==='end'){ST=null;clearTimeout(timer);announce(NM.m.result&&NM.m.result.reason==='forfeit'?'相手がいなくなった':'試合終了','',1400).then(()=>result());return}status();const go=NM?(NM.m.phase==='fight'&&NM.m.round===M3.round):(myReady&&cpuReady);if(go){ST=null;clearTimeout(timer);const g=GEN;setTimeout(()=>{if(g!==GEN)return;if(VO)VO.pause();fightStart()},600)}};
+  const tryStart=()=>{if(ST!==run)return;if(NM&&NM.m.phase==='end'){ST=null;clearTimeout(timer);announce(NM.m.result&&NM.m.result.reason==='forfeit'?fleeText():'試合終了','gold flee',1800).then(()=>result());return}status();const go=NM?(NM.m.phase==='fight'&&NM.m.round===M3.round):(myReady&&cpuReady);if(go){ST=null;clearTimeout(timer);const g=GEN;setTimeout(()=>{if(g!==GEN)return;if(VO)VO.pause();fightStart()},600)}};
   if(NM){NM.onUpdate=tryStart}
   const tick=()=>{if(ST!==run)return;const now=Date.now(),el=now-t0;
     if(el<0){$('#stLeft').textContent='まもなく開始…';$('#stBar').style.width='0%';setTimeout(tick,200);return}
@@ -872,7 +873,7 @@ async function result(win,draw){
   show('s-result');BGM.play(win?'win':'lose');ann(win?'win':'lose');
   
   $('#s-result').innerHTML=`<h2 class="rhead${win?'':' lose'}">${draw?'DRAW':win?'YOU WIN!':'YOU LOSE'}</h2>
-  ${rankCard()}<p class="note" style="margin:0">${net?(draw?'引き分け（ポイントの増減なし）':(gain>=0?'+'+gain:gain)+' ポイント'+(NM_END_REASON==='forfeit'?'（相手が戻らなかった）':'')):cpuMsg}</p>
+  ${rankCard()}<p class="note" style="margin:0">${net?(draw?'引き分け（ポイントの増減なし）':(gain>=0?'+'+gain:gain)+' ポイント'+(NM_END_REASON==='forfeit'?'<br><b style="color:var(--gold)">'+NM_FLEE+'</b>':'')):cpuMsg}</p>
   <p class="note" style="margin:0">${M3.wins[1]} − ${M3.wins[2]}（2本先取）</p>
   ${stampBar([win?'win':'lose','any'],k=>net?netStamp(k):cpuReply(k==='any'?'any':win?'lose':'win'))}
   ${M3.log.map((r,i)=>{const g=r.used.map(x=>r.Q.keys[x]).filter(Boolean),pp=g.reduce((s,k)=>s+(k.pt||0),0);return `<div class="card"><span class="lab">ROUND ${i+1}　${r.win===null?'引き分け':r.win?'あなたの勝ち':'負け'}　答案 ${pp} / 20点</span><p style="margin:4px 0;font-size:13px">${g.length?g.map(k=>'「'+(k.label||k.t)+'」').join(''):'（まだ書けていない）'}</p><span class="lab">模範解答 ― ${r.Q.lawName}</span><div class="model">${r.Q.model}</div><p style="margin:0;font-size:12px">${r.Q.exp}</p></div>`}).join('')}
@@ -900,7 +901,7 @@ function cpuLoop(){
 }
 
 /* ---------- オンライン（全国の人とランダム対戦）：試験用の Firebase につなぐ ---------- */
-const NET={on:false,uid:null,me:null,fns:null,db:null,skew:0};let NM=null,NM_END_REASON='';
+const NET={on:false,uid:null,me:null,fns:null,db:null,skew:0};let NM=null,NM_END_REASON='',NM_FLEE='';
 const serverNow=()=>Date.now()+NET.skew;
 const myName=()=>{try{return (localStorage.getItem('lbArenaName')||'').trim()}catch(e){return ''}};
 function loadJs(u){return new Promise((ok,ng)=>{const s=document.createElement('script');s.src=u;s.onload=ok;s.onerror=ng;document.head.appendChild(s)})}
@@ -931,7 +932,7 @@ const _sayStamp=sayStamp;
 function netApply(m){if(!NM||!m)return;if(NM.m&&(m.v||0)<(NM.m.v||0))return;const prev=NM.m;NM.m=m;
   // 相手のひとこと
   const st=(m.stamps||{})[NM.op];if(st&&st.seq!==NM.stSeq){NM.stSeq=st.seq;if(serverNow()-st.at<8000)_sayStamp(P2,st.k,st.i,2)}
-  if(m.phase==='end'&&m.result)NM_END_REASON=m.result.reason||'';
+  if(m.phase==='end'&&m.result){NM_END_REASON=m.result.reason||'';NM_FLEE=fleeText()}
   netEvents();netServerRoundEnd(prev);NM.onUpdate&&NM.onUpdate()}
 // サーバーで起きた攻撃を、順番に演出する（自分の攻撃も、相手の攻撃も）
 async function netEvents(){if(!NM||NM.evBusy||!B||B.over||NM.fightRound!==M3.round)return;
@@ -942,14 +943,18 @@ async function netEvents(){if(!NM||NM.evBusy||!B||B.over||NM.fightRound!==M3.rou
   finally{if(NM)NM.evBusy=false}}
 // 時間切れ・相手がいなくなった（サーバーが決めた）とき
 async function netServerRoundEnd(prev){if(!NM||!B||B.over||NM.fightRound!==M3.round)return;
+  // 試合の途中で相手が逃げた（通信が切れた）
+  if(NM.m.phase==='end'&&NM.m.result&&NM.m.result.reason==='forfeit'){B.over=true;clearInterval(B.clock);BGM.stop();const lf=$('#F'+(NM.m.result.winner===NET.uid?2:1));if(lf){lf.classList.remove('idle');lf.classList.add('fly')}await announce(fleeText(),'gold flee',1800);return result()}
   const done=NM.m.log.length>=M3.round;if(!done)return;
   const last=NM.m.log[M3.round-1];if(last.reason==='ko'||last.reason==='self'){return} // 攻撃の演出の中で倒れる
   B.over=true;clearInterval(B.clock);BGM.stop();
-  if(NM.m.phase==='end'&&NM.m.result&&NM.m.result.reason==='forfeit'){await announce('相手がいなくなった','',1400);return result()}
+  if(NM.m.phase==='end'&&NM.m.result&&NM.m.result.reason==='forfeit'){await announce(fleeText(),'gold flee',1800);return result()}
   ann('timeup');await announce('TIME UP','',1200);
   const ws=last.win?(last.win===NET.uid?1:2):0;if(ws){const lf=$('#F'+(3-ws));lf.classList.remove('idle');lf.classList.add('down');cv(ws===1?P2:P1,'lose');M3.wins[ws]++;drawRounds()}
   M3.log.push({Q,used:[...B.used1],win:ws?ws===1:null});await sleep(900);
   if(NM.m.phase==='end')return result();nextRound()}
+// 逃げた・通信が切れた（サーバーが決めた不戦勝・不戦敗）の言い方
+function fleeText(){if(!NM||!NM.m.result)return '';const w=NM.m.result.winner;if(w===NET.uid)return String((NM.m.players[NM.op]||{}).name||'相手').replace(/[<>&]/g,'')+'は逃げた！';return w?'通信が切れたため、あなたの負け':'2人とも通信が切れた'}
 function netLeave(cancel){if(!NM)return;try{NM.unsub&&NM.unsub()}catch(e){}clearInterval(NM.hb);if(cancel===false)return;NM=null}
 // 相手を探す。20秒で見つからなければCPU
 async function findMatch(){
