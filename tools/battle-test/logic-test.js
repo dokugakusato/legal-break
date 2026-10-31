@@ -103,4 +103,6 @@ const B = 'B';
   ok(Q.length >= 10 && Q.every(q => q.choices.length === 5 && q.a >= 0 && q.a < 5 && q.exp && ['消去法型', '冒頭判断型', 'キーワード型'].includes(q.type)), '問題データの形');
   ok(L.cleanName('  佐藤 ') === '佐藤' && L.cleanName('a@b') === null && L.cleanName('') === null && L.cleanName('1234567890123') === '123456789012', '名前のチェック');
 }
+const nested = o => Array.isArray(o) ? o.some(x => Array.isArray(x) || nested(x)) : (o && typeof o === 'object' ? Object.values(o).some(nested) : false);
+{ const { m, s } = mk(true); ok(!nested(m) && !nested(s), '択一：データベースに保存できる形'); }
 console.log('OK', pass, '件');

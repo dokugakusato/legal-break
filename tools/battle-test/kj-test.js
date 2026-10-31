@@ -49,4 +49,7 @@ function mk(cpu) {
   L.advance(m, s, t0); L.advance(m, s, t0 + R.KJ_TIME - 1);
   ok(m.phase === 'end' && m.result.winner === 'cpuX', 'CPUは時間内に完成させる');
 }
+// Firestore は配列の中の配列を保存できない
+const nested = o => Array.isArray(o) ? o.some(x => Array.isArray(x) || nested(x)) : (o && typeof o === 'object' ? Object.values(o).some(nested) : false);
+K.forEach(k => { const { m, s } = L.buildKJ({ uid: 'A', p: P('a') }, { uid: 'B', p: P('b') }, true, 0, [k]); ok(!nested(m) && !nested(s), k.id + ' データベースに保存できる形'); });
 console.log('OK', pass, '件');

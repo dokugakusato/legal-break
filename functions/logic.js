@@ -128,7 +128,7 @@
       mode: 'kj', uids: [a.uid, b.uid], cpu: !!cpu, players,
       phase: 'vs', phaseAt: t, until: t + R.VS_MS,
       qi: 0, total: 1, sd: 0, q: null, ans: {}, cpuAt: null, ev: { seq: 0, list: [] }, rv: null,
-      kj: { id: k.id, field: k.field, topic: k.topic, story: k.story, q: k.q, tpl: k.tpl, labels: k.slots.map(x => x.hint || ''), n, pts, chips, prog },
+      kj: { id: k.id, field: k.field, topic: k.topic, storyJson: JSON.stringify(k.story), storyN: k.story.length, q: k.q, tpl: k.tpl, labels: k.slots.map(x => x.hint || ''), n, pts, chips, prog },
       paused: null, result: null, stamps: {}, created: t, v: 1
     };
     let cpuPlan = null;
@@ -175,7 +175,7 @@
     return kjPlay(m, s, uid, slot, chip, t);
   }
   function kjAdvance(m, s, t) {
-    if (m.phase === 'vs' && t >= m.until) { m.phase = 'story'; m.phaseAt = m.until; m.until = m.phaseAt + m.kj.story.length * R.PANEL_MS; m.ev.seq += 1; }
+    if (m.phase === 'vs' && t >= m.until) { m.phase = 'story'; m.phaseAt = m.until; m.until = m.phaseAt + m.kj.storyN * R.PANEL_MS; m.ev.seq += 1; }
     if (m.phase === 'story' && t >= m.until) { m.phase = 'kj'; m.phaseAt = m.until; m.until = m.phaseAt + R.KJ_TIME; m.ev = { seq: m.ev.seq + 1, list: [] }; }
     if (m.phase !== 'kj') return;
     if (m.cpu && s.cpuPlan) { // CPUの番

@@ -418,12 +418,13 @@
     const say = p.say ? `<div class="say ${p.say.side}${p.say.evil ? ' evil' : ''}"><b class="who">${esc((spf && spf[2]) || N[sp] || '')}</b>${esc(p.say.text)}</div>` : '';
     return `<div class="kw"><div class="cap">${esc(p.nar)}</div><div class="panel ${p.bg ? 'bg-' + p.bg : ''}${p.lines ? ' lines' : ''}${p.say ? ' talk' : ''}"><div class="tone"></div>${(p.props || []).map(komaProp).join('')}${figs}${say}<span class="pno">${i + 1}</span></div></div>`;
   }
+  function storyOf(k) { if (k.story) return k.story; try { return k._st || (k._st = JSON.parse(k.storyJson)); } catch (e) { return []; } }
   function drawStory(m, i) {
-    const k = m.kj, p = k.story[i]; if (!p) return;
+    const k = m.kj, st = storyOf(k), p = st[i]; if (!p) return;
     $('#story').innerHTML = `<p class="topic">${esc(k.field)}｜${esc(k.topic)}</p>
-      <div class="komaroot"><div class="koma">${p.figs ? komaHTML(p, i, k.story.length) : `<div class="kami"><p class="nar">${esc(p.nar || p.say || '')}</p></div>`}</div></div>
-      <div class="dots">${k.story.map((_, j) => `<i class="${j <= i ? 'on' : ''}"></i>`).join('')}</div>
-      <p class="soon">${i + 1 >= k.story.length ? 'まもなく FIGHT！ 答案づくり開始' : ''}</p>`;
+      <div class="komaroot"><div class="koma">${p.figs ? komaHTML(p, i, st.length) : `<div class="kami"><p class="nar">${esc(p.nar || p.say || '')}</p></div>`}</div></div>
+      <div class="dots">${st.map((_, j) => `<i class="${j <= i ? 'on' : ''}"></i>`).join('')}</div>
+      <p class="soon">${i + 1 >= st.length ? 'まもなく FIGHT！ 答案づくり開始' : ''}</p>`;
     speakSeq([[p.nar, 'nar'], p.say ? [typeof p.say === 'string' ? p.say : p.say.text, (p.figs && p.figs.find(f => f[1] === p.say.side) || [])[0] === 'hero' ? 'waza' : 'me'] : null].filter(Boolean));
   }
   function drawKJ(m) {
@@ -473,7 +474,7 @@
       const left = M.until - t, c = $('#count');
       if (c) { const v = left > 3000 ? '' : left > 0 ? String(Math.ceil(left / 1000)) : 'FIGHT!'; if (c.dataset.v !== v) { c.dataset.v = v; c.innerHTML = v ? `<b>${v}</b>` : ''; if (v) SND.tick(); } }
     }
-    if (M.phase === 'story') { const i = Math.min(M.kj.story.length - 1, Math.floor((t - M.phaseAt) / 8000)); if (i !== storyShown && i >= 0) { storyShown = i; drawStory(M, i); } }
+    if (M.phase === 'story') { const i = Math.min(storyOf(M.kj).length - 1, Math.floor((t - M.phaseAt) / 8000)); if (i !== storyShown && i >= 0) { storyShown = i; drawStory(M, i); } }
     const bar = $('#timerBar');
     if (M.phase === 'q' || M.phase === 'kj') {
       const left = M.paused ? M.until - M.paused.since : M.until - t, tot = M.phase === 'kj' ? 120000 : QTIME;
