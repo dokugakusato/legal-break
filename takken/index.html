@@ -1637,7 +1637,7 @@ function accInit(){
   load('firebase-app-compat.js').then(()=>Promise.all([load('firebase-auth-compat.js'),load('firebase-firestore-compat.js')].concat(cfg.appCheckKey?[load('firebase-app-check-compat.js')]:[]))).then(()=>{
     firebase.initializeApp(cfg);
     // ロボット確認（App Check）。reCAPTCHAの鍵が config.js に入っているときだけ動く
-    if(cfg.appCheckKey&&firebase.appCheck){try{firebase.appCheck().activate(new firebase.appCheck.ReCaptchaV3Provider(cfg.appCheckKey),true)}catch(e){}}ACC.auth=firebase.auth();ACC.auth.languageCode='ja';ACC.db=firebase.firestore();ACC.on=true;
+    if(cfg.appCheckKey&&firebase.appCheck){try{firebase.appCheck().activate(new firebase.appCheck.ReCaptchaEnterpriseProvider(cfg.appCheckKey),true)}catch(e){}}ACC.auth=firebase.auth();ACC.auth.languageCode='ja';ACC.db=firebase.firestore();ACC.on=true;
     let redirWait=false,reRedir=false;try{redirWait=sessionStorage.getItem('lbRedir')==='1'}catch(e){}
     ACC.auth.onAuthStateChanged(u=>{ACC.user=u;if(u){pullCloud()}else if(!redirWait&&!ACC.auth.isSignInWithEmailLink(location.href)){ACC.auth.signInAnonymously().catch(()=>{})}accRender()});
     // Googleの画面から戻ってきたときの結果を受け取る
