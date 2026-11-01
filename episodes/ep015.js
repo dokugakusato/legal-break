@@ -6,6 +6,7 @@
 LB.episode({
   no:15,
   kijutsu:1,
+  fin:"hyaku",
   cat:"行政法",
   title:"聴聞編 ― 嘘の調書",
   arc:"第十五章 聴聞編",
