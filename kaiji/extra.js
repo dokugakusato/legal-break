@@ -84,6 +84,16 @@ dokuro:mk(`<path d="${B.boss}" fill="#14121a"/>${SHD(B.boss)}<path d="M34 64L50 
 kamome:mk(`<path d="${B.thug}" fill="#f4f1ea"/>${SHD(B.thug)}<path d="M24 98h52M22 112h56M22 126h56M22 140h56M22 154h56" stroke="#2c4a7a" stroke-width="5" fill="none"/><path d="M40 72l10 10 10-10" fill="#c22d22"/>${NECK(50,14)}<ellipse cx="50" cy="40" rx="14" ry="16" fill="${SK}"/><path d="M35 34C34 22 42 18 50 18C59 18 66 22 65 34Z" fill="#c22d22"/><path d="M64 30l10 4-8 4" fill="#c22d22"/><circle cx="42" cy="26" r="1.6" fill="#f4f1ea" stroke="none"/><circle cx="54" cy="24" r="1.6" fill="#f4f1ea" stroke="none"/><path d="M40 37l6 2M60 37l-6 2" fill="none" stroke-width="2.2"/><ellipse cx="44" cy="42" rx="2" ry="2.4" fill="${O}" stroke="none"/><ellipse cx="56" cy="42" rx="2" ry="2.4" fill="${O}" stroke="none"/><path d="M43 51q7 4 14-1" fill="none" stroke-width="1.7"/><path d="M47 54h6v3h-6z" fill="#f4f1ea" stroke-width="1"/>`)
 });
 Object.assign(NAMES,{shiomi:'汐見',nagi:'凪',dokuro:'ドクロ丸',kamome:'カモメ'});
+/* ---------- 第2話・第3話の登場人物 ---------- */
+Object.assign(SIL,{
+// ウツボ：鉄錨海賊団の副船長。細長い体、緑のまだら模様の外套、ぎょろ目
+utsubo:mk(`<path d="${B.trick}" fill="#2a4a2a"/>${SHD(B.trick)}<g fill="#1a301a" stroke="none"><ellipse cx="34" cy="120" rx="5" ry="3"/><ellipse cx="60" cy="104" rx="4" ry="3"/><ellipse cx="66" cy="138" rx="5" ry="3"/><ellipse cx="44" cy="146" rx="4" ry="2.6"/></g><path d="M42 70L50 100L58 70" fill="#d9c27a"/>${NECK(50,16)}<ellipse cx="50" cy="38" rx="12" ry="20" fill="#9aa86a"/><path d="M38 30c4-12 20-12 24 0" fill="#2a4a2a"/><circle cx="43" cy="36" r="4.2" fill="#f4f1ea"/><circle cx="57" cy="36" r="4.2" fill="#f4f1ea"/><circle cx="44" cy="37" r="1.8" fill="${O}" stroke="none"/><circle cx="56" cy="37" r="1.8" fill="${O}" stroke="none"/><path d="M42 50q8 6 16 0" fill="#7a1a1a"/><path d="M44 50l2 3 2-3 2 3 2-3 2 3 2-3" fill="#f4f1ea" stroke-width="1"/>`),
+// トビウオ：鉄錨海賊団の会計係。羽のような青い袖、丸めがね、そろばん
+tobiuo:mk(`<path d="M10 92L30 74L36 120ZM90 92L70 74L64 120Z" fill="#7ab8e0"/><path d="${B.thug}" fill="#2a5a8a"/>${SHD(B.thug)}<path d="M42 72L50 96L58 72" fill="#f4f1ea"/><path d="M50 82v18" stroke="#c22d22" stroke-width="3"/><rect x="30" y="112" width="40" height="18" rx="2" fill="#7a5236"/><path d="M30 121h40" stroke-width="1.4"/><g fill="#f2d28a" stroke="none"><circle cx="36" cy="116" r="2"/><circle cx="44" cy="126" r="2"/><circle cx="52" cy="116" r="2"/><circle cx="60" cy="126" r="2"/><circle cx="66" cy="116" r="2"/></g>${NECK(50,14)}<ellipse cx="50" cy="40" rx="14" ry="16" fill="${SK}"/><path d="M36 34C35 20 43 16 50 16C58 16 66 20 64 34C60 28 55 26 50 27C45 26 40 28 36 34Z" fill="#1a2a3a"/><circle cx="44" cy="41" r="5" fill="none" stroke-width="1.8"/><circle cx="56" cy="41" r="5" fill="none" stroke-width="1.8"/><path d="M49 41h2" stroke-width="1.6"/><circle cx="44" cy="41" r="1.6" fill="${O}" stroke="none"/><circle cx="56" cy="41" r="1.6" fill="${O}" stroke="none"/><path d="M44 51q6 3 12-1" fill="none" stroke-width="1.6"/><path d="M58 50l3 4" stroke-width="1.2"/>`)
+});
+Object.assign(NAMES,{utsubo:'ウツボ',tobiuo:'トビウオ'});
+Object.assign(VP,{utsubo:{p:1.4,r:.9,g:'m',i:3},tobiuo:{p:1.2,r:1.08,g:'m',i:1}});
+
 // 声が録音されていないときの読み上げ（端末の声）の高さと速さ
 Object.assign(VP,{shiomi:{p:.7,r:.86,g:'m',i:1},nagi:{p:1.6,r:1.12,g:'f',i:2},dokuro:{p:.2,r:.74,g:'m',i:0},kamome:{p:1.25,r:1.18,g:'m',i:2}});
 
