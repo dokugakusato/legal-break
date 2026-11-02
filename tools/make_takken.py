@@ -55,9 +55,9 @@ rep("const SAVE_KEY='legalbreak.v2';", "const SAVE_KEY='takken.v1';")
 rep("collection('progress')", "collection('tk_progress')", 3)
 rep("collection('ranking')", "collection('tk_ranking')", 4)
 # 登録を消すときは、両方のゲームの記録を消す（ログインが共通なので）
-rep("Promise.all([ACC.db.collection('tk_progress').doc(u.uid).delete(),ACC.db.collection('tk_ranking').doc(u.uid).delete(),ACC.db.collection('tk_progress').doc(u.uid).delete().catch(()=>{}),ACC.db.collection('tk_ranking').doc(u.uid).delete().catch(()=>{})])",
-    "Promise.all([ACC.db.collection('tk_progress').doc(u.uid).delete(),ACC.db.collection('tk_ranking').doc(u.uid).delete(),ACC.db.collection('progress').doc(u.uid).delete().catch(()=>{}),ACC.db.collection('ranking').doc(u.uid).delete().catch(()=>{})])")
-rep('ログインは宅建版（TAKKEN HUNTER）と共通なので、そちらのネットの記録も消える。', 'ログインは行政書士版（LEGAL BREAK）と共通なので、そちらのネットの記録も消える。')
+rep("Promise.all([ACC.db.collection('tk_progress').doc(u.uid).delete(),ACC.db.collection('tk_ranking').doc(u.uid).delete(),ACC.db.collection('tk_progress').doc(u.uid).delete().catch(()=>{}),ACC.db.collection('tk_ranking').doc(u.uid).delete().catch(()=>{}),ACC.db.collection('kd_progress').doc(u.uid).delete().catch(()=>{}),ACC.db.collection('kd_ranking').doc(u.uid).delete().catch(()=>{})])",
+    "Promise.all([ACC.db.collection('tk_progress').doc(u.uid).delete(),ACC.db.collection('tk_ranking').doc(u.uid).delete(),ACC.db.collection('progress').doc(u.uid).delete().catch(()=>{}),ACC.db.collection('ranking').doc(u.uid).delete().catch(()=>{}),ACC.db.collection('kd_progress').doc(u.uid).delete().catch(()=>{}),ACC.db.collection('kd_ranking').doc(u.uid).delete().catch(()=>{})])")
+rep('ログインは宅建版（TAKKEN HUNTER）・海事代理士版（KAIJI HUNTER）と共通なので、そちらのネットの記録も消える。', 'ログインは行政書士版（LEGAL BREAK）・海事代理士版（KAIJI HUNTER）と共通なので、そちらのネットの記録も消える。')
 
 # 5) 宅建版だけの部分を読み込む（街の背景・登場人物・曲）
 rep('<script src="episodes/list.js"></script>', '<script src="episodes/list.js"></script>\n<script>window.TK=1</script>')
