@@ -3,7 +3,7 @@ name: 声を録音
 on:
   push:
     branches: [main]
-    paths: ['episodes/**', 'index.html', 'tools/gen_voice.mjs', 'tools/promo_lines.json', '.github/workflows/voice.yml', 'takken/episodes/**', 'takken/index.html', 'takken/extra.js']
+    paths: ['episodes/**', 'index.html', 'tools/gen_voice.mjs', 'tools/promo_lines.json', '.github/workflows/voice.yml', 'takken/episodes/**', 'takken/index.html', 'takken/extra.js', 'kaiji/episodes/**', 'kaiji/index.html', 'kaiji/extra.js']
   workflow_dispatch:
 permissions:
   contents: write
@@ -29,9 +29,11 @@ jobs:
         run: node tools/gen_voice.mjs
       - name: 録音（宅建版）
         run: GAME=takken node tools/gen_voice.mjs
+      - name: 録音（海事代理士版）
+        run: GAME=kaiji node tools/gen_voice.mjs
       - name: 録音した声を保存
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add audio takken/audio
+          git add audio takken/audio kaiji/audio
           git diff --cached --quiet || (git commit -m "声を自動録音" && git pull --rebase && git push)

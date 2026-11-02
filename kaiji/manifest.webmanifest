@@ -1,0 +1,18 @@
+{
+  "name": "KAIJI HUNTER ―海事の拳―",
+  "short_name": "海事の拳",
+  "description": "海賊の海を海事の拳で裁きながら、海事代理士試験を学ぶゲーム。過去問の論点だけで作っています。",
+  "lang": "ja",
+  "start_url": "./",
+  "id": "./",
+  "scope": "../",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#06121c",
+  "theme_color": "#06121c",
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

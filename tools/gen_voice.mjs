@@ -1,6 +1,7 @@
 // LEGAL BREAK 自動録音：VOICEVOX でセリフを mp3 にして audio/ に入れる
 // GitHub Actions から動かす（.github/workflows/voice.yml）。手元で動かすときは VOICEVOX を起動して node tools/gen_voice.mjs
 // 宅建版（takken フォルダ）は GAME=takken node tools/gen_voice.mjs で、takken/audio/ に録音する
+// 海事代理士版（kaiji フォルダ）は GAME=kaiji node tools/gen_voice.mjs で、kaiji/audio/ に録音する
 import fs from 'node:fs';import vm from 'node:vm';import {execFileSync} from 'node:child_process';
 const REPO=new URL('..',import.meta.url).pathname,ENGINE=process.env.VOICEVOX_URL||'http://127.0.0.1:50021';
 const GAME=process.env.GAME||'',ROOT=REPO+(GAME?GAME+'/':'');
@@ -19,12 +20,14 @@ const CAST={
  fisher:['玄野武宏','ノーマル',.95,-.06,1],shimizu:['白上虎太郎','おこ',1.12,.06,1.4],shipwright:['剣崎雌雄','ノーマル',.98,-.02,1],
  mayor:['ちび式じい','ノーマル',.95,.03,1],mori:['九州そら','ノーマル',1.02,0,1.1],
  bucho:['雀松朱司','ノーマル',.92,-.06,1.3],shinsa:['剣崎雌雄','ノーマル',.86,-.1,.8],ooya:['麒ヶ島宗麟','ノーマル',.92,.02,1.3],sagi:['雀松朱司','ノーマル',1.06,.05,1.45],ryu:['剣崎雌雄','ノーマル',.9,-.08,1.2],busu:['麒ヶ島宗麟','ノーマル',.95,-.06,1.35],eisei:['雀松朱司','ノーマル',1.0,.02,1.2],junsa:['白上虎太郎','ふつう',1.04,.04,1.35], sawa:['雀松朱司','ノーマル',1.05,.04,1.3],nekota:['白上虎太郎','ふつう',1.12,.08,1.4],kanshucho:['麒ヶ島宗麟','ノーマル',.84,-.1,1.15],kurosaki:['麒ヶ島宗麟','ノーマル',.86,-.08,1.25],keiji:['青山龍星','熱血',1,-.04,1.15],
+ // 海事代理士版
+ shiomi:['ちび式じい','ノーマル',.9,-.02,1.1],nagi:['冥鳴ひまり','ノーマル',1.04,.04,1.15],dokuro:['麒ヶ島宗麟','ノーマル',.86,-.08,1.3],kamome:['白上虎太郎','おこ',1.14,.05,1.4],
  // 宅建版
  minami:['ずんだもん','ノーマル',1.05,.02,1.2],kyaku:['白上虎太郎','ふつう',1.04,.03,1.1],haruka:['冥鳴ひまり','ノーマル',1.02,.04,1.1],kagi:['麒ヶ島宗麟','ノーマル',.86,-.07,1.25],aya:['四国めたん','ノーマル',1.05,.03,1.1],kito:['雀松朱司','ノーマル',.86,-.08,1.25],genzo:['ちび式じい','ノーマル',.9,-.02,1.05],janu:['剣崎雌雄','ノーマル',1.02,.04,1.35],kanamori:['青山龍星','ノーマル',.9,-.05,1.1],karasawa:['剣崎雌雄','ノーマル',.92,-.02,1.3],banba:['麒ヶ島宗麟','ノーマル',.88,-.1,1.25],fudesaka:['雀松朱司','ノーマル',.95,.02,1.35],nikaido:['白上虎太郎','ふつう',1.0,-.02,1.25],chiyo:['もち子さん','ノーマル',.92,-.03,1]};
 
 // ゲーム本体と同じ計算でファイル名を決める
 // 読み方の直し（画面の文字はそのまま、声だけ読み方を変える）
-const yomi=t=>t.replace(/宅建/g,'たっけん').replace(/黒鍵/g,'くろかぎ').replace(/取消(?!し)/g,'取り消し').replace(/荒野/g,'こうや').replace(/(?<![一-龯々])金(?![一-龯々])/g,'カネ');
+const yomi=t=>t.replace(/汐見/g,'しおみ').replace(/鉄錨/g,'てついかり').replace(/凪/g,'なぎ').replace(/海事代理士/g,'かいじだいりし').replace(/宅建/g,'たっけん').replace(/黒鍵/g,'くろかぎ').replace(/取消(?!し)/g,'取り消し').replace(/荒野/g,'こうや').replace(/(?<![一-龯々])金(?![一-龯々])/g,'カネ');
 const cleanTxt=t=>t.replace(/<br>/g,'').replace(/[「」―]/g,'').replace(/　/g,'');
 function vHash(s){let h=0x811c9dc5;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,0x01000193)}return (h>>>0).toString(16).padStart(8,'0')}
 const VPKEYS=new Set([...html.matchAll(/([a-zA-Z]+):\{p:/g)].map(m=>m[1]));
@@ -46,7 +49,7 @@ for(const ep of ctx.LB.eps){
   (ep.op||[]).forEach(L=>add(L.v||L.t,L.c==='say'?'hero':'narr'));
   for(const L of ((ep.arrest||{}).lines||[]))add(L[0],L[1]);
   for(const st of (ep.steps||[]))for(const [t,k] of (st.after||[]))add(t,k);
-  for(const t of (ep.yokoku||[]))add(t.replace(/<[^>]+>/g,''),'narr');if(ep.nextTitle)add('次回、リーガルブレイク。'+ep.nextTitle+'！','narr');
+  for(const t of (ep.yokoku||[]))add(t.replace(/<[^>]+>/g,''),'narr');if(ep.nextTitle)add((GAME==='kaiji'?'次回、カイジハンター。':'次回、リーガルブレイク。')+ep.nextTitle+'！','narr');
   for(const P of (ep.epi||[])){add(P.nar,'narr');if(P.say){const sp=(P.figs.find(f=>f[1]===P.say.side)||P.figs[0])[0];add(P.say.text,sp)}}
   // 記述の章（kijutsu:1）は、事件の物語とボスの物語を、ふつうの話と同じ形にして集める
   const parts=ep.kijutsu?[{panels:ep.panels||[],efig:ep.efig},Object.assign({type:'boss'},ep.boss,{panels:(ep.boss&&ep.boss.panels)||[]})]:ep.parts;
