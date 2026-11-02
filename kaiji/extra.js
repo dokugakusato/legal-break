@@ -154,4 +154,6 @@ body{background:var(--ink)}
 .chap{border-bottom:2px solid var(--gold)}
 .sheet-in{background:linear-gradient(180deg,#0c2236,#06121c);border:1px solid rgba(232,192,106,.4);border-bottom:none;border-radius:14px 14px 0 0}
 .kjcard{border-color:var(--sea)!important}
+/* オープニングの「スキップ」：下の黒い帯の中に、大きく目立つボタンで置く（タイトル画面のボタンと重ならない） */
+.op-skip{z-index:7;bottom:calc(6.5% - 22px + env(safe-area-inset-bottom,0px));right:calc(14px + env(safe-area-inset-right,0px));min-height:44px;padding:10px 22px;font-size:15px;font-weight:900;letter-spacing:.1em;color:var(--gold);background:rgba(8,22,38,.95);border:2px solid var(--gold);border-radius:6px;box-shadow:0 0 14px rgba(232,192,106,.35)}
 </style>`);
