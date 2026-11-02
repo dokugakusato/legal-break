@@ -167,3 +167,108 @@ body{background:var(--ink)}
 /* オープニングの「スキップ」：下の黒い帯の中に、大きく目立つボタンで置く（タイトル画面のボタンと重ならない） */
 .op-skip{z-index:7;bottom:calc(6.5% - 22px + env(safe-area-inset-bottom,0px));right:calc(14px + env(safe-area-inset-right,0px));min-height:44px;padding:10px 22px;font-size:15px;font-weight:900;letter-spacing:.1em;color:var(--gold);background:rgba(8,22,38,.95);border:2px solid var(--gold);border-radius:6px;box-shadow:0 0 14px rgba(232,192,106,.35)}
 </style>`);
+
+/* ==================== 第二部（第5話〜第8話） ==================== */
+/* ---------- 第二部の登場人物 ---------- */
+Object.assign(SIL,{
+// イカスミ：鉄錨海賊団の書記。イカの頭のような白い三角帽、墨のしみた黒い外套、大きな羽ペン
+ikasumi:mk(`<path d="${B.thug}" fill="#1c1a26"/>${SHD(B.thug)}<g fill="#05050a" stroke="none"><ellipse cx="32" cy="128" rx="5" ry="3.4"/><ellipse cx="62" cy="146" rx="6" ry="3"/><ellipse cx="66" cy="112" rx="3.4" ry="2.4"/></g><path d="M40 72L50 92L60 72" fill="#f4f1ea"/><path d="M50 78v14" stroke="#05050a" stroke-width="2.4"/><path d="M70 136L90 70" stroke-width="2"/><path d="M90 70c6-10 6-22 2-30c-6 8-12 20-10 34z" fill="#f4f1ea"/><path d="M90 46l-4 22" stroke-width="1"/><circle cx="70" cy="138" r="2.4" fill="#05050a" stroke="none"/>${NECK(50,14)}<ellipse cx="50" cy="42" rx="13" ry="16" fill="${SK}"/><path d="M34 34L50 0L66 34c-5-3-10-4-16-4s-11 1-16 4z" fill="#f4f1ea"/><path d="M36 26l-10 8 10 1zM64 26l10 8-10 1z" fill="#f4f1ea"/><circle cx="50" cy="16" r="3" fill="#c22d22" stroke="none"/><path d="M39 40l8 2M61 40l-8 2" fill="none" stroke-width="2.2"/><path d="M42 44h5M53 44h5" stroke-width="2.2" fill="none"/><path d="M42 51c3 2 5-1 8-1s5 3 8 1" fill="none" stroke="#05050a" stroke-width="2"/><path d="M46 56q4 2 8 0" fill="none" stroke-width="1.4"/>`)
+});
+Object.assign(NAMES,{ikasumi:'イカスミ'});
+Object.assign(VP,{ikasumi:{p:.9,r:.94,g:'m',i:1}});
+// 墨で汚された証書
+Object.assign(PROPS,{
+ inkcert:{vb:[80,100],s:.32,svg:PROP_S(`<path d="M6 6h68v88H6z" fill="#f4ecdc"/><path d="M10 10h60v80H10z" fill="none" stroke="#d9a441" stroke-width="1.6"/><text x="40" y="27" text-anchor="middle" font-size="11" font-weight="900" fill="${O}" stroke="none" font-family="sans-serif">船舶</text><text x="40" y="41" text-anchor="middle" font-size="11" font-weight="900" fill="${O}" stroke="none" font-family="sans-serif">国籍証書</text><path d="M18 52h44M18 61h44M18 70h28" stroke-width="1.4"/><path d="M30 46c10-6 30-2 34 10c4 12-6 22-18 20c-6 6-18 4-20-4c-8-2-10-14 4-26z" fill="#0a0a12" stroke="none"/><circle cx="20" cy="84" r="3" fill="#0a0a12" stroke="none"/><circle cx="66" cy="40" r="2.2" fill="#0a0a12" stroke="none"/>`)}
+});
+
+/* ---------- 攻撃の技：4話ごとに入れかえる ---------- */
+// 第1話〜第4話：パンチ・キック・つかみ・六法・エルボー ／ 第5話〜第8話：ラリアット・ドロップキック・頭突き・ボディスラム
+const KD_MOVES=[['punch','kick','grab','weapon','elbow'],['lariat','dropkick','headbutt','slam']];
+moveOK=k=>{const n=CH&&CH.no||1;const p=KD_MOVES[Math.min(KD_MOVES.length-1,Math.floor((n-1)/4))];return p.includes(k)};
+
+/* ---------- 第二部の曲（第5話〜第8話：霧の海と墨の書記） ---------- */
+Object.assign(TR,{
+ // 霧の港（事件）：短調のはじく和音と、低いチェロ、ときどき霧笛
+ kd2port:{bpm:100,f(a,o,s,t,d){const bar=s>>3,ch=[[52,55,59],[48,52,55],[50,53,57],[47,50,54]][bar];
+  I.pluck(a,o,ch[s%3]+12+(s%8>5?12:0),t,.022);if(s%8===0){I.cello(a,o,ch[0]-12,t,7.6*d,.05);I.pad(a,o,ch.map(n=>n+12),t,8*d,.016,900)}if(s%4===2)I.hat(a,o,t,.01);
+  const m={0:[76,3],4:[74,2],6:[71,2],8:[72,4],12:[71,2],14:[67,2],16:[69,4],20:[72,2],22:[74,2],24:[71,6]}[s];if(m)I.whistle(a,o,m[0],t,m[1]*d,.028);if(s===28)I.brass(a,o,40,t,d*4,.035)}},
+ // 手下とのバトル：6拍子の速い舟歌（鐘と太鼓、はじく弦）
+ kd2battle:{bpm:168,f(a,o,s,t,d){const r=[45,43,41,40][s>>3];const k=s%6;if(k===0)I.kick(a,o,t,.62);if(k===3)I.snare(a,o,t,.22);if(k!==0)I.hat(a,o,t,.018);
+  I.bass(a,o,r-12+[0,7,12][k%3],t,d*.7,.15,1);I.twang(a,o,r+[24,27,31,27,24,22][k],t,.045);if(s%8===0)I.bell(a,o,r+36,t,.025,2);if(s%12===6)I.taiko(a,o,t,.3);if(s===31)I.whip(a,o,t,.3)}},
+ // 書記イカスミの登場：時を刻む音、低いオルガンと合唱、墨のしずくのような鐘
+ kd2bossin:{bpm:64,f(a,o,s,t,d){I.tick(a,o,t,s%2?700:1100,.025);if(s%16===0){I.organ(a,o,[[40,43,47],[41,44,47]][s>>4],t,16*d*.95,.024);I.choir(a,o,[[52,55,59],[53,56,59]][s>>4],t,16*d*.95,.02)}
+  if(s%8===4)I.taiko(a,o,t,.4);if(s===6||s===22)I.bell(a,o,83,t,.03,3);if(s===14||s===30)I.bell(a,o,76,t,.025,3)}},
+ // イカスミとのボス戦：オルガンとブラスの、速い短調の決戦
+ kd2boss:{bpm:156,f(a,o,s,t,d){const bar=s>>3,r=[40,36,38,35][bar];if(s%4===0)I.kick(a,o,t,.66);if(s%4===2)I.snare(a,o,t,.26);if(s%2===1)I.hat(a,o,t,.028);if(s%8===7)I.taiko(a,o,t,.3);
+  I.bass(a,o,r-12+[0,12,7,12][s%4],t,d*.75,.17,1);if(s%2===0)I.organ(a,o,[r+24,r+27,r+31],t,d*.9,.012);
+  if(s%8===0)I.choir(a,o,[[64,67,71],[60,64,67],[62,66,69],[59,63,66]][bar],t,8*d,.028);
+  const m={0:[76,2],2:[79,2],4:[83,4],8:[81,2],10:[79,2],12:[76,4],16:[78,2],18:[79,2],20:[81,4],24:[83,3],27:[84,1],28:[83,4]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d,.065);if(s===31)I.whip(a,o,t,.35)}}
+});
+
+/* ---------- 決め技「大印ドッスン」（CH.fin='stamp'）：空から大きな印が落ちて、相手をぺったんこにし、紙のようにひらひら飛ばす ---------- */
+document.head.insertAdjacentHTML('beforeend',`<style>
+.kdstamp{position:absolute;z-index:7;pointer-events:none}
+.kdstamp svg{width:100%;height:auto;display:block;filter:drop-shadow(0 6px 10px rgba(0,0,0,.6))}
+.kdstamp svg.wob{animation:kdWob .5s ease-in-out infinite}
+@keyframes kdWob{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+.kdshadow{position:absolute;z-index:1;bottom:0;height:10px;border-radius:50%;background:rgba(0,0,0,.55);transform:scale(.3);transition:transform 1s;pointer-events:none}
+.kdshadow.on{transform:scale(1)}
+.fig.r.kdflat{transition:transform .12s;transform:scaleY(.16) scaleX(1.35);transform-origin:50% 100%}
+.fig.r.kdpop{transition:transform .35s cubic-bezier(.2,1.6,.4,1);transform:scaleY(.06) scaleX(1.5);transform-origin:50% 100%}
+.fig.r.kdpeel{transform-origin:50% 100%;animation:kdPeel 2s ease-in forwards}
+@keyframes kdPeel{0%{transform:scaleY(.06) scaleX(1.5)}15%{transform:translate(-6%,-30%) scaleY(.06) scaleX(1.5) rotate(-12deg)}35%{transform:translate(10%,-90%) scaleY(.1) scaleX(1.3) rotate(18deg)}55%{transform:translate(-4%,-150%) scaleY(.08) scaleX(1.2) rotate(-20deg)}80%{transform:translate(20%,-230%) scaleY(.07) scaleX(.8) rotate(30deg);opacity:1}100%{transform:translate(40%,-320%) scaleY(.05) scaleX(.4) rotate(60deg);opacity:0}}
+.kdimprint{position:absolute;z-index:6;left:56%;bottom:2%;width:36%;text-align:center;font-family:var(--display);font-weight:900;font-size:clamp(16px,5vw,24px);color:#e0302a;border:3px solid #e0302a;border-radius:6px;padding:2px 0;transform:rotate(-8deg) scale(0);transition:transform .25s cubic-bezier(.2,1.6,.4,1);pointer-events:none;background:rgba(255,255,255,.08)}
+.kdimprint.on{transform:rotate(-8deg) scale(1)}
+.kdimprint.fly{transition:transform 1.6s ease-in,opacity 1.6s;transform:translate(40%,-260%) rotate(40deg) scale(.4);opacity:0}
+</style>`);
+const STAMP_DEF={taunt:'へっ、そんな理屈で、おれが倒れるかよ！',reply:'なら、法の印を押してやる！',name:'大印ドッスン！',mark:'書換',imprint:'書換済'};
+function finisherStamp(){
+  BGM.stop();closeSheet();stopSay();
+  const name=EP.lawName||EP.ougi,ov=$('#ov'),bk=VP[EP.efig]?EP.efig:'boss',H=Object.assign({},STAMP_DEF,CH.stamp||{});ov.hidden=false;ov.classList.add('black');
+  const wait=ms=>new Promise(r=>setTimeout(r,ms)),sayP=(t,k)=>new Promise(r=>say([[t,k]],r));
+  const line=(t,who,cls='')=>{const l=$('#fline');if(l)l.innerHTML=`<div class="fl ${cls}"><b>${who}</b>${t}</div>`};
+  ov.innerHTML=`<div class="finisher hk"><div class="stage fstage" id="fstage">${stageHTML(EP.efig||'boss',EP.enemy,1,EP.efigName)}</div><div class="fline" id="fline"></div></div>`;
+  const st=$('#fstage'),boss=st.querySelector('.fig.r'),hero=st.querySelector('.fig.l');
+  const mk1=[...H.mark];
+  const stamp=document.createElement('div');stamp.className='kdstamp';
+  stamp.innerHTML=`<svg viewBox="0 0 120 150"><rect x="44" y="4" width="32" height="40" rx="14" fill="#7a4a26" stroke="#2a160a" stroke-width="3"/><rect x="38" y="40" width="44" height="26" rx="6" fill="#5a3418" stroke="#2a160a" stroke-width="3"/><rect x="8" y="64" width="104" height="58" rx="8" fill="#3a2414" stroke="#2a160a" stroke-width="3"/><rect x="6" y="118" width="108" height="26" rx="5" fill="#d8302a" stroke="#6a0a0a" stroke-width="3"/><text x="60" y="100" text-anchor="middle" font-size="${mk1.length>2?24:30}" font-weight="900" fill="#e8c06a" font-family="sans-serif">${H.mark}</text></svg>`;
+  const sh=document.createElement('div');sh.className='kdshadow';st.appendChild(sh);st.appendChild(stamp);
+  // 印の大きさと位置は、相手の立ち位置に合わせて決める（真上から、地面まで落とす）
+  const sr=st.getBoundingClientRect(),br=boss.getBoundingClientRect(),sw=Math.min(br.width*1.3,sr.width*.46),shh=sw*150/120,cx=br.left-sr.left+br.width/2;
+  stamp.style.width=sw+'px';stamp.style.left=(cx-sw/2)+'px';stamp.style.top=(-shh*2)+'px';sh.style.width=sw+'px';sh.style.left=(cx-sw/2)+'px';
+  const HOV=-shh*.55,GND=sr.height-shh+6,svg=stamp.querySelector('svg');
+  const mv=(from,to,ms,ease)=>stamp.animate([{top:from+'px'},{top:to+'px'}],{duration:reduce?1:ms,easing:ease,fill:'forwards'});
+  (async()=>{
+    // 1. 強がりと、決めぜりふ
+    await wait(400);line(H.taunt,EP.efigName||EP.enemy);await Promise.all([sayP(H.taunt,bk),wait(1700)]);
+    line(H.reply,'佐藤','hero');await Promise.all([sayP(H.reply,'hero'),wait(1500)]);$('#fline').innerHTML='';
+    // 2. 空から大きな印が下りてくる
+    hero.classList.add('leap');mv(-shh*2,HOV,1000,'ease-out');sh.classList.add('on');
+    const a=ac();if(a){I.bell(a,a.destination,79,a.currentTime,.06,2);I.bell(a,a.destination,86,a.currentTime+.3,.05,2)}
+    await wait(1000);svg.classList.add('wob');hero.classList.remove('leap');
+    line('な、なんだ、あの影は……！？',EP.efigName||EP.enemy);await Promise.all([sayP('な、なんだ、あの影は！',bk),wait(1300)]);
+    // 3. ドッスン！ ぺったんこ
+    const k=document.createElement('div');k.className='kiai hyk big';k.textContent=H.name;k.style.fontSize=Math.min(44,Math.floor(330/[...H.name].length))+'px';k.style.left='4%';st.appendChild(k);say([[H.name,'hero']]);
+    svg.classList.remove('wob');mv(HOV,GND,220,'cubic-bezier(.6,0,.9,.5)');await wait(200);
+    boss.classList.add('kdflat');const w=document.createElement('div');w.className='whiteout-mini';st.appendChild(w);setTimeout(()=>w.remove(),400);
+    st.classList.remove('shake','impact');void st.offsetWidth;st.classList.add('shake','impact');punch(2.6);hit(2);
+    const b=document.createElement('div');b.className='kiai hyk';b.textContent='ドッスーン！！';b.style.top='60%';b.style.left='40%';st.appendChild(b);
+    await wait(1300);k.remove();b.remove();
+    // 4. 印を持ち上げると、相手は紙のようにぺらぺら
+    mv(GND,-shh*2.4,700,'ease-in');sh.classList.remove('on');
+    boss.classList.remove('kdflat');boss.classList.add('kdpop');
+    const im=document.createElement('div');im.className='kdimprint';im.textContent=H.imprint;st.appendChild(im);im.style.left=(cx/sr.width*100-18)+'%';await wait(60);im.classList.add('on');
+    const a2=ac();if(a2)I.tick(a2,a2.destination,a2.currentTime,1400,.08);
+    line('ぺ、ぺらぺらに……なっちまった……',EP.efigName||EP.enemy,'big');await Promise.all([sayP('ぺらぺらに、なっちまった！',bk),wait(1600)]);
+    // 5. 海風に飛ばされていく
+    boss.classList.remove('kdpop');void boss.offsetWidth;boss.classList.add('kdpeel');im.classList.add('fly');
+    const v=document.createElement('div');v.className='kiai hyk';v.textContent='ひらひら～';v.style.top='20%';v.style.left='46%';st.appendChild(v);
+    line('おぼえてろ～っ！',EP.efigName||EP.enemy,'big');say([['おぼえてろ～っ！',bk]]);
+    await wait(1900);v.remove();
+    const star=document.createElement('div');star.className='kiran top';star.textContent='キラーン';st.appendChild(star);
+    const a3=ac();if(a3){I.bell(a3,a3.destination,88,a3.currentTime,.12);I.bell(a3,a3.destination,91,a3.currentTime+.12,.12)}
+    await wait(1500);$('#fline').innerHTML='';stamp.remove();sh.remove();im.remove();
+    await ougiTail(ov,name,sayP,wait);
+  })();
+}
+{const _fin=finisher;finisher=function(){if(hokuto()&&CH&&CH.fin==='stamp')return finisherStamp();return _fin.apply(this,arguments)}}
