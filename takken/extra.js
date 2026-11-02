@@ -355,3 +355,193 @@ Object.assign(TR,{
  t6boss:{bpm:148,f(a,o,s,t,d){const bar=s>>3,r=[45,45,41,40][bar];if(s%4===0)I.kick(a,o,t,.65);if(s%4===2)I.snare(a,o,t,.24);I.hat(a,o,t,.025);I.bass(a,o,r-12+(s%2?12:0),t,d*.6,.16,1);
   if(s%8===0)I.choir(a,o,[[69,72,76],[69,72,76],[65,69,72],[64,68,71]][bar],t,8*d,.03);if(s%2===0)I.cello(a,o,r+12,t,d*.9,.04);const m={0:[76,3],3:[77,1],4:[81,4],8:[79,2],10:[77,2],12:[76,4],16:[72,3],19:[74,1],20:[77,4],24:[76,4],28:[80,4]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d,.07);if(s===31)I.whip(a,o,t,.3)}}
 });
+
+/* ---------- 記述（キーワード）方式の事件バトル（第7話から） ----------
+   事件に keys:[{t,label,ok:1} / {t,why}], q（問いかけ）, model（模範の答え）, exp, law があると、4択の代わりにキーワードを撃って戦う。 */
+function keyBattle(c){
+  closeSheet();show('s-battle');const sb=$('#s-battle');sb.classList.add('bossmode');sb.classList.add('kcase');
+  BGM.play(c.bbgm);S.ehp=100;$('#eName').textContent=c.enemy;$('#stage').innerHTML=stageHTML(c.efig,c.enemy,0,c.efigName);bars();
+  const keys=c.keys,good=keys.filter(k=>k.ok),order=keys.map((_,i)=>i).sort(()=>Math.random()-.5);let got=0;
+  $('#qcard').innerHTML=`<div class="qhead"><span class="qtag">記述バトル ― キーワードを撃て</span>${c.wb?'<button class="btn ghost mini" type="button" id="wbBtn">関係図</button>':''}</div>
+  <p class="qtext">${c.q}</p>
+  <div class="gauge">${good.map((_,i)=>`<div class="orb" id="orb${i}">${i+1}</div>`).join('')}</div>
+  <p class="why" id="why" aria-live="polite">正解は ${good.length} つ。ひっかけを撃つと反撃される。</p>
+  <div class="keys">${order.map(i=>`<button class="key" type="button" data-i="${i}">${keys[i].t}</button>`).join('')}</div>`;
+  wbButton(c.wb);
+  $('#qcard').querySelectorAll('.key').forEach(btn=>btn.onclick=()=>{
+    ac();const K=keys[+btn.dataset.i];btn.disabled=true;
+    if(K.ok){
+      rec(c.topic,true);btn.classList.add('hit');const o=$('#orb'+got);o.innerHTML=K.label||K.t;o.classList.add('on');got++;
+      const last=got===good.length;$('#why').textContent=last?'すべての要件がそろった！':`命中！ 残り ${good.length-got} つ`;$('#why').className='why ok';
+      attack(()=>damage(last?S.ehp:Math.floor(100/good.length),last?'とどめ！':(got===1?c.tech+'！':'命中！')),randMove());
+      if(last){$('#qcard').querySelectorAll('.key').forEach(x=>x.disabled=true);setTimeout(()=>keyWin(c),1500)}
+    }else{
+      rec(c.topic,false);if(S.run)S.run.bossMiss=(S.run.bossMiss||0)+1;btn.classList.add('miss');hurt();
+      $('#why').innerHTML=`<b>見切られた。</b>${K.why||''}`;$('#why').className='why ng';
+      say([['甘いぜ！',c.efig||'boss']]);
+      if(S.life<=0){death(()=>keyBattle(c));return}
+    }
+  });
+}
+function keyWin(c){
+  const e=$('#stage .fig.r');if(e){e.classList.remove('knock','knockkick','pinned');e.classList.add('ko')}BGM.stop();setTimeout(fanfare,400);
+  setTimeout(()=>{
+    const ov=$('#ov');ov.hidden=false;
+    ov.innerHTML=`<div class="kime"><div class="face">${FACE}</div><div class="kime-line">${c.kime}</div><div class="stamp">${c.tech}</div><button class="btn ghost" type="button" id="kimeOk">解説を見る</button></div>`;
+    say([[c.kime,'hero']]);
+    $('#kimeOk').onclick=()=>{stopSay();ov.hidden=true;ov.innerHTML='';
+      const f=openSheet(),nxp=CH.parts[S.part+1];
+      f.innerHTML=`<div class="verdict ok">事件、解決！</div><span class="law">${c.law||''}</span><p class="model"><b>答え：</b>${c.model||''}</p><p>${c.exp||''}</p>${c.wb?wbBox(c.wb,true):''}`;
+      const n=document.createElement('button');n.className='btn';n.type='button';n.textContent=!nxp?'戦いの記録を見る':(nxp.type==='boss'?nxp.enemy+'のもとへ':'次の事件へ');
+      n.onclick=()=>{$('#s-battle').classList.remove('kcase');nextPart()};f.appendChild(n);
+    };
+  },1500);
+}
+document.body.insertAdjacentHTML('beforeend',`<style>
+#s-battle.kcase .fig.r{transform:none}
+.sheet-in .model{background:rgba(255,209,102,.1);border-left:3px solid var(--gold);padding:8px 10px;border-radius:8px}
+</style>`);
+startCase=function(){const c=EP;BGM.play(c.bgm);const go=c.keys?()=>keyBattle(c):()=>battle(c);story(c.chapter,c.panels,()=>c.probe?probeStart(c,go):go(),c.wb)};
+
+/* ---------- 場面ごとの音楽（第7話から） ----------
+   コマに bgm:"曲名" を書くと、そのコマから曲が変わる。sfx:"taiko"|"bell"|"whip"|"door"|"siren"|"clank" で効果音。
+   話に opbgm を書くとオープニングの曲が変わり、事件・ボスに pbgm を書くと調査パートの曲になる（書かなければ調査の共通曲）。 */
+(function(){
+  const ph=panelHTML;
+  panelHTML=function(p,i){
+    if(p.bgm)BGM.play(p.bgm);
+    if(p.sfx){const a=ac();if(a&&!S.mute){const t=a.currentTime+.05,d=a.destination;
+      ({taiko:()=>I.taiko(a,d,t,.9),bell:()=>I.bell(a,d,74,t,.08,3),whip:()=>I.whip(a,d,t,.45),door:()=>I.door(a,d,t,.15),siren:()=>I.siren(a,d,t,3,.04),clank:()=>I.clank(a,d,t,.15)}[p.sfx]||(()=>0))()}}
+    return ph(p,i);
+  };
+  const bp=BGM.play;
+  BGM.play=function(name,force){if(name==='opening'&&CH&&CH.opbgm)name=CH.opbgm;return bp.call(this,name,force)};
+  const ps=probeStart;
+  probeStart=function(c,done){if(c.probe)BGM.play(c.pbgm||'tkprobe');return ps(c,done)};
+})();
+Object.assign(TR,{
+ // 調査パートの共通曲：時を刻む音と、低いベース、ときどきピアノ（推理もの）
+ tkprobe:{bpm:96,f(a,o,s,t,d){I.tick(a,o,t,s%2?1800:2300,.02);const r=[45,45,43,41][s>>3];if(s%4===0)I.bass(a,o,r-12,t,d*3,.1);if(s%8===0)I.pad(a,o,[r+12,r+15,r+19],t,8*d,.016,900);
+  const m={2:72,6:71,10:69,14:68,18:69,22:71,26:72,30:76}[s];if(m)I.piano(a,o,m,t,.035)}}
+});
+
+/* ---------- 第7話・第8話の登場人物 ---------- */
+Object.assign(SIL,{
+// 唐沢：黒鍵の「登記の魔術師」。黒いマントのようなコート、山高帽、片めがね
+karasawa:mk(`<path d="M2 160L22 66h56l20 94Z" fill="#1d1a22"/>${SHD('M2 160L22 66h56l20 94Z')}<path d="M36 66L50 112L64 66Z" fill="#e8e2d6"/><path d="M44 72h12l-6 10z" fill="#7a1a2a"/><path d="M22 66q-10 40-14 94M78 66q10 40 14 94" stroke="#7a1a2a" stroke-width="2.4" fill="none"/>${NECK(50,14)}<ellipse cx="50" cy="40" rx="14" ry="16" fill="${SK}"/><rect x="34" y="8" width="32" height="18" rx="2" fill="#141218"/><path d="M26 26h48" stroke="#141218" stroke-width="5"/><path d="M34 22h32" stroke="#7a1a2a" stroke-width="3"/><circle cx="56" cy="41" r="5" fill="none" stroke="#d9a441" stroke-width="1.6"/><path d="M61 43q4 10 2 22" stroke="#d9a441" stroke-width="1" fill="none"/><path d="M40 40l7 1" stroke-width="2.2" fill="none"/><circle cx="56" cy="41" r="1.4" fill="${O}" stroke="none"/><path d="M42 51q8 4 15-2" fill="none" stroke-width="1.8"/><path d="M40 55q-2 6 2 8M60 55q2 6-2 8" stroke="#2a2a2a" stroke-width="2" fill="none"/>`),
+// 番場：黒鍵の競売屋。大柄、はっぴに木づち
+banba:mk(`<rect x="64" y="96" width="10" height="44" rx="3" fill="#8a5a32" transform="rotate(-20 69 118)"/><rect x="58" y="84" width="28" height="18" rx="4" fill="#a8743a" transform="rotate(-20 72 93)"/><path d="${B.boss}" fill="#2a3a6a"/>${SHD(B.boss)}<path d="M28 160V80M72 160V80" stroke="#e8e2d6" stroke-width="6" fill="none"/><text x="50" y="128" text-anchor="middle" font-size="22" font-weight="900" fill="#e8e2d6" stroke="none" font-family="sans-serif">競</text>${NECK(44,16)}<ellipse cx="50" cy="34" rx="18" ry="19" fill="${SK}"/><path d="M32 26C32 14 42 10 50 10C60 10 68 14 68 26C62 20 38 20 32 26Z" fill="#141216"/><path d="M30 24h40" stroke="#e8e2d6" stroke-width="4"/><path d="M38 30l9 3M62 30l-9 3" stroke-width="2.8" fill="none"/><path d="M40 36h7M53 36h7" stroke-width="2.4" fill="none"/><path d="M40 47q10 5 20 0" fill="none" stroke-width="2.2"/><path d="M36 44q-4 8 4 12M64 44q4 8-4 12" stroke="#141216" stroke-width="2.6" fill="none"/>`)
+});
+Object.assign(NAMES,{karasawa:'唐沢',banba:'番場'});
+Object.assign(VP,{karasawa:{p:.7,r:.92,g:'m',i:3},banba:{p:-.1,r:.62,g:'m',i:2}});
+Object.assign(PROPS,{
+ hammer:{vb:[120,80],s:.3,svg:PROP_S(`<rect x="10" y="60" width="100" height="14" rx="3" fill="#6b4a2a"/><rect x="58" y="10" width="12" height="46" rx="3" fill="#a8743a" transform="rotate(30 64 33)"/><rect x="34" y="8" width="44" height="20" rx="5" fill="#8a5a32" transform="rotate(30 56 18)"/>`)},
+ touki:{vb:[90,110],s:.34,svg:PROP_S(`<path d="M6 6h78v98H6z" fill="#eef3ff"/><rect x="6" y="6" width="78" height="18" fill="#2a4a8a"/><text x="45" y="19" text-anchor="middle" font-size="10" font-weight="900" fill="#fff" stroke="none" font-family="sans-serif">登記事項証明書</text><path d="M14 34h62M14 46h62M14 58h62M14 70h40" stroke-width="1.4"/><circle cx="66" cy="88" r="9" fill="none" stroke="#c22d22" stroke-width="2.2"/>`)}
+});
+
+/* ---------- 第7話の曲（二重売買：サスペンスとどんでん返し） ---------- */
+Object.assign(TR,{
+ // オープニング：低い弦と心音、遠くの鐘（駅裏の不穏な夜明け）
+ t7op:{bpm:72,f(a,o,s,t,d){if(s%8===0)I.kick(a,o,t,.35);if(s%8===1)I.kick(a,o,t,.18);if(s%16===0)I.cello(a,o,[40,38][s>>4],t,16*d*.95,.05);if(s%16===8)I.bell(a,o,[76,74][s>>4],t,.035,3.5);if(s%4===2)I.tick(a,o,t,1900,.015)}},
+ // 駅裏の昼：軽快なピアノとウッドベース
+ t7town:{bpm:108,f(a,o,s,t,d){const ch=[[55,59,62,65],[60,64,67,70],[53,57,60,64],[55,59,62,65]][s>>3];if(s%2===0)I.bass(a,o,ch[(s>>1)%4]-24,t,d*1.6,.13);if(s%4===2)I.hat(a,o,t,.02);if([0,3,6].includes(s%8))ch.slice(1).forEach(n=>I.vib(a,o,n,t,.01,.8));
+  const m={0:74,2:76,4:79,7:77,8:76,10:74,12:71,16:72,18:74,20:76,24:79,28:83}[s];if(m)I.piano(a,o,m,t,.042)}},
+ // 衝撃の事実：心臓をつかむ低音の連打と、不協和な弦（コマの途中で差し込む）
+ t7shock:{bpm:92,f(a,o,s,t,d){if(s%4===0){I.taiko(a,o,t,.5);I.bass(a,o,[34,34,35,33][s>>3],t,d*3,.18,1)}if(s%8===0)I.cello(a,o,[46,47][s>>4],t,8*d*.9,.05);if(s%2===1)I.tick(a,o,t,2600,.02);if(s===0)I.whip(a,o,t,.3)}},
+ // 希望の光：どんでん返しのあとの、明るいストリングスと口笛
+ t7hope:{bpm:100,f(a,o,s,t,d){const ch=[[60,64,67],[65,69,72],[62,65,69],[67,71,74]][s>>3];if(s%8===0)I.choir(a,o,ch,t,8*d,.022);if(s%2===0)I.harp(a,o,ch[(s>>1)%3]+12,t,d*2,.025);if(s%4===0)I.bass(a,o,ch[0]-12,t,d*3,.1);
+  const m={0:[76,3],4:[79,3],8:[81,4],16:[79,2],18:[77,2],20:[76,4],24:[74,2],26:[76,2],28:[72,4]}[s];if(m)I.whistle(a,o,m[0],t,m[1]*d,.05)}},
+ // 三上とのバトル：疾走するストリングスとドラム
+ t7b1:{bpm:156,f(a,o,s,t,d){const r=[43,43,41,38][s>>3];if(s%2===0)I.cello(a,o,r+12+(s%4===2?7:0),t,d*.9,.05);I.bass(a,o,r-12,t,d*.7,.15,1);if(s%4===0)I.kick(a,o,t,.6);if(s%4===2)I.snare(a,o,t,.22);I.hat(a,o,t,.02);if(s===31)I.whip(a,o,t,.3)}},
+ // 沢井とのバトル：ねじれたシンセのリフ
+ t7b2:{bpm:140,f(a,o,s,t,d){const k=[1,0,1,0,0,1,0,0][s%8];if(k)I.kick(a,o,t,.6);if(s%8===4)I.snare(a,o,t,.24);I.hat(a,o,t,s%2?.03:.015);const r=[40,40,43,39][s>>3];I.bass(a,o,r-12+[0,12,0,10,0,12,7,0][s%8],t,d*.6,.16,1);if(s%8===0)I.pad(a,o,[r+12,r+15,r+18],t,8*d,.02,1600)}},
+ // 猫田とのバトル：和太鼓とシンセの融合
+ t7b3:{bpm:146,f(a,o,s,t,d){const r=[45,45,48,43][s>>3];if([0,3,6].includes(s%8))I.taiko(a,o,t,.45);if(s%4===2)I.snare(a,o,t,.2);I.bass(a,o,r-12+(s%2?12:0),t,d*.6,.15,1);if(s%8===0)I.brass(a,o,r+24,t,d*2,.045);if(s%8===4)I.koto(a,o,r+31,t,.06);if(s===31)I.whip(a,o,t,.3)}},
+ // 唐沢の登場：オルガンと時計、魔術師のワルツ（3拍子のゆらぎ）
+ t7bossin:{bpm:84,f(a,o,s,t,d){const b=s%6;const ch=[[45,48,52],[44,47,52],[43,46,52],[42,45,51]][Math.floor(s/8)%4];if(b===0)I.organ(a,o,[ch[0]-12],t,d*1.8,.03);if(b===2||b===4)I.organ(a,o,ch,t,d*1.4,.018);I.tick(a,o,t,s%2?1500:1900,.015);if(s===0)I.bell(a,o,81,t,.04,4)}},
+ // 唐沢とのボス戦：オルガンと合唱、重いドラムのゴシック・バトル
+ t7boss:{bpm:150,f(a,o,s,t,d){const bar=s>>3,r=[45,45,41,44][bar];if(s%4===0)I.kick(a,o,t,.65);if(s%4===2){I.snare(a,o,t,.24);I.taiko(a,o,t,.25)}I.bass(a,o,r-12+[0,0,12,0][s%4],t,d*.7,.16,1);
+  if(s%8===0){I.organ(a,o,[r+12,r+15,r+19],t,8*d*.95,.022);I.choir(a,o,[r+24,r+27,r+31],t,8*d,.026)}const m={0:[81,2],2:[80,2],4:[81,4],8:[76,4],12:[77,4],16:[79,2],18:[77,2],20:[76,4],24:[74,4],28:[76,4]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d,.065);if(s===31)I.whip(a,o,t,.3)}}
+});
+
+/* ---------- 第8話の曲（競売：木づちの音、オークション会場の熱気） ---------- */
+Object.assign(TR,{
+ // オープニング：遠くで木づちが鳴る、重い鼓動
+ t8op:{bpm:70,f(a,o,s,t,d){if(s%8===0){I.wood(a,o,t,700,.12);I.taiko(a,o,t,.35)}if(s%16===0)I.pad(a,o,[38,45,50],t,16*d,.024,600);if(s%16===12)I.bell(a,o,69,t,.03,3);if(s%4===2)I.tick(a,o,t,1700,.015)}},
+ // 定食屋の昼：あたたかいアコーディオン風の和音とギター
+ t8home:{bpm:100,f(a,o,s,t,d){const ch=[[57,61,64],[62,66,69],[64,68,71],[57,61,64]][s>>3];if(s%4===0)I.organ(a,o,ch,t,d*1.6,.018);I.pluck(a,o,ch[s%3]+12,t,.035);if(s%4===0)I.bass(a,o,ch[0]-12,t,d*1.8,.11);
+  const m={0:[73,2],2:[76,2],4:[78,4],8:[76,2],10:[73,2],12:[71,4],16:[69,2],18:[71,2],20:[73,4],24:[76,6]}[s];if(m)I.whistle(a,o,m[0],t,m[1]*d,.045)}},
+ // 競売会場：せり上がる電子音と、木づち
+ t8auction:{bpm:128,f(a,o,s,t,d){if(s%4===0)I.kick(a,o,t,.45);if(s%8===6)I.wood(a,o,t,800,.1);I.tick(a,o,t,2200+(s%8)*120,.02);const r=[45,46,47,48][s>>3];if(s%2===0)I.bass(a,o,r-12,t,d*.9,.13);if(s%8===0)I.pad(a,o,[r+12,r+16,r+19],t,8*d,.02,1500)}},
+ // 悲しみ：雨のピアノ（大事なものを失いかけたコマ）
+ t8sad:{bpm:66,f(a,o,s,t,d){const ch=[[50,53,57],[46,50,53],[48,52,55],[45,49,52]][s>>3];if(s%8===0)I.pad(a,o,ch,t,8*d,.02,700);if(s%2===0)I.piano(a,o,ch[(s>>1)%3]+12,t,.03);const m={4:74,12:72,20:70,28:69}[s];if(m)I.breath(a,o,m,t,d*4,.04)}},
+ // 事件バトル1：ロックンロール
+ t8b1:{bpm:160,f(a,o,s,t,d){const r=[45,45,50,52][s>>3];I.bass(a,o,r-12+[0,4,7,9][(s>>1)%4],t,d*.8,.16,1);if(s%4===0)I.kick(a,o,t,.6);if(s%4===2)I.snare(a,o,t,.25);I.hat(a,o,t,.025);if(s%2===0)I.twang(a,o,r+12,t,.05);if(s===31)I.whip(a,o,t,.3)}},
+ // 事件バトル2：ファンクのブラス
+ t8b2:{bpm:122,f(a,o,s,t,d){const k=[1,0,0,1,0,1,0,0][s%8];if(k)I.kick(a,o,t,.55);if(s%8===4)I.snare(a,o,t,.24);I.hat(a,o,t,s%2?.03:.016);const r=[43,43,46,41][s>>3];if([0,3,5,7].includes(s%8))I.bass(a,o,r-12+(s%8===7?12:0),t,d*.7,.17,1);if(s%8===2)I.brass(a,o,r+24,t,d*.6,.05);if(s%8===6)I.brass(a,o,r+31,t,d*.6,.045)}},
+ // 事件バトル3：テクノと和太鼓
+ t8b3:{bpm:150,f(a,o,s,t,d){if(s%4===0)I.kick(a,o,t,.6);if(s%2===1)I.taiko(a,o,t,.2);if(s%8===4)I.snare(a,o,t,.22);const r=[38,38,41,36][s>>3];I.bass(a,o,r-12+(s%2?12:0),t,d*.6,.16,1);if(s%4===0)I.pluck(a,o,r+36,t,.035);if(s===31)I.whip(a,o,t,.3)}},
+ // 番場の登場：木づちの連打と、重い金管
+ t8bossin:{bpm:60,f(a,o,s,t,d){if(s%4===0)I.wood(a,o,t,600,.14);if(s%8===0)I.taiko(a,o,t,.5);if(s%16===0)I.brass(a,o,[36,35][s>>4],t,14*d,.05);if(s%16===0)I.pad(a,o,[48,51,55],t,16*d,.02,600)}},
+ // 番場とのボス戦：オークションの熱狂（速い木づちとブラス、合唱）
+ t8boss:{bpm:156,f(a,o,s,t,d){const bar=s>>3,r=[43,43,39,41][bar];if(s%4===0)I.kick(a,o,t,.65);if(s%4===2)I.snare(a,o,t,.25);if(s%2===1)I.wood(a,o,t,900,.06);I.bass(a,o,r-12+[0,7,12,7][(s>>1)%4],t,d*.7,.17,1);
+  if(s%8===0)I.choir(a,o,[[67,70,74],[67,70,74],[63,67,70],[65,69,72]][bar],t,8*d,.03);const m={0:[79,2],2:[82,2],4:[86,4],8:[84,2],10:[82,2],12:[79,4],16:[75,3],19:[77,1],20:[79,4],24:[81,4],28:[82,4]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d,.07);if(s===31)I.whip(a,o,t,.3)}}
+});
+
+/* ---------- 第9話・第10話の登場人物と小道具 ---------- */
+Object.assign(SIL,{
+// 筆坂：黒鍵の「偽遺言屋」。黒い羽織に大きな筆
+fudesaka:mk(`<path d="M74 40l18-30" stroke="#6b4a2a" stroke-width="4" fill="none"/><path d="M90 12l6-8 2 10z" fill="#1d1a22"/><path d="${B.wide}" fill="#1d1a22"/>${SHD(B.wide)}<path d="M38 70L50 112L62 70" fill="#efe8d8"/><path d="M30 74q20 30 40 0" fill="none" stroke="#7a1a2a" stroke-width="3"/><path d="M50 112v48" stroke="#2c2a31" stroke-width="1.6" fill="none"/>${NECK(50,14)}<ellipse cx="50" cy="40" rx="15" ry="17" fill="${SK}"/><path d="M35 34C34 20 43 15 51 15C60 15 66 21 65 34C61 26 54 24 48 25C42 26 38 29 35 34Z" fill="#141216"/><path d="M50 12v6" stroke="#141216" stroke-width="5"/><path d="M40 38l7 2M60 38l-7 2" stroke-width="2.2" fill="none"/><path d="M41 43h5M54 43h5" stroke-width="2" fill="none"/><path d="M42 51q8 5 16-1" fill="none" stroke-width="1.8"/><path d="M38 49q-4 10 2 16M62 49q4 10-2 16" stroke="#141216" stroke-width="1.6" fill="none"/>`),
+// 二階堂：黒鍵の「分割屋」。灰色のスーツに電卓
+nikaido:mk(`<rect x="62" y="96" width="22" height="30" rx="3" fill="#2a2d38"/><rect x="65" y="99" width="16" height="7" fill="#9fe3a8" stroke="none"/><path d="M66 111h4M72 111h4M78 111h2M66 117h4M72 117h4M78 117h2" stroke="#efe3cf" stroke-width="1.6"/><path d="${B.slim}" fill="#6a6e7a"/>${SHD(B.slim)}<path d="M40 70l10 10 10-10" fill="none"/><path d="M50 80l-4 6 3 34 1 3 1-3 3-34z" fill="#1d2a5a"/>${NECK(52,12)}<ellipse cx="50" cy="38" rx="14" ry="16" fill="${SK}"/><path d="M36 32C35 20 43 16 50 16C58 16 65 20 64 32L60 26C54 24 46 24 40 26Z" fill="#2a2420"/><path d="M40 37h8M52 37h8" stroke-width="1.6" fill="none"/><rect x="39" y="35" width="10" height="6" rx="1" fill="none" stroke-width="1.4"/><rect x="51" y="35" width="10" height="6" rx="1" fill="none" stroke-width="1.4"/><path d="M43 49q7 2 14 0" fill="none" stroke-width="1.6"/>`)
+});
+if(SIL.okami)SIL.chiyo=SIL.okami;
+if(SIL.nephew)SIL.take=SIL.nephew;
+Object.assign(NAMES,{fudesaka:'筆坂',nikaido:'二階堂',chiyo:'千代',take:'剛'});
+Object.assign(VP,{fudesaka:{p:.8,r:.95,g:'m',i:3},nikaido:{p:.6,r:1,g:'m',i:1},chiyo:{p:.9,r:.7,g:'f',i:1},take:{p:1.1,r:1.1,g:'m',i:2}});
+Object.assign(PROPS,{
+ yuigon:{vb:[80,104],s:.34,svg:PROP_S(`<path d="M6 6h68v92H6z" fill="#f4ecdc"/><text x="40" y="26" text-anchor="middle" font-size="15" font-weight="900" fill="${O}" stroke="none" font-family="serif">遺言書</text><path d="M16 38h48M16 48h48M16 58h48M16 68h30" stroke-width="1.4"/><circle cx="58" cy="84" r="8" fill="none" stroke="#c22d22" stroke-width="2.4"/>`)},
+ kanban2:{vb:[120,96],s:.42,svg:PROP_S(`<path d="M52 56v38M68 56v38" stroke="#4a3220" stroke-width="5"/><rect x="6" y="6" width="108" height="52" rx="3" fill="#f4ecdc"/><text x="60" y="28" text-anchor="middle" font-size="13" font-weight="900" fill="${O}" stroke="none" font-family="sans-serif">商店街</text><text x="60" y="47" text-anchor="middle" font-size="13" font-weight="900" fill="#2a6ad4" stroke="none" font-family="sans-serif">共同駐車場</text>`)}
+});
+
+/* ---------- 第9話の曲（相続：古い屋敷、遺言、親族の争い） ---------- */
+Object.assign(TR,{
+ // オープニング：古時計と、ゆっくり鳴る琴
+ t9op:{bpm:66,f(a,o,s,t,d){I.tick(a,o,t,s%2?1400:1800,.018);if(s%16===0)I.pad(a,o,[[45,52,57],[43,50,55]][s>>4],t,16*d,.022,700);const m={0:69,4:67,8:64,12:62,16:64,20:67,24:69,28:72}[s];if(m)I.koto(a,o,m,t,.07)}},
+ // 屋敷の広間：しっとりしたピアノとチェロ
+ t9hall:{bpm:76,f(a,o,s,t,d){const ch=[[57,60,64],[53,57,60],[55,59,62],[52,56,59]][s>>3];if(s%8===0)I.cello(a,o,ch[0]-12,t,8*d*.95,.04);if(s%2===0)I.piano(a,o,ch[(s>>1)%3]+12,t,.035);const m={2:76,6:74,10:72,14:71,18:72,22:74,26:76,30:79}[s];if(m)I.vib(a,o,m,t,.02,1.4)}},
+ // 衝撃：遺言の発見（不協和な弦と鼓動）
+ t9shock:{bpm:90,f(a,o,s,t,d){if(s%4===0){I.taiko(a,o,t,.45);I.bass(a,o,[36,36,37,35][s>>3],t,d*3,.16,1)}if(s%8===0)I.cello(a,o,[47,48][s>>4],t,8*d*.9,.05);if(s%2===1)I.tick(a,o,t,2500,.02);if(s===0)I.bell(a,o,73,t,.05,3)}},
+ // 剛とのバトル：三味線と太鼓
+ t9b1:{bpm:148,f(a,o,s,t,d){const r=[43,43,46,41][s>>3];I.twang(a,o,r+[12,19,24,19][s%4],t,.065);if(s%2===0)I.bass(a,o,r-12,t,d*.8,.15,1);if([0,3,6].includes(s%8))I.taiko(a,o,t,.4);if(s%4===2)I.snare(a,o,t,.18);if(s===31)I.whip(a,o,t,.3)}},
+ // 猫田とのバトル：スウィングするジャズ
+ t9b2:{bpm:150,f(a,o,s,t,d){const ch=[[50,53,57,60],[55,59,62,65],[48,52,55,59],[57,61,64,67]][s>>3];if(s%2===0)I.bass(a,o,ch[(s>>1)%4]-24,t,d*1.6,.15);if(s%4===2)I.snare(a,o,t,.12);I.hat(a,o,t,s%2?.035:.015);if(s%8===0||s%8===5)ch.slice(1).forEach(n=>I.brass(a,o,n+12,t,d*.6,.025));if(s===31)I.whip(a,o,t,.3)}},
+ // 三上とのバトル：疾走するストリングス
+ t9b3:{bpm:158,f(a,o,s,t,d){const r=[45,45,41,40][s>>3];if(s%2===0)I.cello(a,o,r+12+(s%4===2?7:0),t,d*.9,.05);I.bass(a,o,r-12,t,d*.7,.15,1);if(s%4===0)I.kick(a,o,t,.6);if(s%4===2)I.snare(a,o,t,.22);I.hat(a,o,t,.02);if(s===31)I.whip(a,o,t,.3)}},
+ // 筆坂の登場：墨をする音のような低い鼓動と、怪しいオルガン
+ t9bossin:{bpm:58,f(a,o,s,t,d){if(s%8===0)I.taiko(a,o,t,.5);if(s%16===0)I.organ(a,o,[[45,48,51],[44,47,50]][s>>4],t,16*d*.95,.024);if(s%4===2)I.wood(a,o,t,500,.06);if(s===12||s===28)I.bell(a,o,80,t,.035,3)}},
+ // 筆坂とのボス戦：和太鼓、琴、ブラスの決戦
+ t9boss:{bpm:152,f(a,o,s,t,d){const bar=s>>3,r=[45,45,41,43][bar];if(s%4===0)I.kick(a,o,t,.62);if(s%2===1)I.taiko(a,o,t,.22);if(s%4===2)I.snare(a,o,t,.24);I.bass(a,o,r-12+[0,7,12,7][(s>>1)%4],t,d*.7,.16,1);if(s%2===0)I.koto(a,o,r+24+[0,3,7,10][(s>>1)%4],t,.045);
+  if(s%8===0)I.choir(a,o,[[69,72,76],[69,72,76],[65,69,72],[67,71,74]][bar],t,8*d,.028);const m={0:[81,2],2:[79,2],4:[76,4],8:[77,2],10:[79,2],12:[81,4],16:[84,4],20:[83,2],22:[81,2],24:[79,4],28:[76,4]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d,.065);if(s===31)I.whip(a,o,t,.3)}}
+});
+
+/* ---------- 第10話の曲（共有：商店街の駐車場、にぎやかな下町と頭脳戦） ---------- */
+Object.assign(TR,{
+ // オープニング：明るいブラスの商店街マーチ
+ t10op:{bpm:116,f(a,o,s,t,d){const ch=[[60,64,67],[65,69,72],[67,71,74],[60,64,67]][s>>3];if(s%4===0)I.kick(a,o,t,.45);if(s%4===2)I.snare(a,o,t,.12);if(s%2===0)I.bass(a,o,ch[0]-12+(s%4?7:0),t,d*.9,.13);const m={0:[72,2],2:[76,2],4:[79,3],7:[77,1],8:[76,4],12:[74,4],16:[77,2],18:[76,2],20:[74,2],22:[72,2],24:[79,8]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d,.05)}},
+ // 駐車場の昼：口笛とギター
+ t10lot:{bpm:104,f(a,o,s,t,d){const ch=[[62,66,69],[67,71,74],[64,67,71],[69,73,76]][s>>3];I.pluck(a,o,ch[s%3]+(s%6===5?12:0),t,.045);if(s%4===0)I.bass(a,o,ch[0]-12,t,d*1.8,.11);if(s%4===2)I.hat(a,o,t,.02);const m={0:[74,2],2:[78,2],4:[81,4],8:[79,2],10:[78,2],12:[76,4],16:[74,2],18:[76,2],20:[78,4],24:[74,6]}[s];if(m)I.whistle(a,o,m[0],t,m[1]*d,.045)}},
+ // 衝撃：黒鍵が持分を買った（低いシンセと警報）
+ t10shock:{bpm:96,f(a,o,s,t,d){if(s%4===0)I.kick(a,o,t,.5);if(s%8===0)I.pad(a,o,[[41,44,48],[40,43,47]][s>>4],t,8*d,.03,800);if(s%2===1)I.tick(a,o,t,2400,.02);if(s===0)I.siren(a,o,t,3,.015)}},
+ // 沢井とのバトル：ファンクロック
+ t10b1:{bpm:140,f(a,o,s,t,d){const k=[1,0,0,1,0,1,0,0][s%8];if(k)I.kick(a,o,t,.6);if(s%8===4)I.snare(a,o,t,.25);I.hat(a,o,t,s%2?.035:.015);const r=[40,40,43,45][s>>3];I.bass(a,o,r-12+[0,12,10,12][s%4],t,d*.7,.16,1);if(s%4===0)I.twang(a,o,r+24,t,.05);if(s===31)I.whip(a,o,t,.3)}},
+ // 二階堂の手下とのバトル：エレクトロ
+ t10b2:{bpm:146,f(a,o,s,t,d){if(s%4===0)I.kick(a,o,t,.6);if(s%4===2)I.snare(a,o,t,.2);I.hat(a,o,t,.025);const r=[45,45,48,43][s>>3];I.bass(a,o,r-12+(s%2?12:0),t,d*.6,.16,1);if(s%2===0)I.pluck(a,o,r+24+[0,7,12,7][(s>>1)%4],t,.04);if(s===31)I.whip(a,o,t,.3)}},
+ // 三上とのバトル：電卓をたたくような速い打楽器
+ t10b3:{bpm:162,f(a,o,s,t,d){I.tick(a,o,t,2000+(s%4)*300,.03);if(s%4===0)I.kick(a,o,t,.6);if(s%4===2)I.snare(a,o,t,.22);const r=[38,38,41,43][s>>3];I.bass(a,o,r-12,t,d*.7,.16,1);if(s%8===0)I.brass(a,o,r+24,t,d*1.5,.045);if(s===31)I.whip(a,o,t,.3)}},
+ // 二階堂の登場：電卓と時計、冷たいシンセ
+ t10bossin:{bpm:60,f(a,o,s,t,d){I.tick(a,o,t,s%2?1600:2100,.022);if(s%16===0)I.pad(a,o,[[45,48,52,55],[44,47,51,54]][s>>4],t,16*d,.024,900);if(s%8===4)I.pluck(a,o,[81,80,79,78][s>>3],t,.03);if(s===0)I.taiko(a,o,t,.4)}},
+ // 二階堂とのボス戦：テクノとオーケストラ
+ t10boss:{bpm:150,f(a,o,s,t,d){const bar=s>>3,r=[41,41,44,39][bar];if(s%4===0)I.kick(a,o,t,.65);if(s%4===2)I.snare(a,o,t,.24);I.hat(a,o,t,.025);I.bass(a,o,r-12+(s%2?12:0),t,d*.6,.16,1);if(s%2===0)I.cello(a,o,r+12,t,d*.9,.04);
+  if(s%8===0)I.choir(a,o,[[65,68,72],[65,68,72],[68,72,75],[63,67,70]][bar],t,8*d,.028);const m={0:[77,3],3:[79,1],4:[80,4],8:[79,2],10:[77,2],12:[75,4],16:[72,3],19:[75,1],20:[77,4],24:[80,4],28:[82,4]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d,.065);if(s===31)I.whip(a,o,t,.3)}}
+});
