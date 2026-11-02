@@ -121,6 +121,51 @@ document.body.insertAdjacentHTML('beforeend',`<style>
 @keyframes kjStar{0%{transform:rotate(0) scale(.6)}100%{transform:rotate(40deg) scale(1.2);opacity:0}}
 </style>`);
 
+/* ---------- 第21話〜の曲（4話ごとに入れかえる）：ネオンの荒野・シンセウェイブ ---------- */
+Object.assign(TR,{
+ // 物語：やわらかいシンセの和音と、きらきらしたアルペジオ（夜のハイウェイ）
+ k21case:{bpm:96,f(a,o,s,t,d){const bar=s>>3,ch=[[45,52,57,60],[41,48,53,57],[43,50,55,59],[40,47,52,55]][bar];
+  if(s%8===0)I.pad(a,o,ch.map(n=>n+12),t,8*d,.035,1400);if(s%2===0)I.pluck(a,o,ch[(s>>1)%4]+24,t,.03);
+  if(s%4===0)I.bass(a,o,ch[0]-12,t,d*3,.12);if(s%8===0)I.kick(a,o,t,.35);if(s%8===4)I.snare(a,o,t,.08);if(s%2===1)I.hat(a,o,t,.015);
+  const m={0:[76,4],4:[74,2],6:[72,2],8:[71,6],16:[72,3],19:[74,1],20:[76,4],24:[79,6]}[s];if(m)I.vib(a,o,m[0],t,.035,2.2)}},
+ // 対戦：走るベースと、四つ打ちのシンセ・ロック
+ k21battle:{bpm:176,f(a,o,s,t,d){const r=[45,45,41,43][s>>3];I.bass(a,o,s%2?r+12:r,t,d*.7,.15,1);
+  if(s%4===0)I.kick(a,o,t,.65);if(s%4===2)I.snare(a,o,t,.24);I.hat(a,o,t,s%2?.02:.03);
+  if(s%4===2)I.pluck(a,o,r+24,t,.04);if(s%8===0)I.pad(a,o,[r+12,r+16,r+19],t,4*d,.025,1800);
+  const m={0:[81,2],2:[79,2],4:[76,4],8:[77,2],10:[76,2],12:[72,4],16:[74,2],18:[76,2],20:[79,4],24:[81,6]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d,.06);if(s===31)I.whip(a,o,t,.3)}},
+ // ボス登場：低いサイン波のうなりと、遠いシンセの鐘
+ k21bossin:{bpm:62,f(a,o,s,t,d){if(s%16===0)I.pad(a,o,[33,40,45],t,16*d,.05,500);if(s%8===0)I.kick(a,o,t,.45);
+  if(s===6||s===22)I.bell(a,o,69,t,.05,4);if(s===14||s===30)I.bell(a,o,68,t,.04,4);if(s%4===2)I.tick(a,o,t,2000,.02)}},
+ // ボス戦：ゆがんだベースと金管、マイナーのシンセ・ロック
+ k21boss:{bpm:160,f(a,o,s,t,d){const bar=s>>3,r=[45,41,43,44][bar];I.bass(a,o,[r,r,r+12,r,r+7,r,r+10,r+12][s%8],t,d*.85,.18,1);
+  if(s%4===0)I.kick(a,o,t,.7);if(s%4===2)I.snare(a,o,t,.3);if(s%2===1)I.hat(a,o,t,.03);if(s%8===0)I.pad(a,o,[r+12,r+15,r+19],t,8*d,.03,1600);
+  const m={0:[81,2],2:[84,2],4:[83,4],8:[81,2],10:[79,2],12:[76,4],16:[77,3],19:[79,1],20:[81,2],22:[83,2],24:[84,6]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d,.07);if(s===31)I.whip(a,o,t,.35)}}
+});
+
+/* ---------- 第21話〜の新しい技：脳天チョップ・タックル ---------- */
+Object.assign(MOVES,{
+ chop:{kiai:'脳天チョップ！',k:1.1,hit:'ズビシッ！'},
+ tackle:{kiai:'タックルゥッ！',k:1.2,hit:'ドッカーン！'}
+});
+const MOVE21=['chop','tackle'];
+{const _ok=moveOK;moveOK=k=>MOVE21.includes(k)?!!(CH&&CH.no>=21):_ok(k)}
+{const _atk=attack;attack=function(then,style){
+  if(!MOVE21.includes(style))return _atk(then,style);
+  const M=MOVES[style];kiai(M.k);const h=$('#stage .fig.l'),st=$('#stage'),e=$('#stage .fig.r');
+  const v=document.createElement('div');v.className='kiai';v.textContent=M.kiai;st.appendChild(v);setTimeout(()=>v.remove(),1000);
+  h.classList.remove('lunge','kickmove','dkick','hbutt','chopup');void h.offsetWidth;h.classList.add(style==='chop'?'chopup':'lunge');
+  setTimeout(()=>{const sr=st.getBoundingClientRect(),er=e.getBoundingClientRect(),fx=er.left-sr.left+er.width*.5,fy=er.top-sr.top+er.height*(style==='chop'?.08:.5);
+    const b=document.createElement('div');b.className='boom';b.style.left=fx+'px';b.style.top=fy+'px';b.innerHTML=BOOM+`<span>${M.hit}</span>`;st.appendChild(b);setTimeout(()=>b.remove(),700);
+    e.classList.remove('knock','knockkick','pinned','hit','squashy');void e.offsetWidth;e.classList.add(style==='chop'?'squashy':'knock');setTimeout(()=>e.classList.remove('knock','squashy'),1100);
+    st.classList.remove('shake','impact');void st.offsetWidth;st.classList.add('shake','impact');punch(1.5);then()},330);
+}}
+document.body.insertAdjacentHTML('beforeend',`<style>
+.fig.l.chopup{animation:chopup .7s}
+@keyframes chopup{0%{transform:none}35%{transform:translate(30%,-18%)}55%{transform:translate(58%,-4%)}100%{transform:none}}
+.fig.r.squashy{animation:squashy .9s ease-out;transform-origin:50% 100%}
+@keyframes squashy{0%{transform:none}25%{transform:scaleY(.72) scaleX(1.12)}55%{transform:scaleY(1.08) scaleX(.95)}100%{transform:none}}
+</style>`);
+
 /* ---------- 記述の章の流れ ---------- */
 const KJ={};
 {const _bp=beginPart;beginPart=function(){const sb=$('#s-battle');if(sb)sb.classList.remove('kj','kjboss');if(CH&&CH.kijutsu)return kjStart();return _bp()}}
@@ -339,7 +384,11 @@ sagi:mk(`<path d="${B.slim}" fill="#f2efe8"/>${SHD(B.slim)}<path d="M38 72L50 10
 // 産廃会社の社長・毒島：ヘルメットに作業着、首に金の鎖、大きな口
 busu:mk(`<path d="${B.boss}" fill="#5a6a3a"/>${SHD(B.boss)}<path d="M50 62v98" stroke="#3a4626" fill="none"/><path d="M22 100h56M24 120h52" stroke="#e8d23a" stroke-width="5" fill="none" opacity=".9"/><path d="M38 66q12 14 24 0" stroke="#d9a441" stroke-width="3" fill="none"/><rect x="58" y="78" width="14" height="10" fill="#3a4626" stroke-width="1.4"/>${NECK(46,16)}<ellipse cx="50" cy="40" rx="19" ry="19" fill="${SK}"/><path d="M28 32c0-14 10-22 22-22s22 8 22 22z" fill="#f2c41a"/><path d="M24 33h52" stroke="#c99a10" stroke-width="5" fill="none"/><path d="M48 12h4v20h-4z" fill="#c99a10" stroke="none"/><path d="M37 38l8 2M63 38l-8 2" stroke-width="2.6" fill="none"/><circle cx="42" cy="42" r="1.9" fill="${O}" stroke="none"/><circle cx="58" cy="42" r="1.9" fill="${O}" stroke="none"/><path d="M38 50h24v4c0 4-5 6-12 6s-12-2-12-6z" fill="#7a1a10"/><path d="M40 50h20v2H40z" fill="#fff" stroke="none"/>`)
 });
-Object.assign(NAMES,{shinsa:'鉄面',ooya:'馬場',eisei:'灰原',junsa:'矢吹',sagi:'白鷺',busu:'毒島'});
-Object.assign(VP,{sagi:{p:1.1,r:1.05,g:'m',i:1},busu:{p:.2,r:.8,g:'m',i:0},narrf:{p:0,r:.82,g:'m',i:0},eisei:{p:.9,r:.85,g:'m',i:1},junsa:{p:1.2,r:1.05,g:'m',i:3}});
+Object.assign(SIL,{
+// 黒崎組の若頭・龍崎：オールバックに黒いロングコート、首に龍の刺しゅうのスカーフ、片眉に傷
+ryu:mk(`<path d="${B.boss}" fill="#1a1a22"/>${SHD(B.boss)}<path d="M36 64L50 110L64 64Z" fill="#c22d22"/><path d="M42 70q8 10 16 0q-4 12-8 18q-4-6-8-18z" fill="#d9a441" stroke-width="1"/><path d="M50 64v96" stroke="#0b0b10" fill="none"/><path d="M22 112l12-4M78 112l-12-4" stroke="#3a3a48" stroke-width="2" fill="none"/>${NECK(46,16)}<ellipse cx="50" cy="38" rx="16" ry="18" fill="${SK}"/><path d="M33 34c0-16 8-22 17-22s18 5 18 20c-6-8-12-10-18-10s-12 4-17 12z" fill="#16161c"/><path d="M38 34l9 3M62 34l-9 3" stroke-width="2.6" fill="none"/><circle cx="43" cy="39" r="1.8" fill="${O}" stroke="none"/><circle cx="57" cy="39" r="1.8" fill="${O}" stroke="none"/><path d="M58 28l4 10" stroke="#a03a2a" stroke-width="1.6" fill="none"/><path d="M42 50q8 2 16-2" fill="none" stroke-width="2"/>`)
+});
+Object.assign(NAMES,{shinsa:'鉄面',ooya:'馬場',eisei:'灰原',junsa:'矢吹',sagi:'白鷺',busu:'毒島',ryu:'龍崎'});
+Object.assign(VP,{ryu:{p:.4,r:.9,g:'m',i:2},sagi:{p:1.1,r:1.05,g:'m',i:1},busu:{p:.2,r:.8,g:'m',i:0},narrf:{p:0,r:.82,g:'m',i:0},eisei:{p:.9,r:.85,g:'m',i:1},junsa:{p:1.2,r:1.05,g:'m',i:3}});
 Object.assign(VP,{shinsa:{p:.3,r:.72,g:'m',i:2},ooya:{p:.2,r:.75,g:'m',i:0}});
-document.body.insertAdjacentHTML('beforeend','<style>.fig.shinsa,.fig.ooya,.fig.eisei,.fig.busu{height:100%}#koma .fig.shinsa,#koma .fig.ooya,#koma .fig.eisei,#koma .fig.busu{--k:1}</style>');
+document.body.insertAdjacentHTML('beforeend','<style>.fig.shinsa,.fig.ooya,.fig.eisei,.fig.busu,.fig.ryu{height:100%}#koma .fig.shinsa,#koma .fig.ooya,#koma .fig.eisei,#koma .fig.busu,#koma .fig.ryu{--k:1}</style>');
