@@ -166,6 +166,53 @@ document.body.insertAdjacentHTML('beforeend',`<style>
 @keyframes squashy{0%{transform:none}25%{transform:scaleY(.72) scaleX(1.12)}55%{transform:scaleY(1.08) scaleX(.95)}100%{transform:none}}
 </style>`);
 
+/* ---------- 第25話〜の曲（4話ごとに入れかえる）：荒野のファンク ---------- */
+Object.assign(TR,{
+ // 物語：はねるベースと、ワウのギター、ゆるいファンク
+ k25case:{bpm:100,f(a,o,s,t,d){const bar=s>>3,r=[43,43,48,46][bar];
+  I.bass(a,o,[r,0,r+12,0,r,r+10,0,r+7][s%8]||r,t,d*.6,s%8===0?.16:.1,1);if([0,2,5].includes(s%8)===false&&s%8===3)I.bass(a,o,r+12,t,d*.5,.08,1);
+  if(s%4===0)I.kick(a,o,t,.45);if(s%8===4)I.snare(a,o,t,.18);I.hat(a,o,t,s%2?.015:.025);
+  if(s%4===2)I.pluck(a,o,[r+24,r+27,r+31][(s>>2)%3],t,.03);if(s%16===0)I.organ(a,o,[r+12,r+16,r+19],t,6*d,.02);
+  const m={0:[67,2],2:[70,1],3:[72,1],4:[74,4],8:[72,2],10:[70,2],12:[67,4],16:[65,2],18:[67,2],20:[70,4],24:[67,6]}[s];if(m)I.whistle(a,o,m[0],t,m[1]*d,.04)}},
+ // 対戦：金管のキメと、走るスラップベース
+ k25battle:{bpm:168,f(a,o,s,t,d){const r=[43,43,46,41][s>>3];I.bass(a,o,[r,r+12,r,r+10,r,r+7,r+12,r+10][s%8],t,d*.7,.16,1);
+  if(s%4===0)I.kick(a,o,t,.65);if(s%4===2)I.snare(a,o,t,.24);I.hat(a,o,t,s%2?.02:.03);
+  if([0,3,6].includes(s%8))I.brass(a,o,r+24,t,d*.8,.05);if(s===12||s===28)I.brass(a,o,r+31,t,3*d,.06);
+  const m={16:[79,1],17:[77,1],18:[74,2],20:[77,2],22:[79,2],24:[82,4]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d,.06);if(s===31)I.whip(a,o,t,.3)}},
+ // ボス登場：低い金管と、すり足の太鼓
+ k25bossin:{bpm:64,f(a,o,s,t,d){if(s%16===0)I.brass(a,o,[31,30][s>>4],t,14*d,.05);if(s%8===0)I.taiko(a,o,t,.5);if(s%8===6)I.kick(a,o,t,.3);
+  if(s===10||s===26)I.bell(a,o,[62,61][s>>4],t,.04,3);if(s%4===2)I.tick(a,o,t,1300,.02)}},
+ // ボス戦：短調のファンク・ロック
+ k25boss:{bpm:156,f(a,o,s,t,d){const bar=s>>3,r=[43,39,41,38][bar];I.bass(a,o,[r,r,r+12,r,r+3,r+5,r+7,r+10][s%8],t,d*.85,.18,1);
+  if(s%4===0)I.kick(a,o,t,.7);if(s%4===2)I.snare(a,o,t,.3);if(s%2===1)I.hat(a,o,t,.03);if(s%8===0)I.organ(a,o,[r+12,r+15,r+19],t,8*d,.025);
+  const m={0:[79,2],2:[82,2],4:[81,4],8:[79,2],10:[77,2],12:[74,4],16:[75,3],19:[77,1],20:[79,2],22:[82,2],24:[86,6]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d,.07);if(s===31)I.whip(a,o,t,.35)}}
+});
+
+/* ---------- 第25話〜の新しい技：ヒップアタック・バックドロップ ---------- */
+Object.assign(MOVES,{
+ hip:{kiai:'ヒップアタック！',k:1.05,hit:'ドスン！'},
+ backdrop:{kiai:'バックドロップ！',k:1.25,hit:'ズドーン！'}
+});
+const MOVE25=['hip','backdrop'];
+{const _ok=moveOK;moveOK=k=>MOVE25.includes(k)?!!(CH&&CH.no>=25):_ok(k)}
+{const _atk=attack;attack=function(then,style){
+  if(!MOVE25.includes(style))return _atk(then,style);
+  const M=MOVES[style];kiai(M.k);const h=$('#stage .fig.l'),st=$('#stage'),e=$('#stage .fig.r');
+  const v=document.createElement('div');v.className='kiai';v.textContent=M.kiai;st.appendChild(v);setTimeout(()=>v.remove(),1000);
+  h.classList.remove('lunge','kickmove','dkick','hbutt','chopup','hipatk');void h.offsetWidth;h.classList.add(style==='hip'?'hipatk':'lunge');
+  if(style==='backdrop'){e.classList.remove('bdrop');void e.offsetWidth;setTimeout(()=>e.classList.add('bdrop'),160);setTimeout(()=>e.classList.remove('bdrop'),1000)}
+  setTimeout(()=>{const sr=st.getBoundingClientRect(),er=e.getBoundingClientRect(),fx=er.left-sr.left+er.width*.5,fy=er.top-sr.top+er.height*(style==='hip'?.55:.15);
+    const b=document.createElement('div');b.className='boom';b.style.left=fx+'px';b.style.top=fy+'px';b.innerHTML=BOOM+`<span>${M.hit}</span>`;st.appendChild(b);setTimeout(()=>b.remove(),700);
+    if(style==='hip'){e.classList.remove('knock','knockkick','pinned','hit');void e.offsetWidth;e.classList.add('knock');setTimeout(()=>e.classList.remove('knock'),1100)}
+    st.classList.remove('shake','impact');void st.offsetWidth;st.classList.add('shake','impact');punch(1.5);then()},style==='backdrop'?620:360);
+}}
+document.body.insertAdjacentHTML('beforeend',`<style>
+.fig.l.hipatk{animation:hipatk .75s}
+@keyframes hipatk{0%{transform:none}30%{transform:translateX(10%) translateY(-14%) scaleX(-1)}55%{transform:translateX(62%) translateY(0) scaleX(-1)}100%{transform:none}}
+.fig.r.bdrop{animation:bdrop .8s cubic-bezier(.3,.1,.3,1);transform-origin:20% 100%}
+@keyframes bdrop{0%{transform:none}40%{transform:translate(-40%,-40%) rotate(-150deg)}70%{transform:translate(-55%,4%) rotate(-180deg) scaleY(.9)}100%{transform:none}}
+</style>`);
+
 /* ---------- 記述の章の流れ ---------- */
 const KJ={};
 {const _bp=beginPart;beginPart=function(){const sb=$('#s-battle');if(sb)sb.classList.remove('kj','kjboss');if(CH&&CH.kijutsu)return kjStart();return _bp()}}
@@ -388,7 +435,13 @@ Object.assign(SIL,{
 // 黒崎組の若頭・龍崎：オールバックに黒いロングコート、首に龍の刺しゅうのスカーフ、片眉に傷
 ryu:mk(`<path d="${B.boss}" fill="#1a1a22"/>${SHD(B.boss)}<path d="M36 64L50 110L64 64Z" fill="#c22d22"/><path d="M42 70q8 10 16 0q-4 12-8 18q-4-6-8-18z" fill="#d9a441" stroke-width="1"/><path d="M50 64v96" stroke="#0b0b10" fill="none"/><path d="M22 112l12-4M78 112l-12-4" stroke="#3a3a48" stroke-width="2" fill="none"/>${NECK(46,16)}<ellipse cx="50" cy="38" rx="16" ry="18" fill="${SK}"/><path d="M33 34c0-16 8-22 17-22s18 5 18 20c-6-8-12-10-18-10s-12 4-17 12z" fill="#16161c"/><path d="M38 34l9 3M62 34l-9 3" stroke-width="2.6" fill="none"/><circle cx="43" cy="39" r="1.8" fill="${O}" stroke="none"/><circle cx="57" cy="39" r="1.8" fill="${O}" stroke="none"/><path d="M58 28l4 10" stroke="#a03a2a" stroke-width="1.6" fill="none"/><path d="M42 50q8 2 16-2" fill="none" stroke-width="2"/>`)
 });
-Object.assign(NAMES,{shinsa:'鉄面',ooya:'馬場',eisei:'灰原',junsa:'矢吹',sagi:'白鷺',busu:'毒島',ryu:'龍崎'});
-Object.assign(VP,{ryu:{p:.4,r:.9,g:'m',i:2},sagi:{p:1.1,r:1.05,g:'m',i:1},busu:{p:.2,r:.8,g:'m',i:0},narrf:{p:0,r:.82,g:'m',i:0},eisei:{p:.9,r:.85,g:'m',i:1},junsa:{p:1.2,r:1.05,g:'m',i:3}});
+Object.assign(SIL,{
+// 中古車屋の社長・鮫島：派手なアロハに金のネックレス、サメのようにとがった歯、オールバック
+same:mk(`<path d="${B.wide}" fill="#1f6a8a"/>${SHD(B.wide)}<g fill="#f2c41a" stroke="none"><circle cx="30" cy="100" r="5"/><circle cx="66" cy="94" r="5"/><circle cx="44" cy="128" r="5"/><circle cx="74" cy="132" r="5"/><circle cx="26" cy="140" r="4"/></g><path d="M36 66L50 92L64 66Z" fill="#f2e6d0"/><path d="M38 70q12 12 24 0" stroke="#d9a441" stroke-width="3" fill="none"/>${NECK(46,14)}<ellipse cx="50" cy="38" rx="17" ry="18" fill="${SK}"/><path d="M33 34c0-14 8-20 17-20s18 5 18 18c-6-8-12-10-18-10s-12 4-17 12z" fill="#1a1a1a"/><path d="M38 34l9 3M62 34l-9 3" stroke-width="2.6" fill="none"/><circle cx="43" cy="39" r="1.8" fill="${O}" stroke="none"/><circle cx="57" cy="39" r="1.8" fill="${O}" stroke="none"/><path d="M38 47h24l-3 6H41z" fill="#fff"/><path d="M40 47l2 4 2-4 2 4 2-4 2 4 2-4 2 4 2-4 2 4 2-4" stroke-width="1" fill="none"/><rect x="26" y="34" width="5" height="10" rx="2" fill="#d9a441" stroke-width="1"/>`),
+// 前町長・大河原：はげ頭にちょびひげ、紋付き羽織に「前町長」のたすき
+zencho:mk(`<path d="M0 160C0 100 14 66 50 58C86 66 100 100 100 160Z" fill="#2a2a32"/>${SHD('M0 160C0 100 14 66 50 58C86 66 100 100 100 160Z')}<path d="M36 64L50 160L64 64" fill="#3a3a48"/><path d="M20 70L86 140" stroke="#e8e2d6" stroke-width="12" fill="none"/><text x="53" y="108" text-anchor="middle" font-size="8" font-weight="900" fill="#c22d22" stroke="none" font-family="serif" transform="rotate(46 53 105)">前町長</text><circle cx="30" cy="96" r="3" fill="#e8e2d6"/><circle cx="70" cy="96" r="3" fill="#e8e2d6"/>${NECK(46,12)}<ellipse cx="50" cy="38" rx="19" ry="19" fill="${SK}"/><path d="M31 36c0-4 2-6 4-6M69 36c0-4-2-6-4-6" stroke="#9a9a9a" stroke-width="3" fill="none"/><path d="M38 33l8 2M62 33l-8 2" stroke-width="2.4" fill="none"/><circle cx="43" cy="38" r="1.8" fill="${O}" stroke="none"/><circle cx="57" cy="38" r="1.8" fill="${O}" stroke="none"/><path d="M42 46q8-4 16 0" stroke="#3a3a3a" stroke-width="3" fill="none"/><path d="M44 51q6 2 12 0" fill="none" stroke-width="1.6"/><ellipse cx="50" cy="22" rx="10" ry="3" fill="#fff" opacity=".35" stroke="none"/>`)
+});
+Object.assign(NAMES,{shinsa:'鉄面',ooya:'馬場',eisei:'灰原',junsa:'矢吹',sagi:'白鷺',busu:'毒島',ryu:'龍崎',same:'鮫島',zencho:'大河原'});
+Object.assign(VP,{same:{p:1.15,r:1.1,g:'m',i:1},zencho:{p:.15,r:.8,g:'m',i:0},ryu:{p:.4,r:.9,g:'m',i:2},sagi:{p:1.1,r:1.05,g:'m',i:1},busu:{p:.2,r:.8,g:'m',i:0},narrf:{p:0,r:.82,g:'m',i:0},eisei:{p:.9,r:.85,g:'m',i:1},junsa:{p:1.2,r:1.05,g:'m',i:3}});
 Object.assign(VP,{shinsa:{p:.3,r:.72,g:'m',i:2},ooya:{p:.2,r:.75,g:'m',i:0}});
-document.body.insertAdjacentHTML('beforeend','<style>.fig.shinsa,.fig.ooya,.fig.eisei,.fig.busu,.fig.ryu{height:100%}#koma .fig.shinsa,#koma .fig.ooya,#koma .fig.eisei,#koma .fig.busu,#koma .fig.ryu{--k:1}</style>');
+document.body.insertAdjacentHTML('beforeend','<style>.fig.shinsa,.fig.ooya,.fig.eisei,.fig.busu,.fig.ryu,.fig.zencho{height:100%}#koma .fig.shinsa,#koma .fig.ooya,#koma .fig.eisei,#koma .fig.busu,#koma .fig.ryu,#koma .fig.zencho{--k:1}</style>');
