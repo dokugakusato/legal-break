@@ -42,7 +42,7 @@ window.BONUS_LINES=BONUS_LINES;
    ぶあつい丸めがね、手作りの腕章、すり切れた六法、よれよれの帽子 */
 SIL.katagaki=mk(`<path d="${B.slim}" fill="#4a4e5a"/>${SHD(B.slim)}<path d="M40 72L50 96L60 72Z" fill="#d8d0bc"/><path d="M48 76h4l-1 16h-2z" fill="#6a6a2a"/><rect x="18" y="96" width="16" height="9" fill="#c22d22" stroke-width="1.2" transform="rotate(-8 26 100)"/><text x="26" y="103" text-anchor="middle" font-size="5.6" font-weight="900" fill="#fff" stroke="none" font-family="sans-serif" transform="rotate(-8 26 100)">肩書</text><rect x="62" y="104" width="20" height="26" rx="2" fill="#2f6a3a" stroke-width="1.4" transform="rotate(10 72 117)"/><text x="72" y="120" text-anchor="middle" font-size="7" font-weight="900" fill="#f2e6c8" stroke="none" font-family="serif" transform="rotate(10 72 117)">六法</text><path d="M30 150l4-6 4 6M64 150l4-6 4 6" stroke="#6a6e7a" stroke-width="1.2" fill="none"/>${NECK(50,14)}<ellipse cx="50" cy="40" rx="14" ry="16" fill="${SK}"/><path d="M34 32c-2-6 4-10 8-8c2-6 12-6 16 0c4-2 10 2 8 8z" fill="#3a3326"/><path d="M33 28h34l-3-10c-6-4-22-4-28 0z" fill="#2a3448"/><path d="M30 29h40" stroke="#141a26" stroke-width="4" fill="none"/><rect x="45" y="17" width="10" height="7" rx="1" fill="#d9a441" stroke-width="1"/><text x="50" y="23" text-anchor="middle" font-size="5" font-weight="900" fill="#5a2a0a" stroke="none" font-family="sans-serif">肩</text><circle cx="43" cy="40" r="6" fill="#eef4f8" stroke-width="2"/><circle cx="57" cy="40" r="6" fill="#eef4f8" stroke-width="2"/><path d="M49 40h2" stroke-width="2" fill="none"/><path d="M41 40a2 2 0 1 0 4 0a3.5 3.5 0 1 0 -7 0" stroke-width="1" fill="none"/><path d="M55 40a2 2 0 1 0 4 0a3.5 3.5 0 1 0 -7 0" stroke-width="1" fill="none"/><path d="M44 51q6-4 12 0" fill="none" stroke-width="1.8"/><path d="M66 30q3 5 0 8q-3-3 0-8z" fill="#9fd4ff" stroke-width="1"/>`);
 NAMES.katagaki='肩書き警察';
-VP.katagaki={p:1.35,r:1.15,g:'m',i:3};
+Object.assign(VP,{katagaki:{p:1.35,r:1.15,g:'m',i:3}});
 
 document.body.insertAdjacentHTML('beforeend',`<style>
 #ov.bcm{background:#000;align-items:flex-start;overflow-y:auto}
@@ -157,7 +157,8 @@ Object.assign(TR,{
   const m={0:[64,4],4:[67,2],6:[66,2],8:[64,6],16:[71,4],20:[70,2],22:[67,2],24:[64,6]}[s];if(m)I.vib(a,o,m[0],t,.03,2)}}
 });
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
-const sayP=(t,k)=>new Promise(r=>say([[t,k]],r));
+// 声が来なくても止まらないよう、文字の長さに合わせた時間で先へ進む
+const sayP=(t,k)=>Promise.race([new Promise(r=>say([[t,k]],r)),wait(1400+[...t].length*170)]);
 const BG={on:false};
 
 /* 安っぽいCMのジングル（その場で鳴らす） */
@@ -186,7 +187,7 @@ function bonusCM(done,label){BG.label=label;
     await Promise.all([sayP('またもや、資格に取り憑かれた魔物が現る。','narrf'),wait(3600)]);if(!alive())return;
     // 2. 佐藤を取り囲む
     BGM.play('bmatrix');
-    ov.innerHTML=skip+`<div class="bcm-wrap"><div class="bhp"><div><span>佐藤</span><b id="bhpH">♥♥♥</b></div><div class="e"><span>肩書き警察</span><i><em id="bhpE"></em></i></div></div><div class="bstage" id="bst"><div class="fig katagaki k3">${SIL.katagaki}</div><div class="fig katagaki k4">${SIL.katagaki}</div><div class="fig katagaki k1">${SIL.katagaki}</div><div class="fig katagaki k2">${SIL.katagaki}</div><div class="fig hero">${SIL.hero}<span class="ntag">佐藤</span></div></div><div class="bline" id="bl"></div><div id="bq" class="bq"></div><div id="bbd" class="bboard"></div></div>`;bindSkip();
+    ov.innerHTML=skip+`<div class="bcm-wrap"><div class="bhp"><div><span>一問でもまちがえたら、終わり。</span></div><div class="e"><span>肩書き警察</span><i><em id="bhpE"></em></i></div></div><div class="bstage" id="bst"><div class="fig katagaki k3">${SIL.katagaki}</div><div class="fig katagaki k4">${SIL.katagaki}</div><div class="fig katagaki k1">${SIL.katagaki}</div><div class="fig katagaki k2">${SIL.katagaki}</div><div class="fig hero">${SIL.hero}<span class="ntag">佐藤</span></div></div><div class="bline" id="bl"></div><div id="bq" class="bq"></div><div id="bbd" class="bboard"></div></div>`;bindSkip();
     const st=$('#bst'),hero=st.querySelector('.hero'),cops=[...st.querySelectorAll('.katagaki')];
     const line=(t,who,cls='')=>{const l=$('#bl');if(l)l.innerHTML=`<div class="fl ${cls}"><b>${who}</b>${t}</div>`};
     const crit=(sub)=>{const c=document.createElement('div');c.className='bcrit';c.innerHTML=`<b>CRITICAL!!</b>${sub?`<span>${sub}</span>`:''}`;st.appendChild(c);setTimeout(()=>c.remove(),1700)};
@@ -225,7 +226,7 @@ function bonusCM(done,label){BG.label=label;
         if(--left[q.c]===0)c.classList.add('down');
       }else{
         // まちがえると、肩書き警察の反撃。佐藤がダメージを受ける
-        miss++;const g=GLOAT[(miss-1)%GLOAT.length];const fatal=miss>=3;bars2();
+        miss++;const g=GLOAT[(miss-1)%GLOAT.length];const fatal=true;bars2();
         line(g,'肩書き警察','big');say([[g,'katagaki']]);
         await boko(fatal?9:5);if(!alive())return false;
         if(fatal){box.innerHTML='';return 'dead'}
