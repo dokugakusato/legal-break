@@ -5,7 +5,7 @@
 import fs from 'node:fs';import vm from 'node:vm';import {execFileSync} from 'node:child_process';
 const REPO=new URL('..',import.meta.url).pathname,ENGINE=process.env.VOICEVOX_URL||'http://127.0.0.1:50021';
 const GAME=process.env.GAME||'',ROOT=REPO+(GAME?GAME+'/':'');
-const html=fs.readFileSync(ROOT+'index.html','utf8')+(fs.existsSync(ROOT+'extra.js')?fs.readFileSync(ROOT+'extra.js','utf8'):'')+(fs.existsSync(ROOT+'kijutsu.js')?fs.readFileSync(ROOT+'kijutsu.js','utf8'):'');
+const html=fs.readFileSync(ROOT+'index.html','utf8')+(fs.existsSync(ROOT+'extra.js')?fs.readFileSync(ROOT+'extra.js','utf8'):'')+(fs.existsSync(ROOT+'bonus.js')?fs.readFileSync(ROOT+'bonus.js','utf8'):'')+(fs.existsSync(ROOT+'kijutsu.js')?fs.readFileSync(ROOT+'kijutsu.js','utf8'):'');
 
 // キャラごとの声：[VOICEVOXのキャラ名, スタイル名, 話す速さ, 高さ, 抑揚]
 const CAST={
@@ -19,7 +19,7 @@ const CAST={
  okami:['四国めたん','ノーマル',.98,-.03,1],clerk:['剣崎雌雄','ノーマル',1.05,.08,1.1],lumber:['青山龍星','熱血',1,.02,1.1],
  fisher:['玄野武宏','ノーマル',.95,-.06,1],shimizu:['白上虎太郎','おこ',1.12,.06,1.4],shipwright:['剣崎雌雄','ノーマル',.98,-.02,1],
  mayor:['ちび式じい','ノーマル',.95,.03,1],mori:['九州そら','ノーマル',1.02,0,1.1],
- bucho:['雀松朱司','ノーマル',.92,-.06,1.3],shinsa:['剣崎雌雄','ノーマル',.86,-.1,.8],ooya:['麒ヶ島宗麟','ノーマル',.92,.02,1.3],sagi:['雀松朱司','ノーマル',1.06,.05,1.45],ryu:['剣崎雌雄','ノーマル',.9,-.08,1.2],busu:['麒ヶ島宗麟','ノーマル',.95,-.06,1.35],eisei:['雀松朱司','ノーマル',1.0,.02,1.2],junsa:['白上虎太郎','ふつう',1.04,.04,1.35], sawa:['雀松朱司','ノーマル',1.05,.04,1.3],nekota:['白上虎太郎','ふつう',1.12,.08,1.4],kanshucho:['麒ヶ島宗麟','ノーマル',.84,-.1,1.15],kurosaki:['麒ヶ島宗麟','ノーマル',.86,-.08,1.25],keiji:['青山龍星','熱血',1,-.04,1.15],
+ bucho:['雀松朱司','ノーマル',.92,-.06,1.3],shinsa:['剣崎雌雄','ノーマル',.86,-.1,.8],ooya:['麒ヶ島宗麟','ノーマル',.92,.02,1.3],sagi:['雀松朱司','ノーマル',1.06,.05,1.45],ryu:['剣崎雌雄','ノーマル',.9,-.08,1.2],katagaki:['白上虎太郎','びくびく',1.12,.06,1.5],busu:['麒ヶ島宗麟','ノーマル',.95,-.06,1.35],eisei:['雀松朱司','ノーマル',1.0,.02,1.2],junsa:['白上虎太郎','ふつう',1.04,.04,1.35], sawa:['雀松朱司','ノーマル',1.05,.04,1.3],nekota:['白上虎太郎','ふつう',1.12,.08,1.4],kanshucho:['麒ヶ島宗麟','ノーマル',.84,-.1,1.15],kurosaki:['麒ヶ島宗麟','ノーマル',.86,-.08,1.25],keiji:['青山龍星','熱血',1,-.04,1.15],
  // 海事代理士版
  shiomi:['ちび式じい','ノーマル',.9,-.02,1.1],nagi:['冥鳴ひまり','ノーマル',1.04,.04,1.15],dokuro:['麒ヶ島宗麟','ノーマル',.86,-.08,1.3],kamome:['白上虎太郎','おこ',1.14,.05,1.4],
  utsubo:['雀松朱司','ノーマル',.96,.08,1.5],tobiuo:['剣崎雌雄','ノーマル',1.06,.06,1.2],ikasumi:['雀松朱司','ノーマル',.9,-.06,1.45],
@@ -39,6 +39,8 @@ const norm=k=>VPKEYS.has(k)?k:'narr';
 let CURN=null;const lines=[];const add=(t,k)=>{if(t)lines.push([t,norm(k==='narr'&&CURN?CURN:k)])};
 // 宣伝動画のナレーション（ゲームでは使わない）
 if(!GAME)try{for(const L of JSON.parse(fs.readFileSync(REPO+'tools/promo_lines.json','utf8')))lines.push([L.t,L.k])}catch(e){}
+// 行政書士版のおまけ（BONUS STAGE・CM）のせりふ
+const bl=html.match(/const BONUS_LINES=(\[.*?\]\]);/);if(bl)vm.runInNewContext(bl[1]).forEach(([t,k])=>add(t,k));
 const vt=html.match(/const VOICE_TEST=(\[.*?\]\]);/);if(vt)vm.runInNewContext(vt[1]).forEach(([t,k])=>add(t,k));
 for(const m of html.matchAll(/\{name:'(独学[^']+)',need:/g))add(`お前は今日から「${m[1]}」だ。`,'hero');
 const ctx={window:{},LB:{eps:[],episode(e){this.eps.push(e)}}};vm.createContext(ctx);

@@ -5,6 +5,8 @@
 import re, pathlib
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 h = (ROOT / 'index.html').read_text(encoding='utf-8')
+# 行政書士版だけのおまけ（BONUS STAGE・CM）は、外す
+h = h.replace('\n<script src="bonus.js"></script>', '')
 
 def rep(old, new, count=1):
     global h
