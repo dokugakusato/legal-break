@@ -1819,7 +1819,9 @@ function accGoogle(){
 const PW_ERR={'auth/email-already-in-use':'そのメールアドレスは登録済みだ。「ログイン」を押してくれ。','auth/weak-password':'パスワードは6文字以上にしてくれ。','auth/invalid-email':'メールアドレスの形が正しくない。',
  'auth/invalid-credential':'メールアドレスかパスワードが違う。','auth/wrong-password':'メールアドレスかパスワードが違う。','auth/user-not-found':'メールアドレスかパスワードが違う。','auth/too-many-requests':'何度も失敗したので、しばらく待ってからためしてくれ。','auth/quota-exceeded':'今日の受付はいっぱいだ。明日もう一度ためしてくれ。記録はこの端末には残っている。'};
 function useRedirect(){const ua=navigator.userAgent,ios=/iPhone|iPad|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-  return (ios||matchMedia('(display-mode: standalone)').matches||navigator.standalone===true)&&location.hostname===(window.LB_FIREBASE||{}).authDomain}
+  // 画面ごとGoogleへ行くのは、iPhone・iPadだけ。パソコンやAndroidのアプリ（ホーム画面・インストール）では、戻り先が別のタブになって
+  // 「missing initial state」になることがあるので、小窓（ポップアップ）を使う
+  return ios&&location.hostname===(window.LB_FIREBASE||{}).authDomain}
 function accSheet(mode){
   const f=openSheet();
   if(mode==='done'){f.innerHTML=`<div class="verdict ok">ログインした</div><p>これで記録はネットに保存される。スマホを変えても、同じ方法でログインすれば続きから遊べる。</p><button class="btn" type="button" id="accClose">修行に戻る</button>`;$('#accClose').onclick=closeSheet;return}
