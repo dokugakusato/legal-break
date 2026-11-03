@@ -9,11 +9,11 @@ if(typeof SAVE_KEY==='undefined'||SAVE_KEY!=='legalbreak.v2')return;
    令和8年1月1日施行の改正後の条文番号（1条＝使命、1条の2＝職責、1条の3＝業務、1条の4＝業務の追加） */
 const BQ=[
  {c:2,cop:"行政書士の使命なんか、法律に書いてない！",say:"改正で、第1条は使命になった。",law:"行政書士法1条（令和8年1月1日施行）",
-  ok:"第1条は「使命」になった。行政手続の円滑な実施に寄与し、国民の権利利益の実現に資すること",ng:["第1条は、今も「目的」の規定のままだ","使命は、日本行政書士会連合会の会則にだけ書いてある"]},
+  ok:"第1条は「使命」になった。行政手続の円滑な実施に寄与し、国民の権利利益の実現に資すること",ng:["第1条は、今も「目的」の規定のままだ","試験が簡単な資格に、使命なんて書かれていない"]},
  {c:2,cop:"行政書士の仕事は、役所に出す書類だけだ！",say:"権利義務と事実証明の書類も、業務だ。",law:"行政書士法1条の3",
-  ok:"官公署に出す書類のほか、権利義務・事実証明に関する書類の作成も業務だ",ng:["その通り。役所に出す書類だけだ","裁判所に出す訴状の作成も、行政書士の業務だ"]},
+  ok:"官公署に出す書類のほか、権利義務・事実証明に関する書類の作成も業務だ",ng:["行政書士は、役所の書類を書くだけの代書屋にすぎない","裁判所に出す訴状の作成も、行政書士の業務だ"]},
  {c:3,cop:"契約書を、代理人として作るなんてできない！",say:"契約書は、代理人として作成できる。",law:"行政書士法1条の4第1項3号",
-  ok:"契約その他に関する書類を、代理人として作成できる",ng:["特定行政書士だけができる","依頼者が同席していなければ、できない"]},
+  ok:"契約その他に関する書類を、代理人として作成できる",ng:["弁護士の下位資格だから、代理人にはなれない","特定行政書士だけができる"]},
  {c:3,cop:"行政書士が、不服申立ての代理なんてできるもんか！",say:"特定行政書士なら、不服申立ての代理ができる。",law:"行政書士法1条の4第1項2号・2項（令和8年改正で範囲拡大）",
   ok:"研修を修了した特定行政書士なら、許認可等に関する審査請求などの代理ができる",ng:["行政書士なら、誰でも研修なしでできる","弁護士と一緒でなければ、できない"]},
  {c:0,cop:"依頼なんて、気分で断ればいい！",say:"正当な事由がなければ、依頼は拒めない。",law:"行政書士法11条",
@@ -28,14 +28,14 @@ const BQ2=[
  {c:1,cop:"試験が簡単だから、行政書士は法律家じゃない！",say:"試験の難しさで法律家が決まる法律はない。",law:"「法律家」の法的定義は、どの法律にもない",
   ok:"試験の難しさで「法律家」かどうかを決める法律はない",ng:["試験が簡単なのは本当だから、法律家ではない","合格率が10％を超えたら、法律家ではないと法律で決まっている"]},
  {c:3,cop:"裁判をしない者は、法律家じゃない！",say:"得意分野の法律を、実務で扱っている。",law:"許認可・契約・相続…それぞれ行政法・民法の実務",
-  ok:"それぞれ得意分野の法律を実務で扱っている。法律家ではないとは言えない",ng:["裁判に出ない仕事は、法律の仕事ではない","許認可の申請は、法律と関係がない"]},
+  ok:"それぞれ得意分野の法律を実務で扱っている。法律家ではないとは言えない",ng:["裁判に出ない仕事は、法律の仕事ではない","法律家を名乗れるのは、難関試験の合格者だけだ"]},
  {c:2,cop:"『法律家』と名乗ったら、法律違反だ！",say:"名称の使用制限があるのは、行政書士という名称だ。",law:"行政書士法19条の2（名称の使用制限）",
   ok:"「法律家」の名乗りを禁じる法律はない。使用が制限されるのは「行政書士」の名称だ",ng:["法律家と名乗るには、国の許可がいる","法律家と名乗れるのは弁護士だけと、法律で決まっている"]},
  {c:0,cop:"なら行政書士は、どんな法律事件でも代理できるんだな！",say:"他の法律で制限された業務は、できない。",law:"行政書士法1条の3第2項・弁護士法72条",
   ok:"できない。他の法律で制限されている業務（弁護士法72条の法律事件など）は扱えない",ng:["法律家なら、何でもできる","特定行政書士なら、民事裁判の代理もできる"]}
 ];
 /* せりふ（声の自動録音は tools/gen_voice.mjs がこの一覧を読む） */
-const BONUS_LINES=[["ここでトラブル発生。","narrf"],["またもや、資格に取り憑かれた魔物が現る。","narrf"],["行政書士は法律家じゃない！","katagaki"],["では、法律家の法的定義を示せ。","hero"]].concat(BQ.map(q=>[q.cop,"katagaki"]),BQ.map(q=>[q.say,"hero"]),BQ2.map(q=>[q.cop,"katagaki"]),BQ2.map(q=>[q.say,"hero"]),[["待てー！！お前は法律家ではない！！","katagaki"],["ここだけ急に何の取り締まりなんだよ。","hero"],["どうでもいい議論で、時間の無駄だ。","hero"],["街の法律家、百烈拳！","hero"],["アッパーカット！","hero"],["ぎゃあああ〜っ！","katagaki"],["法律の勉強だけやってないで、早く実務しろよ。","hero"],["肩書き警察は去っていった。","narrf"],["なお、何の試験対策にもならなかった。","narrf"],["……と思ったら、行政書士法は、本試験の基礎知識に出る。","narrf"]]);
+const BONUS_LINES=[["ここでトラブル発生。","narrf"],["またもや、資格に取り憑かれた魔物が現る。","narrf"],["行政書士は法律家じゃない！","katagaki"],["では、法律家の法的定義を示せ。","hero"]].concat(BQ.map(q=>[q.cop,"katagaki"]),BQ.map(q=>[q.say,"hero"]),BQ2.map(q=>[q.cop,"katagaki"]),BQ2.map(q=>[q.say,"hero"]),[["待てー！！お前は法律家ではない！！","katagaki"],["ここだけ急に何の取り締まりなんだよ。","hero"],["どうでもいい議論で、時間の無駄だ。","hero"],["街の法律家、百烈拳！","hero"],["アッパーカット！","hero"],["ぎゃあああ〜っ！","katagaki"],["ほら見ろ！ 法律家じゃない！","katagaki"],["やっぱり、ただの代書屋だ！","katagaki"],["試験が簡単なくせに、生意気な！","katagaki"],["ぐはっ……","hero"],["行政書士は法律家じゃなーい！","katagaki"],["佐藤は、行政書士は法律家ではない、に屈した。","narrf"],["……だが、本編は続く。","narrf"],["行政書士は、法律家だ！","hero"],["法律の勉強だけやってないで、早く実務しろよ。","hero"],["肩書き警察は去っていった。","narrf"],["なお、何の試験対策にもならなかった。","narrf"],["……と思ったら、行政書士法は、本試験の基礎知識に出る。","narrf"]]);
 window.BONUS_LINES=BONUS_LINES;
 
 /* 肩書き警察：法律の勉強をこじらせ、他人の肩書きを取り締まることだけが生きがいになった男たち。
@@ -97,6 +97,31 @@ document.body.insertAdjacentHTML('beforeend',`<style>
 .bres p{margin:0;font-weight:900;font-size:16px;line-height:1.7;color:#f2e6d0;animation:bcmIn .4s both}
 .bres p.real{color:#ffd84a}.bres p.real b{display:inline-block;margin-top:6px;font-size:20px;color:#fff;background:#c22d22;padding:4px 12px}
 .bq{width:100%;display:grid;gap:7px}
+.bhp{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:900;font-size:13px;color:#f2e6d0}
+.bhp div{display:flex;align-items:center;gap:6px}.bhp b{color:#ff4d3d;font-size:20px;letter-spacing:2px}
+.bhp .e{flex:1;justify-content:flex-end}.bhp i{display:block;width:110px;height:10px;border:2px solid #f2e6d0;background:#222}.bhp em{display:block;height:100%;width:100%;background:linear-gradient(90deg,#c22d22,#ffd84a);transition:width .4s}
+.bred{position:absolute;inset:0;z-index:8;background:rgba(220,30,20,.45);animation:imp .5s forwards;pointer-events:none}
+.bstage .fig.hero.bhurt{animation:bhurt .5s}
+@keyframes bhurt{0%,100%{transform:translateX(-50%)}25%{transform:translateX(-58%) rotate(-6deg);filter:brightness(2) sepia(1) hue-rotate(-40deg)}60%{transform:translateX(-44%) rotate(4deg)}}
+.bstage .fig.katk{animation:katk .6s}
+@keyframes katk{0%,100%{transform:none}40%{transform:translateY(-10%) scale(1.08)}}
+.bdmg.mine{color:#ff4d3d;-webkit-text-stroke:1.5px #000}
+.bcrit.miss b{color:#9aa4ae;-webkit-text-stroke:2px #000}.bcrit.miss span{background:#2a3448}
+.bstage .fig.hero.bfall{transform:translateX(-50%) translateY(18%) rotate(-82deg);transform-origin:50% 100%;transition:transform .9s cubic-bezier(.5,0,.8,.6);filter:grayscale(.6)}
+.bstage .fig.bcheer{animation:bcheer .5s ease-in-out infinite alternate}
+@keyframes bcheer{to{transform:translateY(-8%)}}
+.bcm-wrap.bgray{filter:grayscale(1) contrast(1.15) brightness(.75);transition:filter 1.6s}
+.bcm-wrap.bgray .bstage{transform:scale(1.08);transition:transform 3s ease-out}
+.bwasted{position:fixed;inset:0;z-index:65;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:0 16px}
+.bwasted .band{width:100vw;background:linear-gradient(90deg,transparent,rgba(0,0,0,.78) 18%,rgba(0,0,0,.78) 82%,transparent);padding:14px 0}
+.bwasted .txt{font-family:var(--display);font-size:clamp(56px,17vw,104px);letter-spacing:.1em;color:#c22d22;-webkit-text-stroke:2.5px #000;text-shadow:4px 4px 0 #000;animation:wst .9s cubic-bezier(.2,.8,.3,1) both}
+.bwasted p{margin:0;font-weight:900;font-size:clamp(15px,4.4vw,19px);color:#f2e6d0;text-shadow:0 2px 0 #000;animation:wst 1s .3s both}
+.bwasted p.cont{color:#ffd84a}
+.bwin{position:absolute;z-index:9;left:0;right:0;top:14%;text-align:center;font-family:var(--display);font-size:clamp(34px,11vw,56px);line-height:1.15;color:#fff;-webkit-text-stroke:2px #c22d22;text-shadow:0 0 24px rgba(255,216,74,.9),4px 4px 0 #000;animation:bcmIn .45s cubic-bezier(.2,1.6,.4,1) both;pointer-events:none}
+.bwin small{display:block;font-size:.45em;color:#ffd84a;-webkit-text-stroke:0;letter-spacing:.2em}
+.bwin.perfect{color:#ffd84a}
+.bconf{position:absolute;z-index:8;top:-4%;width:7px;height:12px;animation:bconf 2.2s linear forwards;pointer-events:none}
+@keyframes bconf{0%{transform:translateY(0) rotate(0)}100%{transform:translateY(340px) rotate(720deg);opacity:0}}
 .bqh{display:flex;justify-content:space-between;font-weight:900;font-size:14px;color:#ffd84a;letter-spacing:.08em}
 .bqh span{color:#c9b89a}
 .bqo{appearance:none;text-align:left;background:#fbf6ec;color:#120c0a;border:3px solid #120c0a;padding:9px 12px;font:800 15px/1.45 var(--body);box-shadow:3px 3px 0 #000}
@@ -147,11 +172,11 @@ function bonusCM(done,label){BG.label=label;
     await Promise.all([sayP('またもや、資格に取り憑かれた魔物が現る。','narrf'),wait(3600)]);if(!alive())return;
     // 2. 佐藤を取り囲む
     BGM.play('bmatrix');
-    ov.innerHTML=skip+`<div class="bcm-wrap"><div class="bstage" id="bst"><div class="fig katagaki k3">${SIL.katagaki}</div><div class="fig katagaki k4">${SIL.katagaki}</div><div class="fig katagaki k1">${SIL.katagaki}</div><div class="fig katagaki k2">${SIL.katagaki}</div><div class="fig hero">${SIL.hero}<span class="ntag">佐藤</span></div></div><div class="bline" id="bl"></div><div id="bq" class="bq"></div><div id="bbd" class="bboard"></div></div>`;bindSkip();
+    ov.innerHTML=skip+`<div class="bcm-wrap"><div class="bhp"><div><span>佐藤</span><b id="bhpH">♥♥♥</b></div><div class="e"><span>肩書き警察</span><i><em id="bhpE"></em></i></div></div><div class="bstage" id="bst"><div class="fig katagaki k3">${SIL.katagaki}</div><div class="fig katagaki k4">${SIL.katagaki}</div><div class="fig katagaki k1">${SIL.katagaki}</div><div class="fig katagaki k2">${SIL.katagaki}</div><div class="fig hero">${SIL.hero}<span class="ntag">佐藤</span></div></div><div class="bline" id="bl"></div><div id="bq" class="bq"></div><div id="bbd" class="bboard"></div></div>`;bindSkip();
     const st=$('#bst'),hero=st.querySelector('.hero'),cops=[...st.querySelectorAll('.katagaki')];
     const line=(t,who,cls='')=>{const l=$('#bl');if(l)l.innerHTML=`<div class="fl ${cls}"><b>${who}</b>${t}</div>`};
     const crit=(sub)=>{const c=document.createElement('div');c.className='bcrit';c.innerHTML=`<b>CRITICAL!!</b>${sub?`<span>${sub}</span>`:''}`;st.appendChild(c);setTimeout(()=>c.remove(),1700)};
-    const dmg=(fig,n,big)=>{const r=fig.getBoundingClientRect(),sr=st.getBoundingClientRect(),d=document.createElement('div');d.className='bdmg'+(big?' big':'');d.textContent=n;d.style.left=(r.left-sr.left+r.width*.2)+'px';d.style.top=(r.top-sr.top+r.height*.1)+'px';st.appendChild(d);setTimeout(()=>d.remove(),1200)};
+    const dmg=(fig,n,big,mine)=>{const r=fig.getBoundingClientRect(),sr=st.getBoundingClientRect(),d=document.createElement('div');d.className='bdmg'+(big?' big':'')+(mine?' mine':'');d.textContent=n;d.style.left=(r.left-sr.left+r.width*.2)+'px';d.style.top=(r.top-sr.top+r.height*.1)+'px';st.appendChild(d);setTimeout(()=>d.remove(),1200)};
     const flash=()=>{const w=document.createElement('div');w.className='whiteout-mini';st.appendChild(w);setTimeout(()=>w.remove(),400)};
     await wait(500);if(!alive())return;
     // 3. まずは、ひと言で
@@ -160,6 +185,9 @@ function bonusCM(done,label){BG.label=label;
     flash();punch(1.8);hit(1.2);crit('法律家認定権など、存在しない！');dmg(cops[1],'-9999');await wait(1600);if(!alive())return;
     // 4. 行政書士法で言い返せ（基礎知識の早押し）
     let score=0;const left={};[...BQ,...BQ2].forEach(q=>left[q.c]=(left[q.c]||0)+1);const TOTAL=BQ.length+BQ2.length;
+    let miss=0,ehp=100;const GLOAT=['ほら見ろ！ 法律家じゃない！','やっぱり、ただの代書屋だ！','試験が簡単なくせに、生意気な！'];
+    const bars2=()=>{const h=$('#bhpH'),e=$('#bhpE');if(h)h.textContent='♥'.repeat(Math.max(0,3-miss))+'♡'.repeat(Math.min(3,miss));if(e)e.style.width=Math.max(0,ehp)+'%'};bars2();
+    const redflash=()=>{const w=document.createElement('div');w.className='bred';st.appendChild(w);setTimeout(()=>w.remove(),500)};
     const quiz=async(set,off,head)=>{for(let qi=0;qi<set.length;qi++){const q=set[qi],c=cops[q.c];c.classList.remove('down');
       line(q.cop,'肩書き警察');say([[q.cop,'katagaki']]);
       const opts=[[q.ok,1],...q.ng.map(t=>[t,0])].sort(()=>Math.random()-.5);
@@ -169,11 +197,33 @@ function bonusCM(done,label){BG.label=label;
       if(!alive())return false;
       const ok=pick.dataset.k==='1';box.querySelectorAll('.bqo').forEach(b=>{b.disabled=true;if(b.dataset.k==='1')b.classList.add('ok');else if(b===pick)b.classList.add('ng')});
       if(ok)score++;
-      line(q.say,'佐藤','hero');await Promise.all([sayP(q.say,'hero'),wait(1100)]);if(!alive())return false;
-      flash();punch(ok?1.8:1);hit(ok?1.2:.6);crit((ok?'':'正解はこれ！ ')+q.law);dmg(c,ok?'-'+(7000+(off+qi)*111):'-1');
-      if(--left[q.c]===0)c.classList.add('down');
+      if(ok){
+        line(q.say,'佐藤','hero');await Promise.all([sayP(q.say,'hero'),wait(1100)]);if(!alive())return false;
+        flash();punch(1.8);hit(1.2);crit(q.law);dmg(c,'-'+(7000+(off+qi)*111));ehp-=100/TOTAL;bars2();
+        if(--left[q.c]===0)c.classList.add('down');
+      }else{
+        // まちがえると、肩書き警察の反撃。佐藤がダメージを受ける
+        miss++;const g=GLOAT[(miss-1)%GLOAT.length];c.classList.remove('down');c.classList.add('katk');setTimeout(()=>c.classList.remove('katk'),600);
+        line(g,'肩書き警察','big');say([[g,'katagaki']]);await wait(350);
+        redflash();hero.classList.remove('bhurt');void hero.offsetWidth;hero.classList.add('bhurt');punch(1.6);hit(1.4);dmg(hero,'-1',false,true);bars2();
+        const m=document.createElement('div');m.className='bcrit miss';m.innerHTML=`<b>MISS…</b><span>正解：${q.law}</span>`;st.appendChild(m);setTimeout(()=>m.remove(),2400);
+        await wait(1500);if(!alive())return false;
+        line('ぐはっ……','佐藤','hero');await Promise.all([sayP('ぐはっ……','hero'),wait(1000)]);if(!alive())return false;
+        if(miss>=3){box.innerHTML='';return 'dead'}
+      }
       await wait(1700);if(!alive())return false;box.innerHTML=''}return true};
-    if(!await quiz(BQ,0,'行政書士法で言い返せ！'))return;
+    // 3回まちがえると、佐藤が倒れる → WASTED
+    const defeat=async()=>{BGM.stop();$('#bq').innerHTML='';
+      hero.classList.add('bfall');cops.forEach(c=>{c.classList.remove('down','fly');c.classList.add('bcheer')});
+      line('行政書士は法律家じゃなーい！','肩書き警察','big');await Promise.all([sayP('行政書士は法律家じゃなーい！','katagaki'),wait(1600)]);if(!alive())return;
+      const a=ac();if(a){const t=a.currentTime;[[52,0],[51,.5],[50,1],[47,1.5]].forEach(([n,dt])=>I.cello(a,a.destination,n,t+dt,1.2,.06))}
+      const wr=$('.bcm-wrap');wr.classList.add('bgray');$('#bl').innerHTML='';
+      const w=document.createElement('div');w.className='bwasted';w.innerHTML='<div class="band"><div class="txt">WASTED</div></div><p>佐藤は「行政書士は法律家ではない」に屈した。</p>';ov.appendChild(w);
+      await Promise.all([sayP('佐藤は、行政書士は法律家ではない、に屈した。','narrf'),wait(2600)]);if(!alive())return;
+      w.insertAdjacentHTML('beforeend','<p class="cont">……だが、本編は続く。</p>');await Promise.all([sayP('……だが、本編は続く。','narrf'),wait(1600)]);if(!alive())return;
+      const go=document.createElement('button');go.className='btn';go.type='button';go.textContent=BG.label||'第23話へ';go.onclick=finish;w.appendChild(go);
+      const sk=$('#bcmSkip');if(sk)sk.remove()};
+    {const r=await quiz(BQ,0,'行政書士法で言い返せ！');if(r==='dead')return defeat();if(!r)return}
     S.bonusScore=score;
     // 5. 〇〇家ボード
     $('#bl').innerHTML='';const bd=$('#bbd');
@@ -186,7 +236,7 @@ function bonusCM(done,label){BG.label=label;
     bd.innerHTML='';cops.forEach(c=>c.classList.remove('down'));
     // 5b. 「行政書士は法律家か」論争を、法律の事実で終わらせる
     Object.keys(left).forEach(k=>left[k]=0);BQ2.forEach(q=>left[q.c]++);
-    if(!await quiz(BQ2,BQ.length,'法律家論争に、法律で決着を！'))return;
+    {const r=await quiz(BQ2,BQ.length,'法律家論争に、法律で決着を！');if(r==='dead')return defeat();if(!r)return}
     S.bonusScore=score;
     line('どうでもいい議論で、時間の無駄だ。','佐藤','hero');await Promise.all([sayP('どうでもいい議論で、時間の無駄だ。','hero'),wait(1700)]);if(!alive())return;
     cops.forEach(c=>c.classList.remove('down'));
@@ -204,6 +254,10 @@ function bonusCM(done,label){BG.label=label;
     crit();cops.forEach((c,i)=>{dmg(c,i===1?'-999999':'-99999',i===1);setTimeout(()=>c.classList.add('fly'),i*90)});
     say([['ぎゃあああ〜っ！','katagaki']]);
     await wait(1600);if(!alive())return;bg.remove();
+    // 6b. 勝利。全問正解なら、いっそう華やかに
+    {const v=document.createElement('div');v.className='bwin'+(miss===0?' perfect':'');v.innerHTML=(miss===0?'<small>PERFECT!!</small>':'')+'行政書士は<br>法律家だ！';st.appendChild(v);
+      if(miss===0)for(let i=0;i<40;i++){const p=document.createElement('div');p.className='bconf';p.style.left=(Math.random()*100)+'%';p.style.background=['#ffd84a','#c22d22','#5fae6a','#38b6ff','#fff'][i%5];p.style.animationDelay=(Math.random()*.8)+'s';st.appendChild(p)}
+      if(typeof fanfare==='function')fanfare();await Promise.all([sayP('行政書士は、法律家だ！','hero'),wait(2400)]);if(!alive())return;v.remove()}
     // 7. 捨て台詞
     line('法律の勉強だけやってないで、早く実務しろよ。','佐藤','hero');await Promise.all([sayP('法律の勉強だけやってないで、早く実務しろよ。','hero'),wait(2200)]);if(!alive())return;
     // 8. リザルト
