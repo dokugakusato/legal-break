@@ -60,9 +60,9 @@ document.body.insertAdjacentHTML('beforeend',`<style>
 .bstage .fig{height:70%;bottom:-2px}
 .bstage .fig.hero{left:50%;right:auto;transform:translateX(-50%);height:82%;z-index:4}
 .bstage .fig.katagaki{z-index:3}
-.bstage .fig.k1{left:-2%;right:auto}.bstage .fig.k2{right:-2%;left:auto}.bstage .fig.k3{left:24%;right:auto;height:56%;bottom:18%;z-index:2;filter:brightness(.8)}
-.bstage .fig.k4{right:24%;left:auto;height:56%;bottom:18%;z-index:2;filter:brightness(.8)}
-.bstage .fig.down{filter:grayscale(.8) brightness(.6);transform-origin:50% 100%;transform:rotate(-16deg) scaleY(.72);transition:transform .4s,filter .4s}
+.bstage .fig.k1{left:-2%;right:auto}.bstage .fig.k2{right:-2%;left:auto}.bstage .fig.k3{left:24%;right:auto;height:56%;bottom:18%;z-index:2;opacity:.85}
+.bstage .fig.k4{right:24%;left:auto;height:56%;bottom:18%;z-index:2;opacity:.85}
+.bstage .fig.down{opacity:.45;transform-origin:50% 100%;transform:rotate(-16deg) scaleY(.72);transition:transform .35s,opacity .35s}
 .bstage .fig.k2.down,.bstage .fig.k4.down{transform:rotate(16deg) scaleY(.72)}
 .bstage.bshake{animation:bshake .25s}
 @keyframes bshake{0%,100%{transform:none}25%{transform:translate(-8px,4px)}50%{transform:translate(7px,-5px)}75%{transform:translate(-4px,2px)}}
@@ -101,8 +101,17 @@ document.body.insertAdjacentHTML('beforeend',`<style>
 .bhp div{display:flex;align-items:center;gap:6px}.bhp b{color:#ff4d3d;font-size:20px;letter-spacing:2px}
 .bhp .e{flex:1;justify-content:flex-end}.bhp i{display:block;width:110px;height:10px;border:2px solid #f2e6d0;background:#222}.bhp em{display:block;height:100%;width:100%;background:linear-gradient(90deg,#c22d22,#ffd84a);transition:width .4s}
 .bred{position:absolute;inset:0;z-index:8;background:rgba(220,30,20,.45);animation:imp .5s forwards;pointer-events:none}
-.bstage .fig.hero.bhurt{animation:bhurt .5s}
-@keyframes bhurt{0%,100%{transform:translateX(-50%)}25%{transform:translateX(-58%) rotate(-6deg);filter:brightness(2) sepia(1) hue-rotate(-40deg)}60%{transform:translateX(-44%) rotate(4deg)}}
+.bstage .fig.hero.bhurt{animation:bhurt .22s}
+.bstage .fig{will-change:transform}
+.bstage .fig.kgang.k1{transform:translateX(38%) rotate(8deg);transition:transform .15s}.bstage .fig.kgang.k2{transform:translateX(-38%) rotate(-8deg);transition:transform .15s}
+.bstage .fig.kgang.k3{transform:translate(30%,8%);transition:transform .15s}.bstage .fig.kgang.k4{transform:translate(-30%,8%);transition:transform .15s}
+.bboko{position:absolute;z-index:9;font-family:var(--display);font-size:24px;color:#fff;-webkit-text-stroke:1.5px #c22d22;text-shadow:2px 2px 0 #000;animation:bboko .65s ease-out forwards;pointer-events:none}
+@keyframes bboko{0%{transform:scale(.4) rotate(-12deg);opacity:0}25%{transform:scale(1.25) rotate(6deg);opacity:1}100%{transform:scale(1) translateY(-14px);opacity:0}}
+.bdust{position:absolute;z-index:7;width:150px;height:110px;margin:-55px 0 0 -75px;border-radius:50%;background:radial-gradient(circle,rgba(230,215,190,.85),rgba(200,180,150,.5) 45%,rgba(0,0,0,0) 70%);animation:bdust .3s ease-in-out infinite alternate;pointer-events:none}
+@keyframes bdust{to{transform:scale(1.12) rotate(8deg)}}
+.bspeed{position:absolute;inset:0;z-index:1;background:repeating-linear-gradient(100deg,rgba(255,240,210,.16) 0 2px,transparent 2px 22px);animation:bspeed .2s linear infinite;pointer-events:none;will-change:background-position}
+@keyframes bspeed{to{background-position:44px 0}}
+@keyframes bhurt{0%,100%{transform:translateX(-50%)}30%{transform:translateX(-57%) rotate(-7deg)}65%{transform:translateX(-44%) rotate(5deg)}}
 .bstage .fig.katk{animation:katk .6s}
 @keyframes katk{0%,100%{transform:none}40%{transform:translateY(-10%) scale(1.08)}}
 .bdmg.mine{color:#ff4d3d;-webkit-text-stroke:1.5px #000}
@@ -110,8 +119,8 @@ document.body.insertAdjacentHTML('beforeend',`<style>
 .bstage .fig.hero.bfall{transform:translateX(-50%) translateY(18%) rotate(-82deg);transform-origin:50% 100%;transition:transform .9s cubic-bezier(.5,0,.8,.6);filter:grayscale(.6)}
 .bstage .fig.bcheer{animation:bcheer .5s ease-in-out infinite alternate}
 @keyframes bcheer{to{transform:translateY(-8%)}}
-.bcm-wrap.bgray{filter:grayscale(1) contrast(1.15) brightness(.75);transition:filter 1.6s}
-.bcm-wrap.bgray .bstage{transform:scale(1.08);transition:transform 3s ease-out}
+.bcm-wrap.bgray{filter:grayscale(1) brightness(.7)}
+.bcm-wrap.bgray .bstage{transform:scale(1.06);transition:transform 1.5s ease-out}
 .bwasted{position:fixed;inset:0;z-index:65;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:0 16px}
 .bwasted .band{width:100vw;background:linear-gradient(90deg,transparent,rgba(0,0,0,.78) 18%,rgba(0,0,0,.78) 82%,transparent);padding:14px 0}
 .bwasted .txt{font-family:var(--display);font-size:clamp(56px,17vw,104px);letter-spacing:.1em;color:#c22d22;-webkit-text-stroke:2.5px #000;text-shadow:4px 4px 0 #000;animation:wst .9s cubic-bezier(.2,.8,.3,1) both}
@@ -153,6 +162,11 @@ const BG={on:false};
 
 /* 安っぽいCMのジングル（その場で鳴らす） */
 function jingle(){const a=ac();if(!a)return;const t=a.currentTime;[[72,0],[76,.12],[79,.24],[84,.36],[79,.6],[84,.72]].forEach(([n,dt])=>I.bell(a,a.destination,n,t+dt,.08,1.5))}
+/* ゲームオーバーの音：落ちていく電子音と、低いドスン */
+function gameOverSE(){const a=ac();if(!a)return;const t=a.currentTime;
+  [[67,0],[66,.18],[65,.36],[64,.54],[63,.72],[62,.9],[61,1.08],[60,1.26]].forEach(([n,dt])=>{const x=a.createOscillator(),g=a.createGain();x.type='square';x.frequency.setValueAtTime(NF(n),t+dt);g.gain.setValueAtTime(.05,t+dt);g.gain.exponentialRampToValueAtTime(.0001,t+dt+.17);x.connect(g).connect(a.destination);x.start(t+dt);x.stop(t+dt+.18)});
+  const x=a.createOscillator(),g=a.createGain();x.type='sawtooth';x.frequency.setValueAtTime(NF(48),t+1.5);x.frequency.exponentialRampToValueAtTime(NF(24),t+3);g.gain.setValueAtTime(.08,t+1.5);g.gain.exponentialRampToValueAtTime(.0001,t+3.2);x.connect(g).connect(a.destination);x.start(t+1.5);x.stop(t+3.3);
+  try{I.taiko(a,a.destination,t+1.5,1);I.kick(a,a.destination,t+1.5,.9)}catch(e){}}
 function siren(){const a=ac();if(!a)return;try{I.siren(a,a.destination,a.currentTime,1.6,.04)}catch(e){}}
 
 function bonusCM(done,label){BG.label=label;
@@ -188,6 +202,14 @@ function bonusCM(done,label){BG.label=label;
     let miss=0,ehp=100;const GLOAT=['ほら見ろ！ 法律家じゃない！','やっぱり、ただの代書屋だ！','試験が簡単なくせに、生意気な！'];
     const bars2=()=>{const h=$('#bhpH'),e=$('#bhpE');if(h)h.textContent='♥'.repeat(Math.max(0,3-miss))+'♡'.repeat(Math.min(3,miss));if(e)e.style.width=Math.max(0,ehp)+'%'};bars2();
     const redflash=()=>{const w=document.createElement('div');w.className='bred';st.appendChild(w);setTimeout(()=>w.remove(),500)};
+    // 肩書き警察が寄ってたかって、佐藤をボコボコにする
+    const BOKO=['ボコッ','バキッ','ドカッ','ゲシッ','ボカッ'];
+    const boko=async n=>{const hr=hero.getBoundingClientRect(),sr=st.getBoundingClientRect();
+      const dust=document.createElement('div');dust.className='bdust';dust.style.left=(hr.left-sr.left+hr.width/2)+'px';dust.style.top=(hr.top-sr.top+hr.height*.45)+'px';st.appendChild(dust);
+      cops.forEach(c=>{c.classList.remove('down');c.classList.add('kgang')});
+      for(let i=0;i<n;i++){const t=document.createElement('div');t.className='bboko';t.textContent=BOKO[i%BOKO.length];t.style.left=(hr.left-sr.left+hr.width*(.05+Math.random()*.7))+'px';t.style.top=(hr.top-sr.top+hr.height*(.1+Math.random()*.55))+'px';st.appendChild(t);setTimeout(()=>t.remove(),650);
+        hero.classList.remove('bhurt');void hero.offsetWidth;hero.classList.add('bhurt');if(i%2)punch(1.2);else hit(.9);if(i===0)redflash();await wait(110);if(!alive())return}
+      dmg(hero,'-1',false,true);await wait(250);dust.remove();cops.forEach(c=>c.classList.remove('kgang'))};
     const quiz=async(set,off,head)=>{for(let qi=0;qi<set.length;qi++){const q=set[qi],c=cops[q.c];c.classList.remove('down');
       line(q.cop,'肩書き警察');say([[q.cop,'katagaki']]);
       const opts=[[q.ok,1],...q.ng.map(t=>[t,0])].sort(()=>Math.random()-.5);
@@ -198,31 +220,29 @@ function bonusCM(done,label){BG.label=label;
       const ok=pick.dataset.k==='1';box.querySelectorAll('.bqo').forEach(b=>{b.disabled=true;if(b.dataset.k==='1')b.classList.add('ok');else if(b===pick)b.classList.add('ng')});
       if(ok)score++;
       if(ok){
-        line(q.say,'佐藤','hero');await Promise.all([sayP(q.say,'hero'),wait(1100)]);if(!alive())return false;
+        line(q.say,'佐藤','hero');await Promise.all([sayP(q.say,'hero'),wait(800)]);if(!alive())return false;
         flash();punch(1.8);hit(1.2);crit(q.law);dmg(c,'-'+(7000+(off+qi)*111));ehp-=100/TOTAL;bars2();
         if(--left[q.c]===0)c.classList.add('down');
       }else{
         // まちがえると、肩書き警察の反撃。佐藤がダメージを受ける
-        miss++;const g=GLOAT[(miss-1)%GLOAT.length];c.classList.remove('down');c.classList.add('katk');setTimeout(()=>c.classList.remove('katk'),600);
-        line(g,'肩書き警察','big');say([[g,'katagaki']]);await wait(350);
-        redflash();hero.classList.remove('bhurt');void hero.offsetWidth;hero.classList.add('bhurt');punch(1.6);hit(1.4);dmg(hero,'-1',false,true);bars2();
-        const m=document.createElement('div');m.className='bcrit miss';m.innerHTML=`<b>MISS…</b><span>正解：${q.law}</span>`;st.appendChild(m);setTimeout(()=>m.remove(),2400);
-        await wait(1500);if(!alive())return false;
-        line('ぐはっ……','佐藤','hero');await Promise.all([sayP('ぐはっ……','hero'),wait(1000)]);if(!alive())return false;
-        if(miss>=3){box.innerHTML='';return 'dead'}
+        miss++;const g=GLOAT[(miss-1)%GLOAT.length];const fatal=miss>=3;bars2();
+        line(g,'肩書き警察','big');say([[g,'katagaki']]);
+        await boko(fatal?9:5);if(!alive())return false;
+        if(fatal){box.innerHTML='';return 'dead'}
+        const m=document.createElement('div');m.className='bcrit miss';m.innerHTML=`<b>MISS…</b><span>正解：${q.law}</span>`;st.appendChild(m);setTimeout(()=>m.remove(),2000);
+        await wait(1300);if(!alive())return false;
       }
-      await wait(1700);if(!alive())return false;box.innerHTML=''}return true};
+      await wait(900);if(!alive())return false;box.innerHTML=''}return true};
     // 3回まちがえると、佐藤が倒れる → WASTED
-    const defeat=async()=>{BGM.stop();$('#bq').innerHTML='';
-      hero.classList.add('bfall');cops.forEach(c=>{c.classList.remove('down','fly');c.classList.add('bcheer')});
-      line('行政書士は法律家じゃなーい！','肩書き警察','big');await Promise.all([sayP('行政書士は法律家じゃなーい！','katagaki'),wait(1600)]);if(!alive())return;
-      const a=ac();if(a){const t=a.currentTime;[[52,0],[51,.5],[50,1],[47,1.5]].forEach(([n,dt])=>I.cello(a,a.destination,n,t+dt,1.2,.06))}
-      const wr=$('.bcm-wrap');wr.classList.add('bgray');$('#bl').innerHTML='';
+    const defeat=async()=>{BGM.stop();stopSay();$('#bq').innerHTML='';$('#bl').innerHTML='';
+      hero.classList.remove('bhurt');hero.classList.add('bfall');cops.forEach(c=>{c.classList.remove('down','fly','kgang');c.classList.add('bcheer')});
+      gameOverSE();$('.bcm-wrap').classList.add('bgray');
       const w=document.createElement('div');w.className='bwasted';w.innerHTML='<div class="band"><div class="txt">WASTED</div></div><p>佐藤は「行政書士は法律家ではない」に屈した。</p>';ov.appendChild(w);
-      await Promise.all([sayP('佐藤は、行政書士は法律家ではない、に屈した。','narrf'),wait(2600)]);if(!alive())return;
-      w.insertAdjacentHTML('beforeend','<p class="cont">……だが、本編は続く。</p>');await Promise.all([sayP('……だが、本編は続く。','narrf'),wait(1600)]);if(!alive())return;
+      say([['行政書士は法律家じゃなーい！','katagaki']]);await wait(2200);if(!alive())return;
+      await Promise.all([sayP('佐藤は、行政書士は法律家ではない、に屈した。','narrf'),wait(1800)]);if(!alive())return;
+      w.insertAdjacentHTML('beforeend','<p class="cont">……だが、本編は続く。</p>');
       const go=document.createElement('button');go.className='btn';go.type='button';go.textContent=BG.label||'第23話へ';go.onclick=finish;w.appendChild(go);
-      const sk=$('#bcmSkip');if(sk)sk.remove()};
+      const sk=$('#bcmSkip');if(sk)sk.remove();say([['……だが、本編は続く。','narrf']])};
     {const r=await quiz(BQ,0,'行政書士法で言い返せ！');if(r==='dead')return defeat();if(!r)return}
     S.bonusScore=score;
     // 5. 〇〇家ボード
@@ -242,7 +262,7 @@ function bonusCM(done,label){BG.label=label;
     cops.forEach(c=>c.classList.remove('down'));
     // 6. 必殺技：街の法律家・百烈拳 → アッパーカット
     BGM.stop();$('#bl').innerHTML='';
-    const sp=document.createElement('div');sp.className='speedfx';st.appendChild(sp);
+    const sp=document.createElement('div');sp.className='bspeed';st.appendChild(sp);
     let bg=document.createElement('div');bg.className='bbig';bg.innerHTML='<small>街の法律家</small>百 烈 拳！！';st.appendChild(bg);say([['街の法律家、百烈拳！','hero']]);rapidKiai(24);
     for(let i=0;i<34;i++){const c=cops[i%4],r=c.getBoundingClientRect(),sr=st.getBoundingClientRect(),d=document.createElement('div');d.className='hiko';d.style.left=(r.left-sr.left+r.width*(.3+Math.random()*.4))+'px';d.style.top=(r.top-sr.top+r.height*(.15+Math.random()*.5))+'px';st.appendChild(d);setTimeout(()=>d.remove(),500);
       if(i%2)punch(.6);else hit(.35);await wait(60);if(!alive())return}
@@ -256,7 +276,7 @@ function bonusCM(done,label){BG.label=label;
     await wait(1600);if(!alive())return;bg.remove();
     // 6b. 勝利。全問正解なら、いっそう華やかに
     {const v=document.createElement('div');v.className='bwin'+(miss===0?' perfect':'');v.innerHTML=(miss===0?'<small>PERFECT!!</small>':'')+'行政書士は<br>法律家だ！';st.appendChild(v);
-      if(miss===0)for(let i=0;i<40;i++){const p=document.createElement('div');p.className='bconf';p.style.left=(Math.random()*100)+'%';p.style.background=['#ffd84a','#c22d22','#5fae6a','#38b6ff','#fff'][i%5];p.style.animationDelay=(Math.random()*.8)+'s';st.appendChild(p)}
+      if(miss===0)for(let i=0;i<22;i++){const p=document.createElement('div');p.className='bconf';p.style.left=(Math.random()*100)+'%';p.style.background=['#ffd84a','#c22d22','#5fae6a','#38b6ff','#fff'][i%5];p.style.animationDelay=(Math.random()*.8)+'s';st.appendChild(p)}
       if(typeof fanfare==='function')fanfare();await Promise.all([sayP('行政書士は、法律家だ！','hero'),wait(2400)]);if(!alive())return;v.remove()}
     // 7. 捨て台詞
     line('法律の勉強だけやってないで、早く実務しろよ。','佐藤','hero');await Promise.all([sayP('法律の勉強だけやってないで、早く実務しろよ。','hero'),wait(2200)]);if(!alive())return;
