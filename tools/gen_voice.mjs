@@ -28,7 +28,7 @@ const CAST={
 
 // ゲーム本体と同じ計算でファイル名を決める
 // 読み方の直し（画面の文字はそのまま、声だけ読み方を変える）
-const yomi=t=>t.replace(/留置/g,'りゅうち').replace(/汐見/g,'しおみ').replace(/鉄錨/g,'てついかり').replace(/凪/g,'なぎ').replace(/海事代理士/g,'かいじだいりし').replace(/書換/g,'かきかえ').replace(/毀損/g,'きそん').replace(/宅建/g,'たっけん').replace(/黒鍵/g,'くろかぎ').replace(/取消(?!し)/g,'取り消し').replace(/荒野/g,'こうや').replace(/(?<![一-龯々])金(?![一-龯々])/g,'カネ');
+const yomi=t=>t.replace(/留置権/g,'りゅうちけん').replace(/留置/g,'りゅうち').replace(/汐見/g,'しおみ').replace(/鉄錨/g,'てついかり').replace(/凪/g,'なぎ').replace(/海事代理士/g,'かいじだいりし').replace(/書換/g,'かきかえ').replace(/毀損/g,'きそん').replace(/宅建/g,'たっけん').replace(/黒鍵/g,'くろかぎ').replace(/取消(?!し)/g,'取り消し').replace(/荒野/g,'こうや').replace(/(?<![一-龯々])金(?![一-龯々])/g,'カネ');
 const cleanTxt=t=>t.replace(/<br>/g,'').replace(/[「」―]/g,'').replace(/　/g,'');
 function vHash(s){let h=0x811c9dc5;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,0x01000193)}return (h>>>0).toString(16).padStart(8,'0')}
 const VPKEYS=new Set([...html.matchAll(/([a-zA-Z]+):\{p:/g)].map(m=>m[1]));
@@ -84,6 +84,7 @@ for(const [h,[text,k]] of need){
   man[h]=now;console.log('録音',h,k,say.slice(0,24));
 }
 fs.writeFileSync(MAN,JSON.stringify(man,null,0));
-const map=Object.fromEntries([...need.keys()].filter(h=>fs.existsSync(outDir+h+'.mp3')).sort().map(h=>[h,1]));
+// 読み方を直した行は、録り直すと同じファイル名になり、スマホに古い声が残る。読みの入った行は、録音ごとの番号をつけて取り直させる
+const map=Object.fromEntries([...need.keys()].filter(h=>fs.existsSync(outDir+h+'.mp3')).sort().map(h=>{const [text]=need.get(h);return [h,(yomi(text)!==text&&man[h])?vHash(man[h]):1]}));
 fs.writeFileSync(outDir+'index.js',`/* 自動録音の目次（tools/gen_voice.mjs が作る。手で直さない） */\nwindow.LB_AUDIO=${JSON.stringify(map)};\nwindow.LB_VOICE_CREDIT=${JSON.stringify([...used].sort().map(n=>'VOICEVOX:'+n))};\n`);
 console.log(`セリフ ${need.size} 行、新しく録音 ${made} 行`);
