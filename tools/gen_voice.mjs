@@ -40,7 +40,7 @@ let CURN=null;const lines=[];const add=(t,k)=>{if(t)lines.push([t,norm(k==='narr
 // 宣伝動画のナレーション（ゲームでは使わない）
 if(!GAME)try{for(const L of JSON.parse(fs.readFileSync(REPO+'tools/promo_lines.json','utf8')))lines.push([L.t,L.k])}catch(e){}
 // 行政書士版のおまけ（BONUS STAGE・CM）のせりふ
-const bl=html.match(/const BONUS_LINES=(\[.*?\]\]);/);if(bl)vm.runInNewContext(bl[1]).forEach(([t,k])=>add(t,k));
+{const bq=html.match(/const BQ=\[[\s\S]*?\n\];/),bl=html.match(/const BONUS_LINES=[^\n]*;/);if(bl)vm.runInNewContext((bq?bq[0]:'')+bl[0]+';BONUS_LINES').forEach(([t,k])=>add(t,k))}
 const vt=html.match(/const VOICE_TEST=(\[.*?\]\]);/);if(vt)vm.runInNewContext(vt[1]).forEach(([t,k])=>add(t,k));
 for(const m of html.matchAll(/\{name:'(独学[^']+)',need:/g))add(`お前は今日から「${m[1]}」だ。`,'hero');
 const ctx={window:{},LB:{eps:[],episode(e){this.eps.push(e)}}};vm.createContext(ctx);
