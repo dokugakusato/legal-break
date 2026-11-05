@@ -343,7 +343,19 @@ function pickVoice(){
   if(S.voice){const v=voices.find(v=>v.voiceURI===S.voice);if(v)return v}
   return voices.find(v=>MALE.test(v.name))||null;
 }
+// 読み上げで読み間違えやすい用語の読み方（画面の表示はそのまま）
+const READINGS=[
+  ["海技免状","かいぎめんじょう"],["海技免許","かいぎめんきょ"],["海技士","かいぎし"],["海技試験","かいぎしけん"],
+  ["管海官庁","かんかいかんちょう"],["端舟","たんしゅう"],["櫓櫂","ろかい"],["帆装","はんそう"],["堪航性","たんこうせい"],
+  ["喫水","きっすい"],["解撤","かいてつ"],["毀損","きそん"],["き損","きそん"],["碇泊","ていはく"],["入渠","にゅうきょ"],
+  ["船舶件名書","せんぱくけんめいしょ"],["両舷","りょうげん"],["乗揚","のりあげ"],["濫費","らんぴ"],["争闘","そうとう"],
+  ["乱酔","らんすい"],["属具","ぞくぐ"],["予後手当","よごてあて"],["漁ろう","ぎょろう"],["とう載","とうさい"],
+  ["雇入契約","やといいれけいやく"],["測度","そくど"],["改測","かいそく"],["検認","けんにん"],["点附","てんぷ"],
+  ["信号符字","しんごうふじ"],["汽圧","きあつ"],["存否","そんぴ"],["何人","なんぴと"],["湖川","こせん"]
+];
+function toReading(t){for(const [w,r] of READINGS)t=t.split(w).join(r);return t}
 function speak(text){
+  text=toReading(text);
   return new Promise(res=>{
     if(!("speechSynthesis" in window)){setTimeout(res,300);return}
     let done=false,guard=null,watch=null;
@@ -451,7 +463,7 @@ function renderHome(){
   ${S.mode==="oral"?`
   <section class="card stack">
     <h2>本番形式で口頭回答</h2>
-    <p class="muted small" style="margin:0">男性の声で出題します。読み上げが終わったら10秒以内に話して回答。「パス」と言えば次の問題へ進み、5問終わって時間が残っていればパスした問題に戻ります。1科目3分・各科目5問。</p>
+    <p class="muted small" style="margin:0">男性の声で出題します。読み上げが終わったら15秒以内に話して回答。「パス」と言えば次の問題へ進み、5問終わって時間が残っていればパスした問題に戻ります。1科目3分・各科目5問。</p>
     <div>
       <div class="set"><label for="sw-judge">模範解答を1問ごとに表示<span class="sub">ONなら回答のあとに模範解答を表示（その間は時計が止まります）。OFFなら科目の最後にまとめて表示</span></label>${sw("sw-judge",S.judge)}</div>
       <div class="set"><label for="sw-text">問題文を画面に表示<span class="sub">OFFにすると本番同様に耳だけで聞きます</span></label>${sw("sw-text",S.showText)}</div>
@@ -468,7 +480,7 @@ function renderHome(){
   </section>`:`
   <section class="card stack">
     <h2>重要論点順の一問一答</h2>
-    <p class="muted small" style="margin:0">出題年が多い論点から順に、本試験と同じく問題を読み上げます。10秒以内に口頭で回答し、模範解答と見比べて確認します（時間制限なし）。「パス」と言うと次の問題へ進み、最後にもう一度出題します。</p>
+    <p class="muted small" style="margin:0">出題年が多い論点から順に、本試験と同じく問題を読み上げます。15秒以内に口頭で回答し、模範解答と見比べて確認します（時間制限なし）。「パス」と言うと次の問題へ進み、最後にもう一度出題します。</p>
     <div class="stack" style="gap:8px">
       <div class="small muted">科目</div>
       <div class="chips" id="oxs">${SUBJECTS.map((n,i)=>`<button class="chip" data-s="${i}" aria-pressed="${S.oxSubject===i}">${SHORT[i]}（${oxCounts[i]}問）</button>`).join("")}
@@ -556,8 +568,8 @@ async function runSubject(){
     if(current.pending==="pass"){current.pending=null;Q.status="pass";Q.text="";return "pass"}
     current.pending=null;
     setMic("listening");
-    const res=await listen(10000,{
-      tick:left=>{const n=$("#ringn"),c=$("#ringc");if(n)n.textContent=Math.ceil(left/1000);if(c)c.style.strokeDashoffset=(1-left/10000)*226},
+    const res=await listen(15000,{
+      tick:left=>{const n=$("#ringn"),c=$("#ringc");if(n)n.textContent=Math.ceil(left/1000);if(c)c.style.strokeDashoffset=(1-left/15000)*226},
       text:(f,i)=>{const h=$("#heard");if(h)h.innerHTML=esc(f)+`<span class="interim">${esc(i)}</span>`},
       error:err=>{const st=$("#status");if(st)st.textContent="マイクが使えません。文字で回答してください";},
       fallback:cb=>{const f=$("#fb");if(f){f.hidden=false;const inp=$("#fbin");inp.value="";inp.focus();$("#fbform").onsubmit=e=>{e.preventDefault();cb(inp.value)}}}
@@ -607,7 +619,7 @@ function renderExamShell(R,qi){
   ${Q?`<button class="btn ghost wide" id="bshow">模範解答を見る</button>
   <div class="ansbox" id="ansbox" hidden><div class="lbl">模範解答</div><p class="model">${esc(Q.it.a)}</p></div>`:""}
   <div class="card mic">
-    <div class="ring"><svg viewBox="0 0 84 84"><circle cx="42" cy="42" r="36" fill="none" stroke="var(--soft)" stroke-width="7"/><circle id="ringc" cx="42" cy="42" r="36" fill="none" stroke="var(--navy)" stroke-width="7" stroke-dasharray="226" stroke-dashoffset="0" stroke-linecap="round"/></svg><div class="n" id="ringn">10</div></div>
+    <div class="ring"><svg viewBox="0 0 84 84"><circle cx="42" cy="42" r="36" fill="none" stroke="var(--soft)" stroke-width="7"/><circle id="ringc" cx="42" cy="42" r="36" fill="none" stroke="var(--navy)" stroke-width="7" stroke-dasharray="226" stroke-dashoffset="0" stroke-linecap="round"/></svg><div class="n" id="ringn">15</div></div>
     <div class="stack" style="gap:6px;min-width:0"><div class="status" id="status">${Q?"出題中…":"準備中…"}</div><div class="heard" id="heard"></div></div>
   </div>
   <form id="fbform" class="fallback" hidden><input id="fbin" autocomplete="off" placeholder="回答を入力（パスは「パス」）"><button class="btn">回答</button></form>
@@ -638,7 +650,7 @@ function reviewHTML(Q){
   const it=Q.it;
   return `<div class="ansbox">
     <div class="lbl">あなたの回答</div>
-    <p class="model" style="color:var(--muted)">${Q.text?esc(Q.text):"（10秒以内に回答なし）"}</p>
+    <p class="model" style="color:var(--muted)">${Q.text?esc(Q.text):"（15秒以内に回答なし）"}</p>
     <div class="lbl" style="margin-top:12px">模範解答</div>
     <p class="model">${esc(it.a)}</p>
     <div class="small muted" style="margin-top:10px">言えていた要点（参考）</div>
@@ -734,7 +746,7 @@ function renderOx(){
   <button class="btn ghost wide" id="bshow">模範解答を見る</button>
   <div class="ansbox" id="ansbox" hidden><div class="lbl">模範解答</div><p class="model">${esc(Q.it.a)}</p></div>
   <div class="card mic">
-    <div class="ring"><svg viewBox="0 0 84 84"><circle cx="42" cy="42" r="36" fill="none" stroke="var(--soft)" stroke-width="7"/><circle id="ringc" cx="42" cy="42" r="36" fill="none" stroke="var(--navy)" stroke-width="7" stroke-dasharray="226" stroke-dashoffset="0" stroke-linecap="round"/></svg><div class="n" id="ringn">10</div></div>
+    <div class="ring"><svg viewBox="0 0 84 84"><circle cx="42" cy="42" r="36" fill="none" stroke="var(--soft)" stroke-width="7"/><circle id="ringc" cx="42" cy="42" r="36" fill="none" stroke="var(--navy)" stroke-width="7" stroke-dasharray="226" stroke-dashoffset="0" stroke-linecap="round"/></svg><div class="n" id="ringn">15</div></div>
     <div class="stack" style="gap:6px;min-width:0"><div class="status" id="status">出題中…</div><div class="heard" id="heard"></div></div>
   </div>
   <div id="fb" hidden><form id="fbform" class="fallback"><input id="fbin" autocomplete="off" placeholder="回答を入力（パスは「パス」）"><button class="btn">回答</button></form></div>
@@ -753,8 +765,8 @@ function renderOx(){
     if(g!==gen)return;
     if(current.pending==="pass"){current.pending=null;return afterAnswer({type:"pass",text:""})}
     $("#status").textContent="回答してください（「パス」でパス）";
-    const res=await listen(10000,{
-      tick:left=>{const n=$("#ringn"),c=$("#ringc");if(n)n.textContent=Math.ceil(left/1000);if(c)c.style.strokeDashoffset=(1-left/10000)*226},
+    const res=await listen(15000,{
+      tick:left=>{const n=$("#ringn"),c=$("#ringc");if(n)n.textContent=Math.ceil(left/1000);if(c)c.style.strokeDashoffset=(1-left/15000)*226},
       text:(f,i)=>{const h=$("#heard");if(h)h.innerHTML=esc(f)+`<span class="interim">${esc(i)}</span>`},
       error:()=>{const st=$("#status");if(st)st.textContent="マイクが使えません。文字で回答してください"},
       fallback:cb=>{const f=$("#fb");if(f){f.hidden=false;const inp=$("#fbin");inp.value="";inp.focus();$("#fbform").onsubmit=e=>{e.preventDefault();cb(inp.value)}}}
