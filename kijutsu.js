@@ -213,6 +213,52 @@ document.body.insertAdjacentHTML('beforeend',`<style>
 @keyframes bdrop{0%{transform:none}40%{transform:translate(-40%,-40%) rotate(-150deg)}70%{transform:translate(-55%,4%) rotate(-180deg) scaleY(.9)}100%{transform:none}}
 </style>`);
 
+/* ---------- 第29話〜の曲（4話ごとに入れかえる）：60年代のスパイ・サーフロック ---------- */
+Object.assign(TR,{
+ // 物語：トレモロのギターと、オルガン、ブラシのドラム
+ k29case:{bpm:108,f(a,o,s,t,d){const bar=s>>3,r=[40,40,45,43][bar];
+  if(s%2===0)I.twang(a,o,[r+12,r+15,r+19,r+22][(s>>1)%4],t,.06);if(s%4===0)I.bass(a,o,r-12,t,d*2,.12);
+  if(s%8===0)I.organ(a,o,[r+12,r+15,r+19],t,7*d,.018);if(s%4===0)I.kick(a,o,t,.35);if(s%8===4)I.snare(a,o,t,.1);I.hat(a,o,t,.012);
+  const m={0:[64,3],3:[67,1],4:[66,2],6:[64,2],8:[62,6],16:[64,3],19:[67,1],20:[69,2],22:[71,2],24:[69,6]}[s];if(m)I.whistle(a,o,m[0]+12,t,m[1]*d,.03)}},
+ // 対戦：速いサーフ・ギターのリフと、走るドラム
+ k29battle:{bpm:176,f(a,o,s,t,d){const r=[40,40,43,38][s>>3];
+  I.twang(a,o,[r+12,r+12,r+15,r+12,r+17,r+15,r+12,r+10][s%8],t,.07);I.bass(a,o,r,t,d*.6,.14,1);
+  if(s%4===0)I.kick(a,o,t,.6);if(s%4===2)I.snare(a,o,t,.24);I.hat(a,o,t,s%2?.02:.03);
+  const m={0:[76,2],2:[79,2],4:[78,4],8:[76,2],10:[74,2],12:[71,4],16:[72,2],18:[74,2],20:[76,4],24:[79,6]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d,.05);if(s===31)I.whip(a,o,t,.3)}},
+ // ボス登場：低いギターのうなりと、間の長い太鼓
+ k29bossin:{bpm:60,f(a,o,s,t,d){if(s%16===0)I.twang(a,o,[28,27][s>>4],t,.1);if(s%8===0)I.taiko(a,o,t,.55);if(s%8===5)I.kick(a,o,t,.25);
+  if(s===12||s===28)I.organ(a,o,[52,55,58],t,4*d,.02);if(s%4===2)I.tick(a,o,t,1100,.02)}},
+ // ボス戦：短調のサーフロックと、金管
+ k29boss:{bpm:164,f(a,o,s,t,d){const bar=s>>3,r=[40,36,38,35][bar];I.twang(a,o,[r+12,r+12,r+15,r+12,r+19,r+18,r+15,r+12][s%8],t,.06);I.bass(a,o,r,t,d*.8,.18,1);
+  if(s%4===0)I.kick(a,o,t,.7);if(s%4===2)I.snare(a,o,t,.3);if(s%2===1)I.hat(a,o,t,.03);
+  const m={0:[76,2],2:[79,2],4:[80,4],8:[79,2],10:[76,2],12:[74,4],16:[75,3],19:[76,1],20:[79,2],22:[80,2],24:[83,6]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d,.07);if(s===31)I.whip(a,o,t,.35)}}
+});
+
+/* ---------- 第29話〜の新しい技：ローリングソバット・ジャイアントパンチ ---------- */
+Object.assign(MOVES,{
+ sobat:{kiai:'ローリングソバット！',k:1.15,hit:'バシィッ！'},
+ gpunch:{kiai:'ジャイアントパンチ！',k:1.25,hit:'ボゴォン！'}
+});
+const MOVE29=['sobat','gpunch'];
+{const _ok=moveOK;moveOK=k=>MOVE29.includes(k)?!!(CH&&CH.no>=29):_ok(k)}
+{const _atk=attack;attack=function(then,style){
+  if(!MOVE29.includes(style))return _atk(then,style);
+  const M=MOVES[style];kiai(M.k);const h=$('#stage .fig.l'),st=$('#stage'),e=$('#stage .fig.r');
+  const v=document.createElement('div');v.className='kiai';v.textContent=M.kiai;st.appendChild(v);setTimeout(()=>v.remove(),1000);
+  h.classList.remove('lunge','kickmove','dkick','hbutt','chopup','hipatk','sobat','gpun');void h.offsetWidth;h.classList.add(style==='sobat'?'sobat':'gpun');
+  setTimeout(()=>{const sr=st.getBoundingClientRect(),er=e.getBoundingClientRect(),fx=er.left-sr.left+er.width*.5,fy=er.top-sr.top+er.height*(style==='sobat'?.45:.3);
+    const b=document.createElement('div');b.className='boom'+(style==='gpunch'?' gboom':'');b.style.left=fx+'px';b.style.top=fy+'px';b.innerHTML=BOOM+`<span>${M.hit}</span>`;st.appendChild(b);setTimeout(()=>b.remove(),700);
+    e.classList.remove('knock','knockkick','pinned','hit');void e.offsetWidth;e.classList.add('knock');setTimeout(()=>e.classList.remove('knock'),1100);
+    st.classList.remove('shake','impact');void st.offsetWidth;st.classList.add('shake','impact');punch(1.6);then()},style==='sobat'?420:380);
+}}
+document.body.insertAdjacentHTML('beforeend',`<style>
+.fig.l.sobat{animation:sobat .8s}
+@keyframes sobat{0%{transform:none}35%{transform:translateX(25%) rotateY(180deg)}55%{transform:translateX(62%) rotateY(360deg)}100%{transform:none}}
+.fig.l.gpun{animation:gpun .75s}
+@keyframes gpun{0%{transform:none}30%{transform:translateX(-6%) scale(.95)}55%{transform:translateX(60%) scale(1.25)}100%{transform:none}}
+.boom.gboom{transform:scale(1.5)}
+</style>`);
+
 /* ---------- 記述の章の流れ ---------- */
 const KJ={};
 {const _bp=beginPart;beginPart=function(){const sb=$('#s-battle');if(sb)sb.classList.remove('kj','kjboss');if(CH&&CH.kijutsu)return kjStart();return _bp()}}
