@@ -436,7 +436,7 @@ function renderHome(){
   if(view!=="home")stopAll();
   view="home";
   const counts=SUBJECTS.map((_,s)=>BANK.filter(b=>b.s===s).length);
-  const oxCounts=SUBJECTS.map((_,s)=>BANK.filter(b=>b.s===s).reduce((a,b)=>a+(b.t||[]).length,0));
+  const oxCounts=SUBJECTS.map((_,s)=>drillPool(s).length);
   const vopts=voices.map(v=>`<option value="${esc(v.voiceURI)}" ${S.voice===v.voiceURI?"selected":""}>${esc(v.name)}</option>`).join("");
   app.innerHTML=`
   <header class="stack" style="gap:4px">
@@ -446,7 +446,7 @@ function renderHome(){
   </header>
   <div class="tabs" role="tablist">
     <button role="tab" id="tab-oral" aria-selected="${S.mode==="oral"}">口述模試</button>
-    <button role="tab" id="tab-ox" aria-selected="${S.mode==="ox"}">肢別問題</button>
+    <button role="tab" id="tab-ox" aria-selected="${S.mode==="ox"}">重要論点 一問一答</button>
   </div>
   ${S.mode==="oral"?`
   <section class="card stack">
@@ -467,22 +467,22 @@ function renderHome(){
     ${SR?"":`<p class="small" style="color:var(--ng);margin:0">このブラウザは音声認識に未対応です。文字入力で回答します（スマホはChrome・Safariで開いてください）。</p>`}
   </section>`:`
   <section class="card stack">
-    <h2>重要論点順の肢別問題</h2>
-    <p class="muted small" style="margin:0">口述でよく出る論点（出題年が多い順）を○×の一問一答にしました。</p>
+    <h2>重要論点順の一問一答</h2>
+    <p class="muted small" style="margin:0">出題年が多い論点から順に、本試験と同じく問題を読み上げます。10秒以内に口頭で回答し、模範解答と見比べて確認します（時間制限なし）。「パス」と言うと次の問題へ進み、最後にもう一度出題します。</p>
     <div class="stack" style="gap:8px">
       <div class="small muted">科目</div>
-      <div class="chips" id="oxs">${SUBJECTS.map((n,i)=>`<button class="chip" data-s="${i}" aria-pressed="${S.oxSubject===i}">${SHORT[i]}（${oxCounts[i]}肢）</button>`).join("")}
-        <button class="chip" data-s="-1" aria-pressed="${S.oxSubject===-1}">全科目（${oxCounts.reduce((a,b)=>a+b,0)}肢）</button></div>
+      <div class="chips" id="oxs">${SUBJECTS.map((n,i)=>`<button class="chip" data-s="${i}" aria-pressed="${S.oxSubject===i}">${SHORT[i]}（${oxCounts[i]}問）</button>`).join("")}
+        <button class="chip" data-s="-1" aria-pressed="${S.oxSubject===-1}">全科目（${oxCounts.reduce((a,b)=>a+b,0)}問）</button></div>
     </div>
     <div>
-      <div class="set"><label for="sw-oxv">読み上げて声で回答<span class="sub">問題文を読み上げ、「まる」「ばつ」と声で答えます（ボタンでも回答できます）</span></label>${sw("sw-oxv",S.oxVoice!==false)}</div>
-      <div class="set"><label for="sw-oxj">1肢ごとに答え合わせ<span class="sub">ONなら回答のたびに正解と解説を表示、OFFなら最後にまとめて表示</span></label>${sw("sw-oxj",S.oxJudge)}</div>
+      <div class="set"><label for="sw-oxj">模範解答を1問ごとに表示<span class="sub">ONなら回答のたびに模範解答を表示、OFFなら最後にまとめて表示</span></label>${sw("sw-oxj",S.oxJudge)}</div>
+      <div class="set"><label for="sw-oxt">問題文を画面に表示<span class="sub">OFFにすると本番同様に耳だけで聞きます</span></label>${sw("sw-oxt",S.showText)}</div>
       <div class="set"><label for="sel-order">出題順</label>
         <select id="sel-order"><option value="imp" ${S.oxOrder==="imp"?"selected":""}>重要論点順</option><option value="rand" ${S.oxOrder==="rand"?"selected":""}>ランダム</option></select></div>
       <div class="set"><label for="sel-cnt">出題数</label>
-        <select id="sel-cnt">${[10,20,30,50,0].map(n=>`<option value="${n}" ${S.oxCount===n?"selected":""}>${n?n+"肢":"全部"}</option>`).join("")}</select></div>
+        <select id="sel-cnt">${[10,20,30,50,0].map(n=>`<option value="${n}" ${S.oxCount===n?"selected":""}>${n?n+"問":"全部"}</option>`).join("")}</select></div>
     </div>
-    <div class="row"><button class="btn big" style="flex:1" id="oxgo">肢別問題を始める</button><button class="btn ghost" id="oxlist">一覧で見る</button></div>
+    <div class="row"><button class="btn big" style="flex:1" id="oxgo">一問一答を始める</button><button class="btn ghost" id="oxlist">一覧で見る</button></div>
   </section>`}
   <p class="small muted" style="margin:0">口述試験は、口頭で正しく答えられるかを見る試験です。回答のあとは模範解答と自分の回答を見比べて、「言えた」「言えなかった」を自分で付けてください。問題の下の「模範解答を見る」でいつでも確認できます。</p>`;
   $("#tab-oral").onclick=()=>{S.mode="oral";save();renderHome()};
@@ -500,7 +500,7 @@ function renderHome(){
   }else{
     document.querySelectorAll("#oxs .chip").forEach(b=>b.onclick=()=>{S.oxSubject=+b.dataset.s;save();renderHome()});
     $("#sw-oxj").onchange=e=>{S.oxJudge=e.target.checked;save()};
-    $("#sw-oxv").onchange=e=>{S.oxVoice=e.target.checked;save()};
+    $("#sw-oxt").onchange=e=>{S.showText=e.target.checked;save()};
     $("#sel-order").onchange=e=>{S.oxOrder=e.target.value;save()};
     $("#sel-cnt").onchange=e=>{S.oxCount=+e.target.value;save()};
     $("#oxgo").onclick=startOx;
@@ -703,136 +703,130 @@ function renderResults(){
   $("#again").onclick=startExam;$("#home").onclick=()=>{stopAll();renderHome()};
 }
 
-// ───── 肢別問題 ─────
-function oxPool(subject){
+// ───── 重要論点順の一問一答（口述で回答） ─────
+function drillPool(subject){
   const items=[];
-  BANK.filter(b=>subject<0||b.s===subject).forEach(b=>(b.t||[]).forEach((t,ti)=>{
-    const m=t[0]==="○";const [st,ex]=t.slice(1).split("｜");
-    items.push({b,ti,ok:m,st,ex:ex||"",imp:ycount(b)});
-  }));
+  BANK.filter(b=>subject<0||b.s===subject).forEach(b=>{
+    (b.v||[b.q]).forEach((q,vi)=>items.push({it:b,q,vi,imp:ycount(b)}));
+  });
   return items;
 }
-function sortImp(items){
-  // 出題年数が多い順 → 科目順 → 元の並び
-  return items.slice().sort((a,b)=>b.imp-a.imp||a.b.s-b.b.s||a.b.id-b.b.id||a.ti-b.ti);
-}
+function sortImp(items){return items.slice().sort((a,b)=>b.imp-a.imp||a.it.s-b.it.s||a.it.id-b.it.id||a.vi-b.vi)}
 function startOx(){
-  let items=oxPool(S.oxSubject);
+  let items=drillPool(S.oxSubject);
   items=S.oxOrder==="imp"?sortImp(items):items.sort(()=>Math.random()-.5);
   if(S.oxCount)items=items.slice(0,S.oxCount);
-  current.ox={items,i:0,ans:[]};
+  try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(" ");u.volume=0;speechSynthesis.speak(u)}catch(e){}
+  current.ox={items:items.map(x=>Object.assign({},x,{text:"",r:null,hits:null,status:"wait"})),i:0,round:1};
   renderOx();
 }
-function parseOX(t){
-  const r=String(t).replace(/\s/g,"");
-  if(/正しくない|ない$|誤|ばつ|バツ|罰|×|✕|ぺけ|ペケ|間違|まちが|あやまり|違う|バッテン|ばってん|抜粋/.test(r))return false;
-  if(/まる|マル|丸|○|〇|◯|正しい|ただしい|正解|せいかい|あってる|合って|合ってる/.test(r))return true;
-  return null;
-}
 function renderOx(){
-  view="ox";stopAll();
-  const O=current.ox;const it=O.items[O.i];
-  const done=O.ans[O.i]!==undefined;
-  const voiceOn=S.oxVoice!==false;
+  stopAll();view="ox";
+  const O=current.ox;const Q=O.items[O.i];
   app.innerHTML=`
-  <div class="row between"><div><div class="eyebrow">肢別問題 ${S.oxSubject<0?"全科目":SHORT[S.oxSubject]}</div><h2 class="prog">${O.i+1} / ${O.items.length}</h2></div>
+  <div class="row between"><div><div class="eyebrow">一問一答 ${S.oxSubject<0?"全科目":SHORT[S.oxSubject]}${O.round>1?"（パスした問題）":""}</div><h2 class="prog">第${O.i+1}問 / ${O.items.length}</h2></div>
     <button class="btn ghost" id="oxquit">やめる</button></div>
   <div style="height:6px;background:var(--soft);border-radius:3px;overflow:hidden"><i style="display:block;height:100%;width:${O.i/O.items.length*100}%;background:var(--navy)"></i></div>
-  <div class="qcard stack" style="gap:8px">
-    <span class="yr">${SHORT[it.b.s]}・出題 ${ylabel(it.b)}（${it.imp}回）</span>
-    <div class="stmt">${esc(it.st)}</div>
+  <div class="qcard">
+    <div class="yr">${SHORT[Q.it.s]}・出題 ${ylabel(Q.it)}（${Q.imp}回）</div>
+    <div class="qtext ${S.showText?"":"hidden-q"}">${esc(Q.q)}</div>
   </div>
-  <button class="btn ghost wide" id="oxpeek">回答を見る</button>
-  <div id="oxpeekbox" hidden></div>
-  ${voiceOn?`<div class="card mic" id="oxmic"><div class="ring"><svg viewBox="0 0 84 84"><circle cx="42" cy="42" r="36" fill="none" stroke="var(--soft)" stroke-width="7"/><circle id="ringc" cx="42" cy="42" r="36" fill="none" stroke="var(--navy)" stroke-width="7" stroke-dasharray="226" stroke-dashoffset="0" stroke-linecap="round"/></svg><div class="n" id="ringn">10</div></div>
-    <div class="stack" style="gap:6px;min-width:0"><div class="status" id="status">読み上げ中…</div><div class="heard" id="heard"></div></div></div>`:""}
-  <div class="ox"><button class="o ${done&&O.ans[O.i]===true?"sel":""}" id="bo">○</button><button class="x ${done&&O.ans[O.i]===false?"sel":""}" id="bx">×</button></div>
-  <div id="oxv"></div>
-  <div class="row">${O.i>0?`<button class="btn ghost" id="oxprev">前へ</button>`:""}${voiceOn?`<button class="btn ghost" id="oxagain">もう一度読む</button>`:""}</div>`;
-  let chosen=false;
-  const choose=v=>{
-    if(chosen)return;chosen=true;
-    stopAll();
-    O.ans[O.i]=v;
-    if(S.oxJudge)showOxVerdict();else nextOx();
-  };
-  $("#bo").onclick=()=>choose(true);$("#bx").onclick=()=>choose(false);
-  $("#oxquit").onclick=()=>{stopAll();renderOxResult()};
-  if($("#oxprev"))$("#oxprev").onclick=()=>{stopAll();O.i--;renderOx()};
-  $("#oxpeek").onclick=()=>{const b=$("#oxpeekbox");if(b.hidden){b.innerHTML=oxExplain(it,null);b.hidden=false;$("#oxpeek").textContent="回答を隠す"}else{b.hidden=true;$("#oxpeek").textContent="回答を見る"}};
-  if(done&&S.oxJudge){chosen=true;showOxVerdict();return}
-  const run=async()=>{
-    const g=gen;
-    await speak(it.st);
-    if(chosen||g!==gen)return;
-    const st=$("#status");if(st)st.textContent="「まる」か「ばつ」で答えてください";
+  <button class="btn ghost wide" id="bshow">模範解答を見る</button>
+  <div class="ansbox" id="ansbox" hidden><div class="lbl">模範解答</div><p class="model">${esc(Q.it.a)}</p></div>
+  <div class="card mic">
+    <div class="ring"><svg viewBox="0 0 84 84"><circle cx="42" cy="42" r="36" fill="none" stroke="var(--soft)" stroke-width="7"/><circle id="ringc" cx="42" cy="42" r="36" fill="none" stroke="var(--navy)" stroke-width="7" stroke-dasharray="226" stroke-dashoffset="0" stroke-linecap="round"/></svg><div class="n" id="ringn">10</div></div>
+    <div class="stack" style="gap:6px;min-width:0"><div class="status" id="status">出題中…</div><div class="heard" id="heard"></div></div>
+  </div>
+  <div id="fb" hidden><form id="fbform" class="fallback"><input id="fbin" autocomplete="off" placeholder="回答を入力（パスは「パス」）"><button class="btn">回答</button></form></div>
+  <div class="ctrl" id="pctrl"><button class="btn ghost" id="bpass">パス</button><button class="btn" id="bdone">回答終了</button></div>
+  <div class="row">${O.i>0?`<button class="btn ghost" id="oxprev">前の問題</button>`:""}<button class="btn ghost" id="oxagain">もう一度読む</button></div>`;
+  $("#oxquit").onclick=()=>renderOxResult();
+  if($("#oxprev"))$("#oxprev").onclick=()=>{O.i--;renderOx()};
+  $("#oxagain").onclick=()=>run();
+  $("#bshow").onclick=()=>{const b=$("#ansbox");b.hidden=!b.hidden;$("#bshow").textContent=b.hidden?"模範解答を見る":"模範解答を隠す"};
+  $("#bpass").onclick=()=>{if(current.listen)current.listen.finish("pass");else if(current.speakFin){current.pending="pass";skipSpeak()}};
+  $("#bdone").onclick=()=>{if(current.listen)current.listen.finish("answer");else if(current.speakFin)skipSpeak()};
+  async function run(){
+    stopAll();const g=gen;
+    $("#heard").innerHTML="";$("#status").textContent="出題中…";
+    await speak(sayText(Q.q));
+    if(g!==gen)return;
+    if(current.pending==="pass"){current.pending=null;return afterAnswer({type:"pass",text:""})}
+    $("#status").textContent="回答してください（「パス」でパス）";
     const res=await listen(10000,{
       tick:left=>{const n=$("#ringn"),c=$("#ringc");if(n)n.textContent=Math.ceil(left/1000);if(c)c.style.strokeDashoffset=(1-left/10000)*226},
       text:(f,i)=>{const h=$("#heard");if(h)h.innerHTML=esc(f)+`<span class="interim">${esc(i)}</span>`},
-      check:t=>parseOX(t)!==null,
-      error:()=>{const st=$("#status");if(st)st.textContent="マイクが使えません。○×ボタンで答えてください"}
+      error:()=>{const st=$("#status");if(st)st.textContent="マイクが使えません。文字で回答してください"},
+      fallback:cb=>{const f=$("#fb");if(f){f.hidden=false;const inp=$("#fbin");inp.value="";inp.focus();$("#fbform").onsubmit=e=>{e.preventDefault();cb(inp.value)}}}
     });
-    if(chosen||g!==gen||res.type==="abort")return;
-    const v=parseOX(res.text);
-    if(v===null){const st=$("#status");if(st)st.textContent=res.text?"聞き取れませんでした。○×ボタンで答えてください":"時間切れです。○×ボタンで答えてください";return}
-    choose(v);
-  };
-  if(voiceOn){run();$("#oxagain").onclick=()=>{if(chosen)return;stopAll();run()}}
+    if(g!==gen||res.type==="abort")return;
+    afterAnswer(res);
+  }
+  function afterAnswer(res){
+    const g=gen;
+    if(res.type==="pass"){Q.status="pass";Q.text="";return nextOx()}
+    Q.text=res.text||"";const gr=grade(Q.it,Q.text);Q.hits=gr.hits;Q.r=Q.text?gr.r:"ng";Q.status="done";
+    if(!S.oxJudge)return nextOx();
+    $("#pctrl").hidden=true;$("#fb").hidden=true;$("#ansbox").hidden=true;$("#bshow").hidden=true;$("#oxagain").hidden=true;
+    $("#status").textContent="模範解答を確認";
+    const box=document.createElement("div");box.className="stack";
+    box.innerHTML=reviewHTML(Q)+`
+      <button class="btn ghost wide" id="hear">模範解答を聞く</button>
+      <div class="small muted">模範解答どおりに言えましたか？</div>
+      <div class="ctrl"><button class="btn" id="fixok">言えた</button><button class="btn ghost" id="fixng">言えなかった</button></div>`;
+    document.querySelector(".mic").after(box);
+    box.querySelector("#hear").onclick=()=>speak(Q.it.a.replace(/[／\n]/g,"、"));
+    box.querySelector("#fixok").onclick=()=>{Q.r="ok";nextOx()};
+    box.querySelector("#fixng").onclick=()=>{Q.r="ng";nextOx()};
+    box.scrollIntoView({behavior:"smooth",block:"start"});
+  }
+  run();
 }
-function oxExplain(it,mine){
-  const r=mine==null?null:(mine===it.ok?"ok":"ng");
-  return `<div class="verdict ${r||"part"}">
-    ${r?`<div class="vt">${r==="ok"?"正解":"不正解"}</div>`:""}
-    <div style="font-size:1.1rem"><b>正解：${it.ok?"○":"×"}</b></div>
-    ${it.ex?`<p class="model">${esc(it.ex)}</p>`:""}
-    <div class="small" style="margin-top:10px;color:var(--brass);font-weight:700">元の口述問題</div>
-    <p class="small" style="margin:2px 0 0">${esc(it.b.q)}</p>
-    <div class="small" style="margin-top:8px;color:var(--brass);font-weight:700">模範解答</div>
-    <p class="model">${esc(it.b.a)}</p>
-  </div>`;
+function nextOx(){
+  stopAll();const O=current.ox;
+  if(O.i<O.items.length-1){O.i++;renderOx();window.scrollTo(0,0);return}
+  // 最後まで行ったら、パスした問題をもう一度
+  const passed=O.items.filter(q=>q.status==="pass");
+  if(passed.length&&O.round===1){
+    O.done=O.items.filter(q=>q.status!=="pass");O.items=passed;O.i=0;O.round=2;
+    speak("パスした問題に戻ります。").then(()=>{});renderOx();return;
+  }
+  renderOxResult();
 }
-function showOxVerdict(){
-  const O=current.ox;const it=O.items[O.i];const ok=O.ans[O.i]===it.ok;
-  const pb=$("#oxpeekbox"),pk=$("#oxpeek");if(pb)pb.hidden=true;if(pk)pk.hidden=true;
-  $("#oxv").innerHTML=oxExplain(it,O.ans[O.i])+`<button class="btn big wide" id="oxnext" style="margin-top:12px">${O.i<O.items.length-1?"次へ":"結果を見る"}</button>`;
-  $("#bo").disabled=$("#bx").disabled=true;
-  const st=$("#status");if(st)st.textContent=ok?"正解":"不正解";
-  $("#oxnext").onclick=()=>nextOx();
-  if(S.oxVoice!==false)speak((ok?"正解です。":"不正解です。")+(it.ex?" "+it.ex:""));
-  $("#oxv").scrollIntoView({behavior:"smooth",block:"nearest"});
-}
-function nextOx(){stopAll();const O=current.ox;if(O.i<O.items.length-1){O.i++;renderOx();window.scrollTo(0,0)}else renderOxResult()}
 function renderOxResult(){
   stopAll();view="oxres";const O=current.ox;
-  const answered=O.items.map((it,i)=>({it,a:O.ans[i]})).filter(x=>x.a!==undefined);
-  const ok=answered.filter(x=>x.a===x.it.ok).length;
+  const all=(O.done||[]).concat(O.items);
+  const done=all.filter(q=>q.status==="done"||q.status==="pass");
+  const ok=done.filter(q=>q.r==="ok").length;
   app.innerHTML=`
-  <div class="stack" style="gap:4px"><div class="eyebrow">肢別問題 結果</div><h1>${ok} / ${answered.length} 正解</h1></div>
-  <div class="row"><button class="chip" id="fall" aria-pressed="true">すべて</button><button class="chip" id="fng" aria-pressed="false">間違いだけ</button></div>
-  <div class="res" id="oxr">${answered.map(x=>{const r=x.a===x.it.ok?"ok":"ng";return `<div class="ritem ${r}" data-r="${r}">
-    <div><span class="tag ${r}">${r==="ok"?"正解":"不正解"}</span><span class="yr">${SHORT[x.it.b.s]}・${ylabel(x.it.b)}</span></div>
-    <div>${esc(x.it.st)}</div>
-    <div class="small">あなた：${x.a?"○":"×"}　正解：<b>${x.it.ok?"○":"×"}</b>${x.it.ex?`　${esc(x.it.ex)}`:""}</div>
-    <div class="small" style="margin-top:6px;color:var(--brass);font-weight:700">模範解答</div><p class="model small">${esc(x.it.b.a)}</p></div>`}).join("")||`<p class="muted">回答した肢がありません。</p>`}</div>
-  <button class="btn big wide" id="oxretry">間違えた肢をもう一度</button>
+  <div class="stack" style="gap:4px"><div class="eyebrow">一問一答 結果</div><h1>言えた ${ok} / ${done.length}</h1></div>
+  <div class="row"><button class="chip" id="fall" aria-pressed="true">すべて</button><button class="chip" id="fng" aria-pressed="false">言えなかった問題だけ</button></div>
+  <div class="res" id="oxr">${done.map((q,i)=>{const st=q.status==="pass"?"skip":q.r;return `<div class="ritem ${st}" data-i="${i}" data-r="${q.r==="ok"?"ok":"ng"}">
+    <div><span class="tag ${st}">${VERD[st]}</span><span class="yr">${SHORT[q.it.s]}・${ylabel(q.it)}</span></div>
+    <div class="q">${esc(q.q)}</div>
+    <div class="small muted">あなたの回答：${q.text?esc(q.text):"（なし）"}</div>
+    <div class="small" style="margin-top:6px;color:var(--brass);font-weight:700">模範解答</div><p class="model">${esc(q.it.a)}</p>
+    <div class="row" style="margin-top:6px"><button class="chip fx" data-v="ok" aria-pressed="${q.r==="ok"}">言えた</button><button class="chip fx" data-v="ng" aria-pressed="${q.r!=="ok"&&q.status==="done"}">言えなかった</button></div></div>`}).join("")||`<p class="muted">回答した問題がありません。</p>`}</div>
+  <button class="btn big wide" id="oxretry">言えなかった問題をもう一度</button>
   <button class="btn ghost wide" id="home">メニューへ</button>`;
   const filt=ng=>{document.querySelectorAll("#oxr .ritem").forEach(d=>d.hidden=ng&&d.dataset.r==="ok");$("#fall").setAttribute("aria-pressed",!ng);$("#fng").setAttribute("aria-pressed",ng)};
   $("#fall").onclick=()=>filt(false);$("#fng").onclick=()=>filt(true);
-  const wrong=answered.filter(x=>x.a!==x.it.ok).map(x=>x.it);
+  document.querySelectorAll("#oxr .fx").forEach(b=>b.onclick=()=>{const d=b.closest(".ritem");const q=done[+d.dataset.i];q.r=b.dataset.v;if(q.status==="pass")q.status="done";const y=window.scrollY;renderOxResult();window.scrollTo(0,y)});
+  const wrong=done.filter(q=>q.r!=="ok");
   $("#oxretry").disabled=!wrong.length;
-  $("#oxretry").onclick=()=>{current.ox={items:wrong,i:0,ans:[]};renderOx()};
+  $("#oxretry").onclick=()=>{current.ox={items:wrong.map(x=>Object.assign({},x,{text:"",r:null,hits:null,status:"wait"})),i:0,round:1};renderOx()};
   $("#home").onclick=renderHome;
 }
 function renderOxList(){
   stopAll();view="oxlist";
-  const items=sortImp(oxPool(S.oxSubject));
+  const items=sortImp(drillPool(S.oxSubject));
   app.innerHTML=`
-  <div class="row between"><div><div class="eyebrow">重要論点順 一覧</div><h2>${S.oxSubject<0?"全科目":SUBJECTS[S.oxSubject]}（${items.length}肢）</h2></div><button class="btn ghost" id="home">戻る</button></div>
-  <div class="row"><span class="small muted">正解を</span><button class="chip" id="hide" aria-pressed="false">隠す</button></div>
-  <div class="res">${items.map(it=>`<div class="ritem">
-    <div class="yr">${SHORT[it.b.s]}・出題 ${ylabel(it.b)}（${it.imp}回）</div>
-    <div>${esc(it.st)}</div>
-    <div class="small ansline">正解：<b>${it.ok?"○":"×"}</b>${it.ex?`　${esc(it.ex)}`:""}</div></div>`).join("")}</div>`;
+  <div class="row between"><div><div class="eyebrow">重要論点順 一覧</div><h2>${S.oxSubject<0?"全科目":SUBJECTS[S.oxSubject]}（${items.length}問）</h2></div><button class="btn ghost" id="home">戻る</button></div>
+  <div class="row"><span class="small muted">模範解答を</span><button class="chip" id="hide" aria-pressed="false">隠す</button></div>
+  <div class="res">${items.map(x=>`<div class="ritem">
+    <div class="yr">${SHORT[x.it.s]}・出題 ${ylabel(x.it)}（${x.imp}回）</div>
+    <div class="q">${esc(x.q)}</div>
+    <div class="ansline"><div class="small" style="margin-top:6px;color:var(--brass);font-weight:700">模範解答</div><p class="model">${esc(x.it.a)}</p></div></div>`).join("")}</div>`;
   $("#home").onclick=renderHome;
   $("#hide").onclick=e=>{const on=e.target.getAttribute("aria-pressed")!=="true";e.target.setAttribute("aria-pressed",on);document.querySelectorAll(".ansline").forEach(d=>d.style.visibility=on?"hidden":"visible")};
 }
