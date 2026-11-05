@@ -346,17 +346,27 @@ function pickVoice(){
 function speak(text){
   return new Promise(res=>{
     if(!("speechSynthesis" in window)){setTimeout(res,300);return}
-    speechSynthesis.cancel();
-    const u=new SpeechSynthesisUtterance(text);
-    u.lang="ja-JP";u.rate=1.0;
-    const v=pickVoice();
-    if(v){u.voice=v;u.pitch=MALE.test(v.name)?1:0.7}else u.pitch=0.7; // 男性音声がない端末は声を低めにする
-    let done=false;const fin=()=>{if(!done){done=true;clearTimeout(guard);res()}};
-    u.onend=fin;u.onerror=fin;
-    const guard=setTimeout(fin,Math.max(4000,text.length*260));
-    speechSynthesis.speak(u);
+    let done=false,guard=null,watch=null;
+    const fin=()=>{if(done)return;done=true;clearTimeout(guard);clearInterval(watch);if(current.speakFin===fin)current.speakFin=null;res()};
+    current.speakFin=fin;
+    try{speechSynthesis.cancel()}catch(e){}
+    // 止めた直後に話させると無音で終わらない端末があるので少し待つ
+    setTimeout(()=>{
+      if(done)return;
+      const u=new SpeechSynthesisUtterance(text);
+      u.lang="ja-JP";u.rate=1.0;
+      const v=pickVoice();
+      if(v){u.voice=v;u.pitch=MALE.test(v.name)?1:0.7}else u.pitch=0.7; // 男性音声がない端末は声を低めにする
+      u.onend=fin;u.onerror=fin;
+      guard=setTimeout(fin,3000+text.length*220);
+      let started=Date.now();
+      // 読み上げが始まらない・終わったのに知らせが来ない場合の見張り
+      watch=setInterval(()=>{if(Date.now()-started>1500&&!speechSynthesis.speaking&&!speechSynthesis.pending)fin()},400);
+      try{speechSynthesis.speak(u)}catch(e){fin()}
+    },120);
   });
 }
+function skipSpeak(){try{speechSynthesis.cancel()}catch(e){}if(current.speakFin)current.speakFin()}
 const sayText=q=>q.replace(/【[^】]*】/g,"").replace(/第(\d+)条の(\d+)/g,"第$1条の$2");
 
 // ───── 音声認識 ─────
@@ -371,12 +381,12 @@ function listen(ms,ui){
       if(finished)return;finished=true;
       clearInterval(tm);clearTimeout(silence);
       try{rec&&rec.abort()}catch(e){}
-      current.listen=null;
+      if(current.listen===handle)current.listen=null;
       const t=(final+interim).trim();
       if(type==="timeout"&&t)type="answer";
       resolve({type,text:t});
     };
-    current.listen={finish};
+    const handle={finish};current.listen=handle;
     const tm=setInterval(()=>{const left=Math.max(0,ms-(Date.now()-start));ui.tick(left);if(left<=0)finish("timeout")},100);
     const isPass=s=>{const n=norm(s);return /^(ぱす|ぱすします|ぱすで|ぱすです|ぱすでお願いします|ぱすおねがいします|bus|pass|パス)$/.test(n)||(/^ぱす/.test(n)&&n.length<=6)};
     if(!SR||micBroken){ui.fallback&&ui.fallback(v=>{final=v;finish(isPass(v)?"pass":"answer")});return}
@@ -410,17 +420,20 @@ function listen(ms,ui){
 
 // ───── 画面管理 ─────
 let view="home";
-let current={listen:null,timer:null,exam:null};
+let current={listen:null,timer:null,exam:null,speakFin:null,pending:null};
+let gen=0; // 画面が切り替わるたびに増やし、古い出題の続きが動かないようにする
 function stopAll(){
+  gen++;current.pending=null;
   if(current.listen)current.listen.finish("abort");
   if(current.timer)clearInterval(current.timer);
   current.timer=null;
-  try{speechSynthesis.cancel()}catch(e){}
+  skipSpeak();
 }
 
 function sw(id,checked){return `<span class="sw"><input type="checkbox" id="${id}" ${checked?"checked":""}><span></span></span>`}
 
 function renderHome(){
+  if(view!=="home")stopAll();
   view="home";
   const counts=SUBJECTS.map((_,s)=>BANK.filter(b=>b.s===s).length);
   const oxCounts=SUBJECTS.map((_,s)=>BANK.filter(b=>b.s===s).reduce((a,b)=>a+(b.t||[]).length,0));
@@ -515,6 +528,7 @@ function startExam(){
   runSubject();
 }
 async function runSubject(){
+  stopAll();const g=gen;
   const E=current.exam;
   const s=E.subjects[E.si];
   const qs=pick5(s);
@@ -528,15 +542,19 @@ async function runSubject(){
   };
   renderExamShell(R,null);
   await speak(`${SUBJECTS[s]}の試験を始めます。`);
+  if(g!==gen)return;
   let last=Date.now();
-  current.timer=setInterval(()=>{
+  const myTimer=current.timer=setInterval(()=>{
     const now=Date.now();if(!paused&&!over){R.left=Math.max(0,R.left-(now-last)/1000)}last=now;tickClock();
+    if(g!==gen){clearInterval(myTimer);return}
     if(R.left<=0&&!over){over=true;stopAll();timeUp()}
   },200);
   const ask=async qi=>{
-    const Q=qs[qi];Q.status="cur";renderExamShell(R,qi);
+    const Q=qs[qi];Q.status="cur";current.pending=null;renderExamShell(R,qi);
     await speak(sayText(Q.q));
-    if(over)return "over";
+    if(over||g!==gen)return "over";
+    if(current.pending==="pass"){current.pending=null;Q.status="pass";Q.text="";return "pass"}
+    current.pending=null;
     setMic("listening");
     const res=await listen(10000,{
       tick:left=>{const n=$("#ringn"),c=$("#ringc");if(n)n.textContent=Math.ceil(left/1000);if(c)c.style.strokeDashoffset=(1-left/10000)*226},
@@ -544,10 +562,10 @@ async function runSubject(){
       error:err=>{const st=$("#status");if(st)st.textContent="マイクが使えません。文字で回答してください";},
       fallback:cb=>{const f=$("#fb");if(f){f.hidden=false;const inp=$("#fbin");inp.value="";inp.focus();$("#fbform").onsubmit=e=>{e.preventDefault();cb(inp.value)}}}
     });
-    if(over||res.type==="abort")return "over";
+    if(over||g!==gen||res.type==="abort")return "over";
     if(res.type==="pass"){Q.status="pass";Q.text="";return "pass"}
-    Q.text=res.text||"";const g=grade(Q.it,Q.text);Q.hits=g.hits;Q.r=Q.text?g.r:"ng";Q.status="done";
-    if(S.judge){paused=true;await showVerdict(R,qi);paused=false;last=Date.now()}
+    Q.text=res.text||"";const gr=grade(Q.it,Q.text);Q.hits=gr.hits;Q.r=Q.text?gr.r:"ng";Q.status="done";
+    if(S.judge){paused=true;await showVerdict(R,qi);if(g!==gen)return "over";paused=false;last=Date.now()}
     return "done";
   };
   // 1巡目
@@ -556,12 +574,12 @@ async function runSubject(){
   while(!over){
     const pend=qs.map((q,i)=>q.status==="pass"?i:-1).filter(i=>i>=0);
     if(!pend.length)break;
-    await speak("パスした問題に戻ります。");if(over)return;
+    await speak("パスした問題に戻ります。");if(over||g!==gen)return;
     for(const i of pend){const r=await ask(i);if(r==="over")return}
     if(qs.every(q=>q.status!=="pass"))break;
   }
-  if(over)return;
-  over=true;clearInterval(current.timer);current.timer=null;
+  if(over||g!==gen)return;
+  over=true;clearInterval(myTimer);current.timer=null;
   await speak(`${SUBJECTS[s]}の試験を終わります。`);
   subjectEnd(false);
 }
@@ -610,8 +628,8 @@ function renderExamShell(R,qi){
   // ($("#fb") を参照できるよう別名を付ける)
   fbWrap.insertAdjacentHTML("beforebegin",'<div id="fb" hidden></div>');
   const fbDiv=$("#fb");fbDiv.appendChild(fbWrap);fbWrap.hidden=false;
-  $("#bpass").onclick=()=>{if(current.listen){const h=$("#heard");current.listen.finish("pass")}};
-  $("#bdone").onclick=()=>{if(current.listen)current.listen.finish("answer")};
+  $("#bpass").onclick=()=>{if(current.listen)current.listen.finish("pass");else if(current.speakFin){current.pending="pass";skipSpeak()}};
+  $("#bdone").onclick=()=>{if(current.listen)current.listen.finish("answer");else if(current.speakFin)skipSpeak()};
   $("#bquit").onclick=()=>{stopAll();renderHome()};
   if($("#bshow"))$("#bshow").onclick=()=>{const b=$("#ansbox");b.hidden=!b.hidden;$("#bshow").textContent=b.hidden?"模範解答を見る":"模範解答を隠す"};
   const el=$("#clock");if(el)el.textContent=`${Math.floor(R.left/60)}:${String(Math.floor(R.left%60)).padStart(2,"0")}`;
@@ -636,7 +654,7 @@ function showVerdict(R,qi){
       <div class="small muted">模範解答どおりに言えましたか？</div>
       <div class="ctrl"><button class="btn" id="fixok">言えた</button><button class="btn ghost" id="fixng">言えなかった</button></div>`;
     box.querySelector("#hear").onclick=()=>speak(Q.it.a.replace(/[／\n]/g,"、"));
-    const go=v=>{Q.r=v;try{speechSynthesis.cancel()}catch(e){}box.remove();res()};
+    const go=v=>{Q.r=v;skipSpeak();box.remove();res()};
     box.querySelector("#fixok").onclick=()=>go("ok");
     box.querySelector("#fixng").onclick=()=>go("ng");
     const ab=$("#ansbox"),bs=$("#bshow");if(ab)ab.hidden=true;if(bs)bs.hidden=true;
@@ -734,8 +752,7 @@ function renderOx(){
   let chosen=false;
   const choose=v=>{
     if(chosen)return;chosen=true;
-    if(current.listen)current.listen.finish("abort");
-    try{speechSynthesis.cancel()}catch(e){}
+    stopAll();
     O.ans[O.i]=v;
     if(S.oxJudge)showOxVerdict();else nextOx();
   };
@@ -745,9 +762,9 @@ function renderOx(){
   $("#oxpeek").onclick=()=>{const b=$("#oxpeekbox");if(b.hidden){b.innerHTML=oxExplain(it,null);b.hidden=false;$("#oxpeek").textContent="回答を隠す"}else{b.hidden=true;$("#oxpeek").textContent="回答を見る"}};
   if(done&&S.oxJudge){chosen=true;showOxVerdict();return}
   const run=async()=>{
-    const myIdx=O.i;
+    const g=gen;
     await speak(it.st);
-    if(chosen||view!=="ox"||current.ox!==O||O.i!==myIdx)return;
+    if(chosen||g!==gen)return;
     const st=$("#status");if(st)st.textContent="「まる」か「ばつ」で答えてください";
     const res=await listen(10000,{
       tick:left=>{const n=$("#ringn"),c=$("#ringc");if(n)n.textContent=Math.ceil(left/1000);if(c)c.style.strokeDashoffset=(1-left/10000)*226},
@@ -755,7 +772,7 @@ function renderOx(){
       check:t=>parseOX(t)!==null,
       error:()=>{const st=$("#status");if(st)st.textContent="マイクが使えません。○×ボタンで答えてください"}
     });
-    if(chosen||res.type==="abort")return;
+    if(chosen||g!==gen||res.type==="abort")return;
     const v=parseOX(res.text);
     if(v===null){const st=$("#status");if(st)st.textContent=res.text?"聞き取れませんでした。○×ボタンで答えてください":"時間切れです。○×ボタンで答えてください";return}
     choose(v);
@@ -780,13 +797,13 @@ function showOxVerdict(){
   $("#oxv").innerHTML=oxExplain(it,O.ans[O.i])+`<button class="btn big wide" id="oxnext" style="margin-top:12px">${O.i<O.items.length-1?"次へ":"結果を見る"}</button>`;
   $("#bo").disabled=$("#bx").disabled=true;
   const st=$("#status");if(st)st.textContent=ok?"正解":"不正解";
-  $("#oxnext").onclick=()=>{try{speechSynthesis.cancel()}catch(e){}nextOx()};
+  $("#oxnext").onclick=()=>nextOx();
   if(S.oxVoice!==false)speak((ok?"正解です。":"不正解です。")+(it.ex?" "+it.ex:""));
   $("#oxv").scrollIntoView({behavior:"smooth",block:"nearest"});
 }
 function nextOx(){stopAll();const O=current.ox;if(O.i<O.items.length-1){O.i++;renderOx();window.scrollTo(0,0)}else renderOxResult()}
 function renderOxResult(){
-  view="oxres";const O=current.ox;
+  stopAll();view="oxres";const O=current.ox;
   const answered=O.items.map((it,i)=>({it,a:O.ans[i]})).filter(x=>x.a!==undefined);
   const ok=answered.filter(x=>x.a===x.it.ok).length;
   app.innerHTML=`
@@ -807,7 +824,7 @@ function renderOxResult(){
   $("#home").onclick=renderHome;
 }
 function renderOxList(){
-  view="oxlist";
+  stopAll();view="oxlist";
   const items=sortImp(oxPool(S.oxSubject));
   app.innerHTML=`
   <div class="row between"><div><div class="eyebrow">重要論点順 一覧</div><h2>${S.oxSubject<0?"全科目":SUBJECTS[S.oxSubject]}（${items.length}肢）</h2></div><button class="btn ghost" id="home">戻る</button></div>
