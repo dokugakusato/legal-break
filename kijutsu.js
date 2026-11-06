@@ -302,6 +302,50 @@ document.body.insertAdjacentHTML('beforeend',`<style>
 @keyframes edrop{0%{transform:none}40%{transform:translate(40%,-60%) rotate(-20deg)}65%{transform:translate(62%,-4%) rotate(70deg)}100%{transform:none}}
 </style>`);
 
+/* ---------- 第37話〜の曲（4話ごとに入れかえる）：陰謀のタンゴ ---------- */
+Object.assign(TR,{
+ // 物語：ひそひそ話のようなタンゴ。オルガン（バンドネオン風）とピチカート
+ k37case:{bpm:92,f(a,o,s,t,d){const bar=s>>3,r=[45,45,40,44][bar];
+  if([0,3,6].includes(s%8))I.bass(a,o,r-12,t,d*.8,.13,1);if(s%8===0||s%8===3)I.pluck(a,o,r+12,t,.035);
+  if(s%16===0)I.organ(a,o,[r+12,r+15,r+19],t,6*d,.022);if(s%8===4)I.snare(a,o,t,.06);if(s%2===1)I.tick(a,o,t,1400,.012);
+  const m={0:[69,3],3:[68,1],4:[69,2],6:[72,2],8:[71,6],16:[69,2],18:[68,2],20:[64,4],24:[65,2],26:[64,2],28:[62,4]}[s];if(m)I.organ(a,o,[m[0]+12],t,m[1]*d,.03)}},
+ // 対戦：速いタンゴのリズムと、鋭いスタッカート
+ k37battle:{bpm:150,f(a,o,s,t,d){const r=[45,45,41,40][s>>3];if([0,3,6].includes(s%8)){I.bass(a,o,r,t,d*.6,.17,1);I.kick(a,o,t,.6)}
+  if(s%8===4)I.snare(a,o,t,.28);if(s%2===0)I.hat(a,o,t,.025);if([0,3,6].includes(s%8))I.organ(a,o,[r+12,r+15,r+19],t,d*.5,.03);
+  const m={0:[81,1],1:[80,1],2:[81,2],4:[84,2],6:[83,2],8:[81,4],12:[77,4],16:[76,1],17:[77,1],18:[79,2],20:[81,2],22:[83,2],24:[84,6]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d,.055);if(s===31)I.whip(a,o,t,.3)}},
+ // ボス登場：時計の音と、ささやくような低音
+ k37bossin:{bpm:60,f(a,o,s,t,d){I.tick(a,o,t,s%2?1600:1200,.03);if(s%16===0)I.cello(a,o,[33,32][s>>4],t,16*d,.06);
+  if(s===8||s===24)I.organ(a,o,[57,60,63],t,6*d,.02);if(s%8===0)I.kick(a,o,t,.3)}},
+ // ボス戦：激しいタンゴ・ロック
+ k37boss:{bpm:162,f(a,o,s,t,d){const bar=s>>3,r=[45,41,43,40][bar];I.bass(a,o,[r,r,r+12,r,r+7,r,r+10,r+12][s%8],t,d*.8,.18,1);
+  if([0,3,6].includes(s%8))I.kick(a,o,t,.7);if(s%8===4)I.snare(a,o,t,.32);if(s%2===1)I.hat(a,o,t,.03);if(s%8===0)I.organ(a,o,[r+12,r+15,r+19],t,4*d,.025);
+  const m={0:[81,2],2:[84,2],4:[83,4],8:[81,2],10:[80,2],12:[76,4],16:[77,3],19:[79,1],20:[80,2],22:[83,2],24:[84,6]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d,.07);if(s===31)I.whip(a,o,t,.35)}}
+});
+
+/* ---------- 第37話〜の新しい技：張り手・足払い ---------- */
+Object.assign(MOVES,{
+ harite:{kiai:'張り手ぇっ！',k:1.1,hit:'バチーン！'},
+ ashibarai:{kiai:'足払い！',k:1.15,hit:'スッテーン！'}
+});
+const MOVE37=['harite','ashibarai'];
+{const _ok=moveOK;moveOK=k=>MOVE37.includes(k)?!!(CH&&CH.no>=37):_ok(k)}
+{const _atk=attack;attack=function(then,style){
+  if(!MOVE37.includes(style))return _atk(then,style);
+  const M=MOVES[style];kiai(M.k);const h=$('#stage .fig.l'),st=$('#stage'),e=$('#stage .fig.r');
+  const v=document.createElement('div');v.className='kiai';v.textContent=M.kiai;st.appendChild(v);setTimeout(()=>v.remove(),1000);
+  h.classList.remove('lunge','kickmove','dkick','hbutt','chopup','hipatk','sobat','gpun','kneeup','edrop','abarai');void h.offsetWidth;h.classList.add(style==='harite'?'lunge':'abarai');
+  setTimeout(()=>{const sr=st.getBoundingClientRect(),er=e.getBoundingClientRect(),fx=er.left-sr.left+er.width*.5,fy=er.top-sr.top+er.height*(style==='harite'?.22:.88);
+    const b=document.createElement('div');b.className='boom';b.style.left=fx+'px';b.style.top=fy+'px';b.innerHTML=BOOM+`<span>${M.hit}</span>`;st.appendChild(b);setTimeout(()=>b.remove(),700);
+    e.classList.remove('knock','knockkick','pinned','hit','squashy','trip');void e.offsetWidth;e.classList.add(style==='ashibarai'?'trip':'knock');setTimeout(()=>e.classList.remove('knock','trip'),1100);
+    st.classList.remove('shake','impact');void st.offsetWidth;st.classList.add('shake','impact');punch(1.5);then()},360);
+}}
+document.body.insertAdjacentHTML('beforeend',`<style>
+.fig.l.abarai{animation:abarai .7s}
+@keyframes abarai{0%{transform:none}40%{transform:translateX(50%) translateY(12%) rotate(-10deg)}60%{transform:translateX(58%) translateY(14%) rotate(-14deg)}100%{transform:none}}
+.fig.r.trip{animation:trip 1s;transform-origin:50% 100%}
+@keyframes trip{0%{transform:none}30%{transform:rotate(-70deg) translateY(-10%)}55%{transform:rotate(-90deg) translateY(10%)}100%{transform:none}}
+</style>`);
+
 /* ---------- 記述の章の流れ ---------- */
 const KJ={};
 {const _bp=beginPart;beginPart=function(){const sb=$('#s-battle');if(sb)sb.classList.remove('kj','kjboss');if(CH&&CH.kijutsu)return kjStart();return _bp()}}
@@ -534,7 +578,11 @@ Object.assign(SIL,{
 // 信用金庫の支店長・金田：七三分けにメタルぶちの眼鏡、紺のスーツ、手には大きな電卓
 shiten:mk(`<path d="${B.slim}" fill="#22304a"/>${SHD(B.slim)}<path d="M38 72L50 100L62 72Z" fill="#f2efe8"/><path d="M47 74h6l-1 24h-4z" fill="#d9a441"/><rect x="58" y="100" width="22" height="30" rx="3" fill="#3a3a3a" stroke-width="1.6" transform="rotate(-8 69 115)"/><rect x="61" y="103" width="16" height="7" fill="#a8d8a0" stroke-width="1" transform="rotate(-8 69 115)"/><g fill="#d8d8d8" stroke="none" transform="rotate(-8 69 115)"><rect x="61" y="113" width="4" height="4"/><rect x="67" y="113" width="4" height="4"/><rect x="73" y="113" width="4" height="4"/><rect x="61" y="119" width="4" height="4"/><rect x="67" y="119" width="4" height="4"/><rect x="73" y="119" width="4" height="4"/></g>${NECK(50,14)}<ellipse cx="50" cy="40" rx="14" ry="16" fill="${SK}"/><path d="M35 34c0-12 7-18 15-18s15 5 15 15c-8-6-20-8-30 3z" fill="#1a1a1a"/><path d="M44 22l2 10" stroke="#f2efe8" stroke-width="1" fill="none"/><rect x="38" y="36" width="9" height="6" rx="1" fill="none" stroke="#b8bcc4" stroke-width="1.6"/><rect x="53" y="36" width="9" height="6" rx="1" fill="none" stroke="#b8bcc4" stroke-width="1.6"/><path d="M47 39h6" stroke="#b8bcc4" stroke-width="1.4" fill="none"/><circle cx="42.5" cy="39" r="1.4" fill="${O}" stroke="none"/><circle cx="57.5" cy="39" r="1.4" fill="${O}" stroke="none"/><path d="M44 51h12" stroke-width="1.8" fill="none"/>`)
 });
-Object.assign(NAMES,{shinsa:'鉄面',ooya:'馬場',eisei:'灰原',junsa:'矢吹',sagi:'白鷺',busu:'毒島',ryu:'龍崎',same:'鮫島',zencho:'大河原',shiten:'金田'});
-Object.assign(VP,{shiten:{p:.9,r:1,g:'m',i:2},same:{p:1.15,r:1.1,g:'m',i:1},zencho:{p:.15,r:.8,g:'m',i:0},ryu:{p:.4,r:.9,g:'m',i:2},sagi:{p:1.1,r:1.05,g:'m',i:1},busu:{p:.2,r:.8,g:'m',i:0},narrf:{p:0,r:.82,g:'m',i:0},eisei:{p:.9,r:.85,g:'m',i:1},junsa:{p:1.2,r:1.05,g:'m',i:3}});
+Object.assign(SIL,{
+// 謎の組織「荒野会」の黒幕・霧島：つば広の黒い帽子、口もとだけ笑った白い顔、黒いケープ、胸に紫の徽章
+kage:mk(`<path d="M0 160C2 104 18 70 50 62C82 70 98 104 100 160Z" fill="#14101c"/>${SHD('M0 160C2 104 18 70 50 62C82 70 98 104 100 160Z')}<path d="M18 74Q50 96 82 74L86 92Q50 112 14 92Z" fill="#241a34"/><circle cx="50" cy="104" r="6" fill="#7a3ab0" stroke="#d9a441" stroke-width="1.6"/><path d="M47 104l3-4 3 4-3 4z" fill="#d9a441" stroke="none"/>${NECK(46,12)}<ellipse cx="50" cy="40" rx="15" ry="17" fill="#e8e2da"/><path d="M14 30q36-12 72 0q-6 6-36 6t-36-6z" fill="#0b0810"/><path d="M33 30c0-14 8-20 17-20s17 6 17 20z" fill="#0b0810"/><path d="M33 26h34" stroke="#7a3ab0" stroke-width="3" fill="none"/><path d="M40 40q4-2 7 0M53 40q4-2 7 0" stroke-width="1.8" fill="none"/><path d="M40 50q10 6 20 0" fill="none" stroke-width="1.8"/><path d="M58 50l3-2" stroke-width="1.4" fill="none"/>`)
+});
+Object.assign(NAMES,{shinsa:'鉄面',ooya:'馬場',eisei:'灰原',junsa:'矢吹',sagi:'白鷺',busu:'毒島',ryu:'龍崎',same:'鮫島',zencho:'大河原',shiten:'金田',kage:'霧島'});
+Object.assign(VP,{kage:{p:.6,r:.85,g:'m',i:1},shiten:{p:.9,r:1,g:'m',i:2},same:{p:1.15,r:1.1,g:'m',i:1},zencho:{p:.15,r:.8,g:'m',i:0},ryu:{p:.4,r:.9,g:'m',i:2},sagi:{p:1.1,r:1.05,g:'m',i:1},busu:{p:.2,r:.8,g:'m',i:0},narrf:{p:0,r:.82,g:'m',i:0},eisei:{p:.9,r:.85,g:'m',i:1},junsa:{p:1.2,r:1.05,g:'m',i:3}});
 Object.assign(VP,{shinsa:{p:.3,r:.72,g:'m',i:2},ooya:{p:.2,r:.75,g:'m',i:0}});
 document.body.insertAdjacentHTML('beforeend','<style>.fig.shinsa,.fig.ooya,.fig.eisei,.fig.busu,.fig.ryu,.fig.zencho{height:100%}#koma .fig.shinsa,#koma .fig.ooya,#koma .fig.eisei,#koma .fig.busu,#koma .fig.ryu,#koma .fig.zencho{--k:1}</style>');
