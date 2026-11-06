@@ -509,7 +509,7 @@ function renderHome(){
     </div>
     <div class="row"><button class="btn big" style="flex:1" id="oxgo">一問一答を始める</button><button class="btn ghost" id="oxlist">一覧で見る</button></div>
   </section>`}
-  <p class="small muted" style="margin:0">口述試験は、口頭で正しく答えられるかを見る試験です。回答のあとは模範解答と自分の回答を見比べて、「言えた」「言えなかった」を自分で付けてください。問題の下の「模範解答を見る」でいつでも確認できます。</p>`;
+  <p class="small muted" style="margin:0">（版：${BUILD}）口述試験は、口頭で正しく答えられるかを見る試験です。回答のあとは模範解答と自分の回答を見比べて、「言えた」「言えなかった」を自分で付けてください。問題の下の「模範解答を見る」でいつでも確認できます。</p>`;
   $("#tab-oral").onclick=()=>{S.mode="oral";save();renderHome()};
   $("#tab-ox").onclick=()=>{S.mode="ox";save();renderHome()};
   if(S.mode==="oral"){
@@ -857,6 +857,17 @@ function renderOxList(){
   $("#hide").onclick=e=>{const on=e.target.getAttribute("aria-pressed")!=="true";e.target.setAttribute("aria-pressed",on);document.querySelectorAll(".ansline").forEach(d=>d.style.visibility=on?"hidden":"visible")};
 }
 
+// 古い版がスマホに残っていたら、自動で最新版に入れ替える
+const BUILD="2026-11-06-0945";
+(async()=>{try{
+  const r=await fetch(location.pathname+"?_="+Date.now(),{cache:"no-store"});if(!r.ok)return;
+  const t=await r.text();const m=t.match(/const BUILD="([^"]+)"/);
+  if(!m||m[1]===BUILD)return;
+  let tried=null;try{tried=sessionStorage.getItem("kj_reload")}catch(e){}
+  if(tried===m[1])return;try{sessionStorage.setItem("kj_reload",m[1])}catch(e){}
+  try{for(const k of await caches.keys()){const c=await caches.open(k);for(const q of await c.keys())if(q.url.includes("/koujutsu/"))await c.delete(q)}}catch(e){}
+  location.replace(location.pathname+"?v="+m[1]);
+}catch(e){}})();
 try{const wl=navigator.wakeLock&&navigator.wakeLock.request("screen");wl&&wl.catch(()=>{})}catch(e){}
 renderHome();
 </script>
