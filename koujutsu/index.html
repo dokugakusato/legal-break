@@ -425,6 +425,7 @@ function listen(ms,ui){
         }
         ui.text(final,interim);
         if(ui.check){if(ui.check(final+interim)){finish("answer")}return}
+        if(ui.manual)return; // 「回答終了」か「パス」のボタンを押すまで聞き続ける
         if(isPass(final+interim)){finish("pass");return}
         if(/以上です$|以上$/.test(final.trim())){final=final.replace(/以上です?$/,"");finish("answer");return}
         clearTimeout(silence);
@@ -475,7 +476,7 @@ function renderHome(){
   ${S.mode==="oral"?`
   <section class="card stack">
     <h2>本番形式で口頭回答</h2>
-    <p class="muted small" style="margin:0">本試験と同じく、1科目5問を3分で答えます。3分には問題の読み上げ時間も含まれます。1問ごとの時間制限はなく、言い終わったら次の問題へ進みます。「パス」と言うと次へ進み、5問終わって時間が残っていればパスした問題に戻ります。3分で何問言えるかを試す形式です。</p>
+    <p class="muted small" style="margin:0">本試験と同じく、1科目5問を3分で答えます。3分には問題の読み上げ時間も含まれます。1問ごとの時間制限はありません。答え終わったら「回答終了・次へ」、分からなければ「パス」を押すと次の問題へ進みます。5問終わって時間が残っていれば、パスした問題に戻ります。3分で何問言えるかを試す形式です。</p>
     <div>
       <div class="set"><label for="sw-clock">ストップウォッチを表示<span class="sub">試験中も画面上の「時計」ボタンで切り替えられます</span></label>${sw("sw-clock",S.showClock!==false)}</div>
       <div class="set"><label for="sw-text">問題文を画面に表示<span class="sub">OFFにすると本番同様に耳だけで聞きます</span></label>${sw("sw-text",S.showText)}</div>
@@ -492,7 +493,7 @@ function renderHome(){
   </section>`:`
   <section class="card stack">
     <h2>重要論点順の一問一答</h2>
-    <p class="muted small" style="margin:0">出題年が多い論点から順に、本試験と同じく問題を読み上げます。15秒以内に口頭で回答し、模範解答と見比べて確認します（時間制限なし）。「パス」と言うと次の問題へ進み、最後にもう一度出題します。</p>
+    <p class="muted small" style="margin:0">出題年が多い論点から順に、本試験と同じく問題を読み上げます。時間制限はありません。口頭で答えたら「回答終了」を押し、模範解答と見比べて確認します。「パス」を押すと次の問題へ進み、最後にもう一度出題します。</p>
     <div class="stack" style="gap:8px">
       <div class="small muted">科目</div>
       <div class="chips" id="oxs">${SUBJECTS.map((n,i)=>`<button class="chip" data-s="${i}" aria-pressed="${S.oxSubject===i}">${SHORT[i]}（${oxCounts[i]}問）</button>`).join("")}
@@ -585,7 +586,7 @@ async function runSubject(){
     current.pending=null;
     setMic("listening");
     const res=await listen(0,{
-      silence:3000,
+      manual:true,
       text:(f,i)=>{const h=$("#heard");if(h)h.innerHTML=esc(f)+`<span class="interim">${esc(i)}</span>`},
       error:()=>{const st=$("#status");if(st)st.textContent="マイクが使えません。文字で回答してください"},
       fallback:cb=>{const f=$("#fb");if(f){f.hidden=false;const inp=$("#fbin");inp.value="";inp.focus();$("#fbform").onsubmit=e=>{e.preventDefault();cb(inp.value)}}}
@@ -616,7 +617,7 @@ function timeUp(){
 function setMic(state){
   const st=$("#status"),d=$("#micdot");
   if(d)d.classList.toggle("on",state==="listening");
-  if(st)st.textContent=state==="listening"?"回答してください（言い終わると次へ・「パス」でパス）":state==="speak"?"出題中…":"";
+  if(st)st.textContent=state==="listening"?"回答してください（答え終わったら「回答終了・次へ」を押す）":state==="speak"?"出題中…":"";
 }
 function renderExamShell(R,qi){
   view="exam";
@@ -641,7 +642,7 @@ function renderExamShell(R,qi){
     <div class="microw"><span class="micdot" id="micdot"></span><div class="status" id="status">${Q?"出題中…":"準備中…"}</div></div>
     <div class="heard" id="heard"></div>
   </div>
-  <div id="fb" hidden><form id="fbform" class="fallback"><input id="fbin" autocomplete="off" placeholder="回答を入力（パスは「パス」）"><button class="btn">回答</button></form></div>
+  <div id="fb" hidden><form id="fbform" class="fallback"><input id="fbin" autocomplete="off" placeholder="回答を入力"><button class="btn">回答</button></form></div>
   <div class="ctrl" id="pctrl"><button class="btn ghost" id="bpass">パス</button><button class="btn" id="bdone">回答終了・次へ</button></div>
   ${Q?`<button class="btn ghost wide" id="bshow">模範解答を見る（時計は止まりません）</button>
   <div class="ansbox" id="ansbox" hidden><div class="lbl">模範解答</div><p class="model">${esc(Q.it.a)}</p></div>`:""}
@@ -759,10 +760,9 @@ function renderOx(){
   <button class="btn ghost wide" id="bshow">模範解答を見る</button>
   <div class="ansbox" id="ansbox" hidden><div class="lbl">模範解答</div><p class="model">${esc(Q.it.a)}</p></div>
   <div class="card mic">
-    <div class="ring"><svg viewBox="0 0 84 84"><circle cx="42" cy="42" r="36" fill="none" stroke="var(--soft)" stroke-width="7"/><circle id="ringc" cx="42" cy="42" r="36" fill="none" stroke="var(--navy)" stroke-width="7" stroke-dasharray="226" stroke-dashoffset="0" stroke-linecap="round"/></svg><div class="n" id="ringn">15</div></div>
-    <div class="stack" style="gap:6px;min-width:0"><div class="status" id="status">出題中…</div><div class="heard" id="heard"></div></div>
+    <div class="stack" style="gap:8px;min-width:0;grid-column:1/-1"><div class="microw"><span class="micdot" id="micdot"></span><div class="status" id="status">出題中…</div></div><div class="heard" id="heard"></div></div>
   </div>
-  <div id="fb" hidden><form id="fbform" class="fallback"><input id="fbin" autocomplete="off" placeholder="回答を入力（パスは「パス」）"><button class="btn">回答</button></form></div>
+  <div id="fb" hidden><form id="fbform" class="fallback"><input id="fbin" autocomplete="off" placeholder="回答を入力"><button class="btn">回答</button></form></div>
   <div class="ctrl" id="pctrl"><button class="btn ghost" id="bpass">パス</button><button class="btn" id="bdone">回答終了</button></div>
   <div class="row">${O.i>0?`<button class="btn ghost" id="oxprev">前の問題</button>`:""}<button class="btn ghost" id="oxagain">もう一度読む</button></div>`;
   $("#oxquit").onclick=()=>renderOxResult();
@@ -777,14 +777,15 @@ function renderOx(){
     await speak(sayText(Q.q));
     if(g!==gen)return;
     if(current.pending==="pass"){current.pending=null;return afterAnswer({type:"pass",text:""})}
-    $("#status").textContent="回答してください（「パス」でパス）";
-    const res=await listen(15000,{
-      tick:left=>{const n=$("#ringn"),c=$("#ringc");if(n)n.textContent=Math.ceil(left/1000);if(c)c.style.strokeDashoffset=(1-left/15000)*226},
+    $("#status").textContent="回答してください（答え終わったら「回答終了」を押す）";$("#micdot").classList.add("on");
+    const res=await listen(0,{
+      manual:true,
       text:(f,i)=>{const h=$("#heard");if(h)h.innerHTML=esc(f)+`<span class="interim">${esc(i)}</span>`},
       error:()=>{const st=$("#status");if(st)st.textContent="マイクが使えません。文字で回答してください"},
       fallback:cb=>{const f=$("#fb");if(f){f.hidden=false;const inp=$("#fbin");inp.value="";inp.focus();$("#fbform").onsubmit=e=>{e.preventDefault();cb(inp.value)}}}
     });
     if(g!==gen||res.type==="abort")return;
+    const md=$("#micdot");if(md)md.classList.remove("on");
     afterAnswer(res);
   }
   function afterAnswer(res){
