@@ -212,7 +212,9 @@ const READINGS=[
   ["雇入契約","やといいれけいやく"],["測度","そくど"],["改測","かいそく"],["検認","けんにん"],["点附","てんぷ"],
   ["信号符字","しんごうふじ"],["汽圧","きあつ"],["存否","そんぴ"],["何人","なんぴと"],["湖川","こせん"]
 ];
-function toReading(t){for(const [w,r] of READINGS)t=t.split(w).join(r);return t}
+function toReading(t){for(const [w,r] of READINGS)t=t.split(w).join(r);
+  // 「〜の者」「〜する者」のように、ひらがなの後の「者」は「もの」と読む（所有者・製造者などは「しゃ」のまま）
+  return t.replace(/([ぁ-ん])者/g,"$1もの")}
 function speak(text){
   text=toReading(text);
   return new Promise(res=>{
@@ -724,7 +726,7 @@ function renderOxList(){
 }
 
 // 古い版がスマホに残っていたら、自動で最新版に入れ替える
-const BUILD="2026-11-06-1010";
+const BUILD="2026-11-06-1355";
 (async()=>{try{
   const r=await fetch(location.pathname+"?_="+Date.now(),{cache:"no-store"});if(!r.ok)return;
   const t=await r.text();const m=t.match(/const BUILD="([^"]+)"/);
