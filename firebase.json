@@ -29,6 +29,15 @@
             "value": "no-cache"
           }
         ]
+      },
+      {
+        "source": "/koujutsu/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
       }
     ]
   },
