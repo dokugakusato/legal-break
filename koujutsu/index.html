@@ -72,6 +72,18 @@ select{font:inherit;padding:6px 8px;border-radius:8px;border:1px solid var(--lin
 .examhead{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:end}
 .clock{font-family:var(--f-disp);font-size:2.1rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
 .clock.low{color:var(--ng)}
+.watch{display:grid;grid-template-columns:1fr auto;gap:10px 12px;align-items:center;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.watch .t{font-family:var(--f-disp);font-weight:800;font-size:2.4rem;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.watch .t small{font-size:1rem;color:var(--muted);font-weight:600;margin-left:6px}
+.watch .t.low{color:var(--ng)}
+.watch .bar{grid-column:1/-1}
+.watch .hid{font-weight:700;color:var(--muted)}
+.tgl{font:inherit;font-weight:700;font-size:.85rem;border:1px solid var(--navy);color:var(--navy);background:transparent;border-radius:999px;padding:8px 14px;cursor:pointer;min-height:40px;white-space:nowrap}
+.tgl[aria-pressed="true"]{background:var(--navy);color:var(--navy-ink)}
+.micdot{width:18px;height:18px;border-radius:50%;background:var(--line);flex:none}
+.micdot.on{background:var(--ng);box-shadow:0 0 0 0 var(--ng);animation:pulse 1.2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--ng) 60%,transparent)}100%{box-shadow:0 0 0 12px transparent}}
+.microw{display:flex;gap:12px;align-items:center}
 .bar{height:6px;background:var(--soft);border-radius:3px;overflow:hidden;grid-column:1/-1}
 .bar i{display:block;height:100%;background:var(--navy);transition:width .5s linear}
 .steps{display:flex;gap:6px}
@@ -399,7 +411,7 @@ function listen(ms,ui){
       resolve({type,text:t});
     };
     const handle={finish};current.listen=handle;
-    const tm=setInterval(()=>{const left=Math.max(0,ms-(Date.now()-start));ui.tick(left);if(left<=0)finish("timeout")},100);
+    const tm=ms>0?setInterval(()=>{const left=Math.max(0,ms-(Date.now()-start));ui.tick&&ui.tick(left);if(left<=0)finish("timeout")},100):null;
     const isPass=s=>{const n=norm(s);return /^(ぱす|ぱすします|ぱすで|ぱすです|ぱすでお願いします|ぱすおねがいします|bus|pass|パス)$/.test(n)||(/^ぱす/.test(n)&&n.length<=6)};
     if(!SR||micBroken){ui.fallback&&ui.fallback(v=>{final=v;finish(isPass(v)?"pass":"answer")});return}
     const boot=()=>{
@@ -416,7 +428,7 @@ function listen(ms,ui){
         if(isPass(final+interim)){finish("pass");return}
         if(/以上です$|以上$/.test(final.trim())){final=final.replace(/以上です?$/,"");finish("answer");return}
         clearTimeout(silence);
-        if((final+interim).trim())silence=setTimeout(()=>finish("answer"),2200);
+        if((final+interim).trim())silence=setTimeout(()=>finish("answer"),ui.silence||2200);
       };
       rec.onerror=e=>{
         if(e.error==="not-allowed"||e.error==="service-not-allowed"||e.error==="audio-capture"){
@@ -463,9 +475,9 @@ function renderHome(){
   ${S.mode==="oral"?`
   <section class="card stack">
     <h2>本番形式で口頭回答</h2>
-    <p class="muted small" style="margin:0">男性の声で出題します。読み上げが終わったら15秒以内に話して回答。「パス」と言えば次の問題へ進み、5問終わって時間が残っていればパスした問題に戻ります。1科目3分・各科目5問。</p>
+    <p class="muted small" style="margin:0">本試験と同じく、1科目5問を3分で答えます。3分には問題の読み上げ時間も含まれます。1問ごとの時間制限はなく、言い終わったら次の問題へ進みます。「パス」と言うと次へ進み、5問終わって時間が残っていればパスした問題に戻ります。3分で何問言えるかを試す形式です。</p>
     <div>
-      <div class="set"><label for="sw-judge">模範解答を1問ごとに表示<span class="sub">ONなら回答のあとに模範解答を表示（その間は時計が止まります）。OFFなら科目の最後にまとめて表示</span></label>${sw("sw-judge",S.judge)}</div>
+      <div class="set"><label for="sw-clock">ストップウォッチを表示<span class="sub">試験中も画面上の「時計」ボタンで切り替えられます</span></label>${sw("sw-clock",S.showClock!==false)}</div>
       <div class="set"><label for="sw-text">問題文を画面に表示<span class="sub">OFFにすると本番同様に耳だけで聞きます</span></label>${sw("sw-text",S.showText)}</div>
       <div class="set"><label for="sw-w">よく出る問題を出やすくする<span class="sub">出題年数が多い問題ほど選ばれやすくなります</span></label>${sw("sw-w",S.weighted)}</div>
       <div class="set"><label for="sel-voice">読み上げの声<span class="sub">${voices.length?"男性の声が見つからない端末は声を低めにします":"この端末は音声読み上げに未対応です"}</span></label>
@@ -500,7 +512,7 @@ function renderHome(){
   $("#tab-oral").onclick=()=>{S.mode="oral";save();renderHome()};
   $("#tab-ox").onclick=()=>{S.mode="ox";save();renderHome()};
   if(S.mode==="oral"){
-    $("#sw-judge").onchange=e=>{S.judge=e.target.checked;save()};
+    $("#sw-clock").onchange=e=>{S.showClock=e.target.checked;save()};
     $("#sw-text").onchange=e=>{S.showText=e.target.checked;save()};
     $("#sw-w").onchange=e=>{S.weighted=e.target.checked;save()};
     $("#sel-voice").onchange=e=>{S.voice=e.target.value;save();speak("船舶法の問題です。")};
@@ -539,56 +551,56 @@ function startExam(){
   current.exam={subjects:S.subjects.slice(),si:0,results:[]};
   runSubject();
 }
+const LIMIT=180;
+const fmt=sec=>{sec=Math.max(0,sec);return `${Math.floor(sec/60)}:${String(Math.floor(sec%60)).padStart(2,"0")}`};
+function paintClock(R){
+  const t=$("#wt"),bar=$("#bar");
+  if(t){t.innerHTML=`${fmt(R.elapsed)}<small>/ 3:00</small>`;t.classList.toggle("low",LIMIT-R.elapsed<=30)}
+  if(bar)bar.style.width=Math.min(100,R.elapsed/LIMIT*100)+"%";
+}
 async function runSubject(){
   stopAll();const g=gen;
   const E=current.exam;
   const s=E.subjects[E.si];
   const qs=pick5(s);
-  const R={s,qs,left:180};
+  const R={s,qs,elapsed:0};
   E.results.push(R);
-  let paused=false,over=false;
-  const tickClock=()=>{
-    const el=$("#clock"),bar=$("#bar");
-    if(el){el.textContent=`${Math.floor(R.left/60)}:${String(Math.floor(R.left%60)).padStart(2,"0")}`;el.classList.toggle("low",R.left<=30)}
-    if(bar)bar.style.width=(R.left/180*100)+"%";
-  };
+  let over=false;
   renderExamShell(R,null);
   await speak(`${SUBJECTS[s]}の試験を始めます。`);
   if(g!==gen)return;
-  let last=Date.now();
+  // ここから3分。読み上げも回答も含めて止まらない
+  const t0=Date.now();
   const myTimer=current.timer=setInterval(()=>{
-    const now=Date.now();if(!paused&&!over){R.left=Math.max(0,R.left-(now-last)/1000)}last=now;tickClock();
     if(g!==gen){clearInterval(myTimer);return}
-    if(R.left<=0&&!over){over=true;stopAll();timeUp()}
-  },200);
+    R.elapsed=(Date.now()-t0)/1000;paintClock(R);
+    if(R.elapsed>=LIMIT&&!over){over=true;R.elapsed=LIMIT;stopAll();timeUp()}
+  },100);
   const ask=async qi=>{
     const Q=qs[qi];Q.status="cur";current.pending=null;renderExamShell(R,qi);
+    setMic("speak");
     await speak(sayText(Q.q));
     if(over||g!==gen)return "over";
-    if(current.pending==="pass"){current.pending=null;Q.status="pass";Q.text="";return "pass"}
+    if(current.pending==="pass"){current.pending=null;Q.status="pass";Q.wasPassed=true;Q.text="";return "pass"}
     current.pending=null;
     setMic("listening");
-    const res=await listen(15000,{
-      tick:left=>{const n=$("#ringn"),c=$("#ringc");if(n)n.textContent=Math.ceil(left/1000);if(c)c.style.strokeDashoffset=(1-left/15000)*226},
+    const res=await listen(0,{
+      silence:3000,
       text:(f,i)=>{const h=$("#heard");if(h)h.innerHTML=esc(f)+`<span class="interim">${esc(i)}</span>`},
-      error:err=>{const st=$("#status");if(st)st.textContent="マイクが使えません。文字で回答してください";},
+      error:()=>{const st=$("#status");if(st)st.textContent="マイクが使えません。文字で回答してください"},
       fallback:cb=>{const f=$("#fb");if(f){f.hidden=false;const inp=$("#fbin");inp.value="";inp.focus();$("#fbform").onsubmit=e=>{e.preventDefault();cb(inp.value)}}}
     });
     if(over||g!==gen||res.type==="abort")return "over";
-    if(res.type==="pass"){Q.status="pass";Q.text="";return "pass"}
+    if(res.type==="pass"){Q.status="pass";Q.wasPassed=true;Q.text="";return "pass"}
     Q.text=res.text||"";const gr=grade(Q.it,Q.text);Q.hits=gr.hits;Q.r=Q.text?gr.r:"ng";Q.status="done";
-    if(S.judge){paused=true;await showVerdict(R,qi);if(g!==gen)return "over";paused=false;last=Date.now()}
     return "done";
   };
-  // 1巡目
   for(let i=0;i<qs.length;i++){const r=await ask(i);if(r==="over")return}
-  // パスした問題へ戻る（時間がある限り）
   while(!over){
     const pend=qs.map((q,i)=>q.status==="pass"?i:-1).filter(i=>i>=0);
     if(!pend.length)break;
     await speak("パスした問題に戻ります。");if(over||g!==gen)return;
     for(const i of pend){const r=await ask(i);if(r==="over")return}
-    if(qs.every(q=>q.status!=="pass"))break;
   }
   if(over||g!==gen)return;
   over=true;clearInterval(myTimer);current.timer=null;
@@ -601,56 +613,57 @@ function timeUp(){
   speak("時間です。");
   subjectEnd(true);
 }
-function setMic(state){const st=$("#status");if(!st)return;st.textContent=state==="listening"?"回答してください（「パス」でパス）":state==="speak"?"出題中…":""}
+function setMic(state){
+  const st=$("#status"),d=$("#micdot");
+  if(d)d.classList.toggle("on",state==="listening");
+  if(st)st.textContent=state==="listening"?"回答してください（言い終わると次へ・「パス」でパス）":state==="speak"?"出題中…":"";
+}
 function renderExamShell(R,qi){
   view="exam";
   const E=current.exam;const Q=qi==null?null:R.qs[qi];
+  const showC=S.showClock!==false;
   app.innerHTML=`
-  <div class="examhead">
+  <div class="row between" style="align-items:flex-end">
     <div><div class="eyebrow">第${E.si+1}科目 / 全${E.subjects.length}科目</div><h2>${SUBJECTS[R.s]}</h2></div>
-    <div class="clock" id="clock">3:00</div>
-    <div class="bar"><i id="bar" style="width:${R.left/180*100}%"></i></div>
+    <button class="tgl" id="tglclock" aria-pressed="${showC}">${showC?"時計を隠す":"時計を表示"}</button>
+  </div>
+  <div class="watch">
+    ${showC?`<div class="t" id="wt">${fmt(R.elapsed)}<small>/ 3:00</small></div><div class="small muted" style="text-align:right">経過時間<br>（読み上げ含む）</div>
+    <div class="bar"><i id="bar" style="width:${Math.min(100,R.elapsed/LIMIT*100)}%"></i></div>`
+    :`<div class="hid">時計は非表示です</div><div class="small muted">3分経つと終了</div>`}
   </div>
   <div class="row between"><div class="steps">${R.qs.map((q,i)=>`<b class="${i===qi?"cur":q.status==="done"?"done":q.status==="pass"?"pass":""}"></b>`).join("")}</div>
-    <span class="small muted">${Q?`第${qi+1}問`:""}</span></div>
+    <span class="small muted">${Q?`第${qi+1}問${Q.status==="cur"&&R.qs.some(x=>x.status==="done")&&qs_back(R,qi)?"（パスした問題）":""}`:""}</span></div>
   <div class="qcard">
     ${Q?`<div class="yr">出題 ${ylabel(Q.it)}</div><div class="qtext ${S.showText?"":"hidden-q"}">${esc(Q.q)}</div>`:`<div class="qtext muted">まもなく出題します</div>`}
   </div>
-  ${Q?`<button class="btn ghost wide" id="bshow">模範解答を見る</button>
-  <div class="ansbox" id="ansbox" hidden><div class="lbl">模範解答</div><p class="model">${esc(Q.it.a)}</p></div>`:""}
-  <div class="card mic">
-    <div class="ring"><svg viewBox="0 0 84 84"><circle cx="42" cy="42" r="36" fill="none" stroke="var(--soft)" stroke-width="7"/><circle id="ringc" cx="42" cy="42" r="36" fill="none" stroke="var(--navy)" stroke-width="7" stroke-dasharray="226" stroke-dashoffset="0" stroke-linecap="round"/></svg><div class="n" id="ringn">15</div></div>
-    <div class="stack" style="gap:6px;min-width:0"><div class="status" id="status">${Q?"出題中…":"準備中…"}</div><div class="heard" id="heard"></div></div>
+  <div class="card stack" style="gap:8px">
+    <div class="microw"><span class="micdot" id="micdot"></span><div class="status" id="status">${Q?"出題中…":"準備中…"}</div></div>
+    <div class="heard" id="heard"></div>
   </div>
-  <form id="fbform" class="fallback" hidden><input id="fbin" autocomplete="off" placeholder="回答を入力（パスは「パス」）"><button class="btn">回答</button></form>
-  <div class="ctrl" id="pctrl"><button class="btn ghost" id="bpass">パス</button><button class="btn" id="bdone">回答終了</button></div>
+  <div id="fb" hidden><form id="fbform" class="fallback"><input id="fbin" autocomplete="off" placeholder="回答を入力（パスは「パス」）"><button class="btn">回答</button></form></div>
+  <div class="ctrl" id="pctrl"><button class="btn ghost" id="bpass">パス</button><button class="btn" id="bdone">回答終了・次へ</button></div>
+  ${Q?`<button class="btn ghost wide" id="bshow">模範解答を見る（時計は止まりません）</button>
+  <div class="ansbox" id="ansbox" hidden><div class="lbl">模範解答</div><p class="model">${esc(Q.it.a)}</p></div>`:""}
   <button class="btn ghost wide small" id="bquit">試験をやめる</button>`;
-  $("#fbform").id="fbform";const fb=$("#fbform");fb.id="fbform";fb.setAttribute("id","fbform");
-  fb.parentNode&&(fb.id="fbform");
-  // fallbackの表示用
-  fb.id="fbform";fb.dataset.x="1";fb.setAttribute("data-role","fb");fb.id="fbform";
-  fb.querySelector("input").id="fbin";
-  fb.id="fbform";
-  fb.setAttribute("id","fbform");
-  const fbw=fb;fbw.id="fbform";
-  window.__fb=fbw;
-  document.getElementById("fbform").hidden=true;
-  const fbWrap=document.getElementById("fbform");fbWrap.id="fbform";
-  fbWrap.setAttribute("id","fbform");
-  // ($("#fb") を参照できるよう別名を付ける)
-  fbWrap.insertAdjacentHTML("beforebegin",'<div id="fb" hidden></div>');
-  const fbDiv=$("#fb");fbDiv.appendChild(fbWrap);fbWrap.hidden=false;
+  $("#tglclock").onclick=()=>{S.showClock=!(S.showClock!==false);save();
+    const st=$("#status").textContent,h=$("#heard").innerHTML,on=$("#micdot").classList.contains("on"),fbOpen=!$("#fb").hidden,ab=$("#ansbox")&&!$("#ansbox").hidden;
+    const w=document.querySelector(".watch"),showC2=S.showClock!==false;
+    w.innerHTML=showC2?`<div class="t" id="wt"></div><div class="small muted" style="text-align:right">経過時間<br>（読み上げ含む）</div><div class="bar"><i id="bar"></i></div>`:`<div class="hid">時計は非表示です</div><div class="small muted">3分経つと終了</div>`;
+    $("#tglclock").setAttribute("aria-pressed",showC2);$("#tglclock").textContent=showC2?"時計を隠す":"時計を表示";
+    paintClock(R);};
   $("#bpass").onclick=()=>{if(current.listen)current.listen.finish("pass");else if(current.speakFin){current.pending="pass";skipSpeak()}};
   $("#bdone").onclick=()=>{if(current.listen)current.listen.finish("answer");else if(current.speakFin)skipSpeak()};
   $("#bquit").onclick=()=>{stopAll();renderHome()};
-  if($("#bshow"))$("#bshow").onclick=()=>{const b=$("#ansbox");b.hidden=!b.hidden;$("#bshow").textContent=b.hidden?"模範解答を見る":"模範解答を隠す"};
-  const el=$("#clock");if(el)el.textContent=`${Math.floor(R.left/60)}:${String(Math.floor(R.left%60)).padStart(2,"0")}`;
+  if($("#bshow"))$("#bshow").onclick=()=>{const b=$("#ansbox");b.hidden=!b.hidden;$("#bshow").textContent=b.hidden?"模範解答を見る（時計は止まりません）":"模範解答を隠す"};
+  paintClock(R);
 }
+function qs_back(R,qi){return R.qs[qi].wasPassed}
 function reviewHTML(Q){
   const it=Q.it;
   return `<div class="ansbox">
     <div class="lbl">あなたの回答</div>
-    <p class="model" style="color:var(--muted)">${Q.text?esc(Q.text):"（15秒以内に回答なし）"}</p>
+    <p class="model" style="color:var(--muted)">${Q.text?esc(Q.text):"（回答なし）"}</p>
     <div class="lbl" style="margin-top:12px">模範解答</div>
     <p class="model">${esc(it.a)}</p>
     <div class="small muted" style="margin-top:10px">言えていた要点（参考）</div>
@@ -685,7 +698,7 @@ function subjectEnd(timeup){
   app.innerHTML=`
   <div class="stack" style="gap:4px"><div class="eyebrow">${timeup?"時間切れ":"科目終了"}</div><h2>${SUBJECTS[R.s]}</h2></div>
   <div class="card stack"><div class="clock">${ok}<span class="muted" style="font-size:1rem"> / 5 言えた</span></div>
-  <div class="muted small">残り時間 ${Math.floor(R.left/60)}分${Math.floor(R.left%60)}秒</div></div>
+  <div class="muted small">かかった時間 ${fmt(R.elapsed)} / 3:00</div></div>
   <div class="res">${R.qs.map(q=>`<div class="ritem ${q.status==="skip"?"skip":q.r}"><div class="q">${esc(q.q)}</div><div class="small muted">あなたの回答：${q.text?esc(q.text):"（なし）"}</div><div class="lbl small" style="margin-top:6px;color:var(--brass);font-weight:700">模範解答</div><p class="model">${esc(q.it.a)}</p></div>`).join("")}</div>
   ${last?`<button class="btn big wide" id="nx">結果を見る</button>`:`<button class="btn big wide" id="nx">次の科目へ（${SUBJECTS[E.subjects[E.si+1]]}）</button>`}
   <button class="btn ghost wide" id="bquit">やめる</button>`;
