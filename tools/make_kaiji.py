@@ -74,7 +74,7 @@ assert h.count('src="extra.js"') == 1
 assert h.count('<script src="kijutsu.js"></script>') == 1
 
 # 6) 読み方。声の自動録音（tools/gen_voice.mjs）にも同じ直しが入っている
-rep("const yomi=t=>t.replace(", "const yomi=t=>t.replace(/汐見/g,'しおみ').replace(/鉄錨/g,'てついかり').replace(/凪/g,'なぎ').replace(/海事代理士/g,'かいじだいりし').replace(/書換/g,'かきかえ').replace(/毀損/g,'きそん').replace(")
+rep("const yomi=t=>t.replace(", "const yomi=t=>t.replace(/汐見/g,'しおみ').replace(/鉄錨/g,'てついかり').replace(/凪/g,'なぎ').replace(/海事代理士/g,'かいじだいりし').replace(/書換/g,'かきかえ').replace(/毀損/g,'きそん').replace(/解撤/g,'かいてつ').replace(/喫水/g,'きっすい').replace(/端舟/g,'たんしゅう').replace(/臨検/g,'りんけん').replace(/信号符字/g,'しんごうふじ').replace(/存否/g,'そんぴ').replace(/改測/g,'かいそく').replace(/点附/g,'てんぷ').replace(/両舷/g,'りょうげん').replace(/黒霧/g,'くろぎり').replace(/大渦/g,'おおうず').replace(/櫓櫂/g,'ろかい').replace(")
 
 head = '<!-- このファイルは tools/make_kaiji.py が行政書士版の index.html から作る。直接は直さず、海事代理士版だけの部分は extra.js に書く -->\n'
 (ROOT / 'kaiji' / 'index.html').write_text(head + h, encoding='utf-8')

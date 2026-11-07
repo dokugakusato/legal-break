@@ -183,7 +183,9 @@ Object.assign(PROPS,{
 
 /* ---------- 攻撃の技：4話ごとに入れかえる ---------- */
 // 第1話〜第4話：パンチ・キック・つかみ・六法・エルボー ／ 第5話〜第8話：ラリアット・ドロップキック・頭突き・ボディスラム
-const KD_MOVES=[['punch','kick','grab','weapon','elbow'],['lariat','dropkick','headbutt','slam']];
+// 第9話〜第12話：椅子・コブラツイスト・チョップ・タックル ／ 第13話〜第16話：海事代理士版だけの技（櫂・浮き輪・高波）とパイルドライバー
+Object.assign(MOVES,{kdoar:{kiai:'櫂の一撃ッ！',k:1.05,hit:'ゴイーン！'},kdbuoy:{kiai:'浮き輪シュートッ！',k:.95,hit:'ポヨーン！'},kdwave:{kiai:'高波ッ！',k:1.1,hit:'ザッパーン！'}});
+const KD_MOVES=[['punch','kick','grab','weapon','elbow'],['lariat','dropkick','headbutt','slam'],['chair','cobra','chop','tackle'],['pile','kdoar','kdbuoy','kdwave']];
 moveOK=k=>{const n=CH&&CH.no||1;const p=KD_MOVES[Math.min(KD_MOVES.length-1,Math.floor((n-1)/4))];return p.includes(k)};
 
 /* ---------- 第二部の曲（第5話〜第8話：霧の海と墨の書記） ---------- */
@@ -272,3 +274,192 @@ function finisherStamp(){
   })();
 }
 {const _fin=finisher;finisher=function(){if(hokuto()&&CH&&CH.fin==='stamp')return finisherStamp();return _fin.apply(this,arguments)}}
+
+/* ==================== 第二部の後半〜第四部（第6話〜第15話）の登場人物 ==================== */
+Object.assign(SIL,{
+// タコ八：鉄錨海賊団の買取屋。赤い丸頭にねじり鉢巻、手には「買取」の手紙
+takohachi:mk(`<path d="${B.thug}" fill="#c4502e"/>${SHD(B.thug)}<path d="M26 100c6 4 10 4 14 0M60 100c6 4 10 4 14 0M30 130c6 4 10 4 14 0M56 130c6 4 10 4 14 0" stroke="#f2c2a0" stroke-width="3" fill="none"/><rect x="62" y="112" width="24" height="16" fill="#f4ecdc"/><path d="M62 112l12 9 12-9" fill="none" stroke-width="1.6"/>${NECK(50,14)}<ellipse cx="50" cy="36" rx="18" ry="20" fill="#d8644a"/><path d="M31 28c10-6 28-6 38 0" stroke="#f4f1ea" stroke-width="6" fill="none"/><path d="M66 26l10-6M68 30l10 2" stroke="#f4f1ea" stroke-width="3" fill="none"/><ellipse cx="43" cy="38" rx="3" ry="3.4" fill="${O}" stroke="none"/><ellipse cx="57" cy="38" rx="3" ry="3.4" fill="${O}" stroke="none"/><path d="M45 48q5 6 10 0" fill="#7a1a10" stroke-width="1.6"/><ellipse cx="50" cy="50" rx="4" ry="3" fill="#7a1a10" stroke-width="1.4"/>`),
+// 大渦提督：鉄錨海賊団の頭。紺の提督服、金の肩章、二角帽に渦の紋、くるりと巻いた口ひげ
+ouzu:mk(`<path d="${B.boss}" fill="#14243c"/>${SHD(B.boss)}<path d="M8 82h20l-2 10H6zM92 82H72l2 10h20z" fill="#d9a441"/><path d="M8 92l-2 10M14 92l-1 10M20 92v10M80 92v10M86 92l1 10M92 92l2 10" stroke="#d9a441" stroke-width="2"/><path d="M50 70v90" stroke="#d9a441" stroke-width="2"/><g fill="#d9a441" stroke="none"><circle cx="44" cy="90" r="2.4"/><circle cx="44" cy="106" r="2.4"/><circle cx="44" cy="122" r="2.4"/><circle cx="56" cy="90" r="2.4"/><circle cx="56" cy="106" r="2.4"/><circle cx="56" cy="122" r="2.4"/></g><path d="M68 112a8 8 0 1 1-8-8a5 5 0 1 1 5 5" stroke="#7ab8e0" stroke-width="2.4" fill="none"/>${NECK(46,16)}<ellipse cx="50" cy="38" rx="16" ry="18" fill="${SK}"/><path d="M12 24C24 8 76 8 88 24C78 20 66 22 50 22S22 20 12 24Z" fill="#0b0a0f"/><path d="M26 22C30 4 70 4 74 22Z" fill="#0b0a0f"/><path d="M56 13a5 5 0 1 1-5-5a3 3 0 1 1 3 3" stroke="#d9a441" stroke-width="1.8" fill="none"/><path d="M38 34l9 2M62 34l-9 2" stroke-width="2.6" fill="none"/><ellipse cx="44" cy="40" rx="2.2" ry="2.6" fill="${O}" stroke="none"/><ellipse cx="56" cy="40" rx="2.2" ry="2.6" fill="${O}" stroke="none"/><path d="M50 47c-6 0-12 2-16 6c-3 3-1 7 2 5c2-2 0-4-1-3M50 47c6 0 12 2 16 6c3 3 1 7-2 5c-2-2 0-4 1-3" fill="none" stroke="#2a1a12" stroke-width="3"/><path d="M45 55q5 3 10 0" fill="none" stroke-width="1.6"/>`),
+// 塗り屋ベタ：船の名前を塗りつぶす海賊。ペンキだらけのつなぎ、ベレー帽、大きな刷毛
+beta:mk(`<path d="${B.thug}" fill="#5a7a3a"/>${SHD(B.thug)}<path d="M34 76v84M66 76v84" stroke="#3a5a24" stroke-width="5"/><g stroke="none"><ellipse cx="30" cy="120" rx="6" ry="4" fill="#e04a8a"/><ellipse cx="64" cy="138" rx="7" ry="4" fill="#3aa0e0"/><ellipse cx="56" cy="100" rx="4" ry="3" fill="#f2d24a"/></g><path d="M74 140L92 92" stroke="#7a5236" stroke-width="4"/><path d="M86 88h14l-3 12h-9z" fill="#e04a8a"/>${NECK(50,14)}<ellipse cx="50" cy="40" rx="14" ry="16" fill="${SK}"/><path d="M32 30c2-12 34-14 38-2c-6 2-30 4-38 2z" fill="#c22d22"/><circle cx="58" cy="20" r="2.4" fill="#c22d22"/><path d="M40 38l7 1M60 38l-7 1" fill="none" stroke-width="2.2"/><ellipse cx="44" cy="42" rx="2" ry="2.4" fill="${O}" stroke="none"/><ellipse cx="56" cy="42" rx="2" ry="2.4" fill="${O}" stroke="none"/><path d="M42 50q8 6 16 0" fill="none" stroke-width="1.7"/><ellipse cx="38" cy="48" rx="3" ry="2" fill="#e04a8a" stroke="none"/>`),
+// キリオ：黒霧商会の手下。灰色の頭巾、口元を覆う布
+kirio:mk(`<path d="${B.thug}" fill="#6a6e78"/>${SHD(B.thug)}<path d="M30 92l40 0M28 112h44" stroke="#4a4e58" stroke-width="3"/><path d="M40 72l10 12 10-12" fill="#2a2c34"/>${NECK(50,14)}<ellipse cx="50" cy="40" rx="14" ry="16" fill="${SK}"/><path d="M32 42C30 18 70 18 68 42C66 30 60 26 50 26S34 30 32 42Z" fill="#4a4e58"/><path d="M36 44h28v12c-6 4-22 4-28 0z" fill="#4a4e58"/><path d="M40 38l7 2M60 38l-7 2" fill="none" stroke-width="2.2"/><ellipse cx="44" cy="41" rx="2" ry="2.2" fill="${O}" stroke="none"/><ellipse cx="56" cy="41" rx="2" ry="2.2" fill="${O}" stroke="none"/>`),
+// 番頭ソロバン：黒霧商会の番頭。緑の羽織、ちょんまげ、細い口ひげ、大きなそろばん
+soroban:mk(`<path d="${B.boss}" fill="#2a4a3a"/>${SHD(B.boss)}<path d="M34 64L50 120L66 64" fill="#e8e2d4"/><path d="M50 74v46" stroke="#2a4a3a" stroke-width="3"/><rect x="58" y="110" width="36" height="22" rx="2" fill="#7a5236"/><path d="M58 117h36M58 125h36" stroke-width="1.2"/><g fill="#2a1a12" stroke="none"><circle cx="64" cy="113.5" r="1.8"/><circle cx="72" cy="113.5" r="1.8"/><circle cx="84" cy="121" r="1.8"/><circle cx="68" cy="128.5" r="1.8"/><circle cx="80" cy="128.5" r="1.8"/><circle cx="88" cy="113.5" r="1.8"/></g>${NECK(46,16)}<ellipse cx="50" cy="38" rx="15" ry="17" fill="${SK}"/><path d="M36 30c2-10 26-12 28 0c-6-4-22-4-28 0z" fill="#1a1a1a"/><path d="M44 22h12v-6h-12z" fill="#1a1a1a"/><path d="M40 37l7 1M60 37l-7 1" fill="none" stroke-width="2"/><path d="M41 41h5M54 41h5" stroke-width="2.2"/><path d="M42 48c3-2 6-1 8 0c2-1 5-2 8 0" fill="none" stroke="#2a1a12" stroke-width="1.8"/><path d="M46 53q4 2 8 0" fill="none" stroke-width="1.4"/>`),
+// 黒霧会長：黒霧商会の会長。黒い背広にシルクハット、白い手袋、片眼鏡
+kurogiri:mk(`<path d="${B.boss}" fill="#121216"/>${SHD(B.boss)}<path d="M38 64L50 104L62 64" fill="#e8e2d4"/><path d="M44 66l6 8 6-8-6 4z" fill="#7a1420"/><path d="M84 100L92 160" stroke="#3a2a1a" stroke-width="4"/><circle cx="84" cy="98" r="5" fill="#f4f1ea"/><path d="M10 90c4 6 12 4 14 0" stroke="#3a3a42" stroke-width="2" fill="none"/>${NECK(46,16)}<ellipse cx="50" cy="40" rx="15" ry="17" fill="${SK}"/><rect x="34" y="4" width="32" height="24" fill="#0b0a0f"/><path d="M26 28h48" stroke="#0b0a0f" stroke-width="5"/><path d="M34 22h32" stroke="#7a1420" stroke-width="3"/><path d="M40 38l7 1M60 38l-7 1" fill="none" stroke-width="2"/><ellipse cx="44" cy="42" rx="2" ry="2.2" fill="${O}" stroke="none"/><circle cx="56" cy="42" r="4.6" fill="none" stroke="#d9a441" stroke-width="1.6"/><ellipse cx="56" cy="42" rx="2" ry="2.2" fill="${O}" stroke="none"/><path d="M60 46l2 10" stroke="#d9a441" stroke-width="1"/><path d="M43 51q7 3 14 0" fill="none" stroke-width="1.6"/>`),
+// フネユーレイ：幽霊船長のふりをする男。白い布をかぶり、上に船長帽。足元から長靴がのぞく
+yurei:mk(`<path d="M14 150C10 100 20 46 50 40C80 46 90 100 86 150C80 144 74 156 68 150C62 144 56 156 50 150C44 144 38 156 32 150C26 144 20 156 14 150Z" fill="#eef0f4"/><path d="M14 150C10 100 20 46 50 40C80 46 90 100 86 150" fill="url(#shd)" stroke="none"/><rect x="34" y="150" width="12" height="10" fill="#2a2a2a"/><rect x="54" y="150" width="12" height="10" fill="#2a2a2a"/><path d="M28 40C30 24 70 24 72 40Z" fill="#1a2a4a"/><path d="M24 40h52" stroke="#0b0a0f" stroke-width="4"/><path d="M46 30a4 4 0 1 0 8 0a4 4 0 1 0-8 0" fill="#d9a441"/><ellipse cx="42" cy="66" rx="5" ry="7" fill="${O}"/><ellipse cx="58" cy="66" rx="5" ry="7" fill="${O}"/><path d="M40 86q10 8 20 0" fill="${O}"/><path d="M8 100c-6-4-6-12 0-14M92 100c6-4 6-12 0-14" stroke="#eef0f4" stroke-width="6" fill="none"/>`)
+});
+Object.assign(NAMES,{takohachi:'タコ八',ouzu:'大渦',beta:'ベタ',kirio:'キリオ',soroban:'ソロバン',kurogiri:'黒霧',yurei:'フネユーレイ'});
+Object.assign(VP,{takohachi:{p:1.05,r:1.05,g:'m',i:1},ouzu:{p:.82,r:.9,g:'m',i:1},beta:{p:1.08,r:1.1,g:'m',i:1},kirio:{p:1,r:1.05,g:'m',i:1},soroban:{p:.95,r:1,g:'m',i:1},kurogiri:{p:.85,r:.92,g:'m',i:1},yurei:{p:1.1,r:.95,g:'m',i:1}});
+Object.assign(PROPS,{
+ letter:{vb:[80,60],s:.28,svg:PROP_S(`<path d="M4 6h72v48H4z" fill="#f4ecdc"/><path d="M4 6l36 26 36-26" fill="none" stroke-width="2"/><text x="40" y="50" text-anchor="middle" font-size="12" font-weight="900" fill="#c22d22" stroke="none" font-family="sans-serif">買取</text>`)},
+ paint:{vb:[80,90],s:.3,svg:PROP_S(`<path d="M14 24h52l-6 62H20z" fill="#9aa2ac"/><path d="M14 24c0-8 52-8 52 0c0 8-52 8-52 0z" fill="#e04a8a"/><path d="M22 30c0 20 4 30 2 44" stroke="#e04a8a" stroke-width="5" fill="none"/><path d="M16 22c4-16 44-16 48 0" fill="none" stroke-width="2"/>`)},
+ ship:{vb:[120,80],s:.4,svg:PROP_S(`<path d="M8 50h104l-14 24H22z" fill="#7a5236"/><path d="M58 8v42" stroke-width="3"/><path d="M60 10l34 34H60z" fill="#f4ecdc"/><path d="M56 14L26 44h30z" fill="#e8e2d4"/><path d="M14 58h92" stroke="#f4ecdc" stroke-width="2"/>`)},
+ doc:{vb:[80,100],s:.3,svg:PROP_S(`<path d="M8 6h64v88H8z" fill="#f4ecdc"/><text x="40" y="26" text-anchor="middle" font-size="10" font-weight="900" fill="${O}" stroke="none" font-family="sans-serif">登記事項</text><text x="40" y="40" text-anchor="middle" font-size="10" font-weight="900" fill="${O}" stroke="none" font-family="sans-serif">証明書</text><path d="M18 52h44M18 62h44M18 72h30" stroke-width="1.4"/><circle cx="58" cy="82" r="8" fill="none" stroke="#c22d22" stroke-width="2"/>`)},
+ flagfake:{vb:[70,90],s:.3,svg:PROP_S(`<path d="M10 4v84" stroke-width="3"/><path d="M12 6h50v34H12z" fill="#2a2a2a"/><circle cx="37" cy="23" r="9" fill="#f4f1ea" stroke="none"/><path d="M30 18l14 10M44 18L30 28" stroke="#2a2a2a" stroke-width="2"/>`)},
+ tonnage:{vb:[90,70],s:.32,svg:PROP_S(`<path d="M6 8h78v54H6z" fill="#f4ecdc"/><text x="45" y="26" text-anchor="middle" font-size="10" font-weight="900" fill="${O}" stroke="none" font-family="sans-serif">総トン数</text><text x="45" y="40" text-anchor="middle" font-size="10" font-weight="900" fill="${O}" stroke="none" font-family="sans-serif">計算書</text><path d="M16 50h58" stroke-width="1.4"/>`)}
+});
+
+/* ---------- 第三部の曲（第9話〜第12話：黒霧商会。霧の造船所と、帳簿のずる） ---------- */
+Object.assign(TR,{
+ // 造船所の朝（事件）：木づちのリズムと、明るめの口笛
+ kd3port:{bpm:108,f(a,o,s,t,d){const ch=[[50,54,57],[47,50,54],[43,47,50],[45,49,52]][s>>3];
+  if(s%4===0)I.tick(a,o,t,900,.03);if(s%8===6)I.tick(a,o,t,1300,.025);I.pluck(a,o,ch[s%3]+12,t,.02);if(s%8===0){I.pad(a,o,ch.map(n=>n+12),t,8*d,.015,1100);I.bass(a,o,ch[0]-12,t,d*3,.12,1)}
+  const m={0:[74,2],2:[76,2],4:[78,4],8:[76,2],10:[74,2],12:[71,4],16:[67,2],18:[71,2],20:[74,4],24:[73,6]}[s];if(m)I.whistle(a,o,m[0],t,m[1]*d,.026)}},
+ // 手下とのバトル：裏打ちの速い拍子と、はじく弦
+ kd3battle:{bpm:172,f(a,o,s,t,d){const r=[50,48,46,45][s>>3];if(s%4===0)I.kick(a,o,t,.6);if(s%4===2)I.snare(a,o,t,.24);if(s%2)I.hat(a,o,t,.024);
+  I.bass(a,o,r-12+(s%2?7:0),t,d*.7,.15,1);if(s%2===1)I.twang(a,o,r+[24,27,31,29][(s>>1)%4],t,.04);if(s%16===8)I.brass(a,o,r+24,t,d*3,.05);if(s===31)I.whip(a,o,t,.3)}},
+ // 黒霧商会の登場：霧笛と低い弦、そろばんの玉の音
+ kd3bossin:{bpm:70,f(a,o,s,t,d){if(s%2===0)I.tick(a,o,t,s%4?1500:1800,.02);if(s%16===0){I.cello(a,o,[38,37][s>>4],t,15*d,.06);I.pad(a,o,[[50,53,57],[49,52,56]][s>>4],t,16*d*.95,.018,700)}
+  if(s===8||s===24)I.brass(a,o,38,t,d*5,.04);if(s%8===4)I.taiko(a,o,t,.3)}},
+ // 黒霧商会とのボス戦：ブラスとオルガンの、跳ねる短調
+ kd3boss:{bpm:160,f(a,o,s,t,d){const bar=s>>3,r=[38,41,43,36][bar];if(s%4===0)I.kick(a,o,t,.66);if(s%4===2)I.snare(a,o,t,.26);if(s%2)I.hat(a,o,t,.028);
+  I.bass(a,o,r-12+[0,12,10,12][s%4],t,d*.75,.17,1);if(s%4===2)I.organ(a,o,[r+24,r+27,r+31],t,d*1.8,.012);
+  const m={0:[74,1],1:[77,1],2:[81,2],4:[79,2],6:[77,2],8:[76,3],11:[74,1],12:[72,4],16:[74,1],17:[77,1],18:[81,2],20:[84,4],24:[82,2],26:[81,2],28:[79,4]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d,.06);if(s===31)I.whip(a,o,t,.35)}}
+});
+/* ---------- 第四部の曲（第13話〜第16話：幽霊船のうわさ。ちょっと不気味で、ちょっとおかしい） ---------- */
+Object.assign(TR,{
+ // 夜の港（事件）：3拍子の、ふしぎな鐘とチェロ
+ kd4port:{bpm:96,f(a,o,s,t,d){const k=s%6,ch=[[45,48,52],[44,47,52],[41,45,48],[40,44,47]][Math.floor(s/8)%4];
+  if(k===0){I.cello(a,o,ch[0]-12,t,5.6*d,.05);I.bell(a,o,ch[2]+24,t,.02,3)}else if(k===2||k===4)I.pluck(a,o,ch[(k>>1)%3]+12,t,.02);
+  const m={0:[76,3],3:[77,3],6:[76,2],8:[72,4],12:[71,3],15:[72,3],18:[69,6],24:[68,6]}[s];if(m)I.whistle(a,o,m[0],t,m[1]*d,.024)}},
+ // 手下とのバトル：3拍子の速い踊り
+ kd4battle:{bpm:180,f(a,o,s,t,d){const k=s%6,r=[45,43,41,40][Math.floor(s/8)%4];if(k===0)I.kick(a,o,t,.6);if(k===3)I.snare(a,o,t,.22);if(k===2||k===5)I.hat(a,o,t,.02);
+  I.bass(a,o,r-12+[0,7,12,7,12,7][k],t,d*.7,.14,1);I.bell(a,o,r+[24,31,36,31,27,31][k],t,.016,1);if(s===31)I.whip(a,o,t,.3)}},
+ // 幽霊船長の登場：ゆらゆらするオルガンと、きしむ音
+ kd4bossin:{bpm:60,f(a,o,s,t,d){if(s%16===0){I.organ(a,o,[[45,48,52],[44,48,51]][s>>4],t,16*d*.95,.024);I.choir(a,o,[[57,60,64],[56,60,63]][s>>4],t,16*d*.95,.018)}
+  if(s%4===2)I.tick(a,o,t,s%8===2?500:420,.03);if(s===10||s===26)I.bell(a,o,88,t,.025,4)}},
+ // 幽霊船長とのボス戦：オルガンとブラスの3拍子の決戦
+ kd4boss:{bpm:168,f(a,o,s,t,d){const k=s%6,r=[45,41,43,40][Math.floor(s/8)%4];if(k===0)I.kick(a,o,t,.66);if(k===3)I.snare(a,o,t,.26);if(k!==0&&k!==3)I.hat(a,o,t,.026);
+  I.bass(a,o,r-12+[0,12,7][k%3],t,d*.75,.17,1);if(k===0)I.organ(a,o,[r+24,r+27,r+31],t,d*5.5,.012);
+  const m={0:[76,3],3:[79,3],6:[81,2],8:[79,4],12:[77,3],15:[76,3],18:[74,2],20:[76,6],26:[72,3],29:[74,3]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d,.06);if(s===31)I.whip(a,o,t,.35)}}
+});
+
+/* ==================== 決め技（CH.fin='gag'）：毎話ちがう、海のおかしな決め技 ====================
+   話データに gag:{type, taunt, reply, ask, name, react, bye} を書く。せりふは全部、声の自動録音で録る。
+   type：net（漁網）・paint（ペンキ）・whirl（大渦）・anchor（錨）・wave（大波）・barrel（樽）・whale（鯨）・bubble（泡）・cannon（大砲）・sail（帆）
+   けがや血は出さない。最後はいつも、相手が遠くへ飛んでいって「キラーン」。 */
+document.head.insertAdjacentHTML('beforeend',`<style>
+.kdgag{position:absolute;z-index:7;pointer-events:none}
+.kdgag svg{width:100%;height:auto;display:block;overflow:visible}
+.kdgag.back{z-index:1}
+.kdspin{animation:kdSpin .7s linear infinite;transform-origin:50% 50%}
+@keyframes kdSpin{to{transform:rotate(360deg)}}
+.kdgust{position:absolute;z-index:6;height:3px;border-radius:2px;background:rgba(230,244,255,.85);pointer-events:none}
+.kdspout{position:absolute;z-index:3;pointer-events:none;background:linear-gradient(#e8f6ff,rgba(122,184,224,.6));border-radius:40% 40% 0 0;transform-origin:50% 100%}
+.kdball{position:absolute;z-index:7;pointer-events:none;border-radius:50%;background:#f4ecdc;border:3px solid #2a160a;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:900;color:#c22d22}
+.kdsplash{position:absolute;z-index:6;pointer-events:none}
+</style>`);
+const KD_GAG=(()=>{
+  const A=(el,fr,ms,ease='ease',fill='forwards')=>el.animate(fr,{duration:(typeof reduce!=='undefined'&&reduce)?1:ms,easing:ease,fill}).finished.catch(()=>{});
+  const put=(el,x,y,w)=>{el.style.left=x+'px';el.style.top=y+'px';el.style.width=w+'px'};
+  const T=(x,y,r=0,s=1)=>`translate(${x}px,${y}px) rotate(${r}deg) scale(${s})`;
+  const S=(vb,body)=>`<svg viewBox="${vb}" stroke="#1a120c" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">${body}</svg>`;
+  return {
+  net:{boom:'バサァッ！',bye:'釣れた～！',
+    svg:S('0 0 120 130',`<path d="M60 4v14" fill="none"/><path d="M14 30c0-10 92-10 92 0l-8 90c-20 10-56 10-76 0z" fill="rgba(210,190,140,.35)"/>${[...Array(6)].map((_,i)=>`<path d="M${22+i*15} 26l${-2+i}  ${98}" fill="none" stroke-width="2"/>`).join('')}${[...Array(6)].map((_,i)=>`<path d="M16 ${42+i*15}h88" fill="none" stroke-width="2"/>`).join('')}<path d="M14 30c0-10 92-10 92 0" fill="none" stroke="#7a5236" stroke-width="5"/>`),
+    place:g=>({w:g.bw*1.5,x:g.bcx-g.bw*.75,y:-g.bw*2.4}),
+    enter:(p,b,g)=>A(p,[{transform:T(0,0)},{transform:T(0,g.bw*2.4+g.by-g.bw*1.1)}],1000,'ease-out'),
+    hit:(p,b,g)=>{A(p,[{transform:T(0,g.bw*2.4+g.by-g.bw*1.1)},{transform:T(0,g.bw*2.4+g.by+g.bh-g.bw*1.62)}],220,'ease-in');return A(b,[{transform:'scale(1)'},{transform:'scale(.86)'}],220)},
+    exit:(p,b,g)=>{const y0=g.bw*2.4+g.by+g.bh-g.bw*1.62;A(p,[{transform:T(0,y0)},{transform:T(-10,y0-40,-6)},{transform:T(10,y0-g.H*2.6,8)}],1800,'ease-in');return A(b,[{transform:T(0,0,0,.86)},{transform:T(-10,-40,-6,.86)},{transform:T(10,-g.H*2.6,8,.86)}],1800,'ease-in')}},
+  paint:{boom:'ベチャーッ！',bye:'ツルーン！',
+    svg:S('0 0 100 100',`<path d="M18 30h64l-8 64H26z" fill="#9aa2ac"/><path d="M18 30c0-10 64-10 64 0c0 10-64 10-64 0z" fill="#e04a8a"/><path d="M20 28c4-24 56-24 60 0" fill="none" stroke-width="3"/>`),
+    place:g=>({w:g.bw*.9,x:g.bcx-g.bw*.1,y:-g.bw*2}),
+    enter:(p,b,g)=>A(p,[{transform:T(0,0)},{transform:T(0,g.bw*2+g.by-g.bw*.85,0)}],900,'ease-out'),
+    hit:(p,b,g,st)=>{const y=g.bw*2+g.by-g.bw*.85;A(p,[{transform:T(0,y,0)},{transform:T(-g.bw*.3,y,-150)}],260,'ease-in');
+      const sp=document.createElement('div');sp.className='kdsplash';put(sp,g.bx-g.bw*.1,g.by-g.bw*.1,g.bw*1.2);sp.innerHTML=`<svg viewBox="0 0 100 160"><path d="M20 10c20-14 50-10 64 4c10 30-2 60 8 100c4 20-6 40-20 40c-8-20-6-50-14-60c-6 30-10 50-24 58c-10-10-6-40-10-60c-8 10-14 30-20 20c6-30-2-80 16-102z" fill="#e04a8a" opacity=".92"/></svg>`;st.appendChild(sp);
+      A(sp,[{transform:'scaleY(0)',transformOrigin:'50% 0'},{transform:'scaleY(1)',transformOrigin:'50% 0'}],300,'ease-out');b._kd=sp;return A(b,[{filter:'none'},{filter:'sepia(1) saturate(5) hue-rotate(290deg)'}],300)},
+    exit:(p,b,g)=>{if(b._kd)A(b._kd,[{transform:T(0,0)},{transform:T(g.W*1.1,g.bh*.3,400)}],1500,'ease-in');A(p,[{opacity:1},{opacity:0}],600);return A(b,[{transform:T(0,0)},{transform:T(-14,0,-10)},{transform:T(g.W*1.1,g.bh*.3,400)}],1500,'ease-in')}},
+  whirl:{boom:'グルグルグル～！',bye:'目が回る～！',
+    svg:`<svg viewBox="0 0 200 70"><ellipse cx="100" cy="35" rx="96" ry="30" fill="#1e5a8a"/><g transform="translate(100 35) scale(1 .3)"><g class="kdspin" style="transform-box:fill-box"><path d="M-84 0a84 84 0 1 0 168 0a72 72 0 1 0-144 0a58 58 0 1 0 116 0a42 42 0 1 0-84 0a24 24 0 1 0 48 0" fill="none" stroke="#e8f6ff" stroke-width="10"/></g></g></svg>`,
+    place:g=>({w:g.bw*2.1,x:g.bcx-g.bw*1.05,y:g.by+g.bh-g.bw*.5}),
+    enter:(p,b,g)=>A(p,[{transform:'scale(.1)',opacity:0},{transform:'scale(1)',opacity:1}],900,'ease-out'),
+    hit:(p,b,g)=>A(b,[{transform:T(0,0,0,1)},{transform:T(0,g.bh*.1,720,.75)},{transform:T(0,g.bh*.2,1440,.55)}],1400,'ease-in'),
+    exit:(p,b,g)=>{A(p,[{transform:'scale(1)',opacity:1},{transform:'scale(1.3)',opacity:0}],1600);return A(b,[{transform:T(0,g.bh*.2,1440,.55)},{transform:T(20,-g.H*2.8,2880,.25)}],1700,'ease-in')}},
+  anchor:{boom:'ゴイーン！',bye:'スポーン！',
+    svg:S('0 0 100 140',`<circle cx="50" cy="14" r="10" fill="none" stroke="#5a6470" stroke-width="7"/><path d="M50 24v96" stroke="#5a6470" stroke-width="12"/><path d="M28 40h44" stroke="#5a6470" stroke-width="10"/><path d="M10 92c6 30 30 42 40 42s34-12 40-42" fill="none" stroke="#5a6470" stroke-width="12"/><path d="M2 96l10-14 10 12zM98 96l-10-14-10 12z" fill="#5a6470"/>`),
+    place:g=>({w:g.bw*.8,x:g.bcx-g.bw*.4,y:-g.bw*3}),
+    enter:(p,b,g)=>A(p,[{transform:T(0,0)},{transform:T(0,g.bw*3+g.by-g.bw*1.45)}],1000,'ease-out'),
+    hit:(p,b,g)=>{A(p,[{transform:T(0,g.bw*3+g.by-g.bw*1.45)},{transform:T(0,g.bw*3+g.by-g.bw*.95)}],200,'ease-in');return A(b,[{transform:'scaleY(1)',transformOrigin:'50% 100%'},{transform:'scaleY(.5) scaleX(1.15)',transformOrigin:'50% 100%'}],200,'ease-in')},
+    exit:(p,b,g)=>{A(p,[{transform:T(0,g.bw*3+g.by-g.bw*.95)},{transform:T(0,-g.bw*1.5)}],500,'ease-in');return A(b,[{transform:'scaleY(.5) scaleX(1.15)',transformOrigin:'50% 100%'},{transform:'translateY(-30px) scaleY(1.3) scaleX(.9)',transformOrigin:'50% 100%'},{transform:`translateY(${-g.H*2.8}px) rotate(1080deg) scale(.4)`,transformOrigin:'50% 100%'}],1500,'ease-out')}},
+  wave:{boom:'ザッパーン！',bye:'あ～れ～！',
+    svg:`<svg viewBox="0 0 200 120"><path d="M0 120V70C20 30 60 4 104 6c40 2 64 26 60 50c-4 18-24 22-34 10c10-2 14-14 6-22c-14-12-44-6-56 22C68 88 60 110 70 120z" fill="#2a7ab8" stroke="#0e3a5a" stroke-width="3"/><path d="M110 12c30 4 50 22 48 42" fill="none" stroke="#e8f6ff" stroke-width="5"/><g fill="#e8f6ff"><circle cx="150" cy="18" r="4"/><circle cx="166" cy="30" r="3"/><circle cx="176" cy="44" r="2.4"/></g></svg>`,
+    place:g=>({w:g.W*.8,x:-g.W*.9,y:g.H-g.W*.48}),
+    enter:(p,b,g)=>{p.classList.add('back');return A(p,[{transform:T(0,0)},{transform:T(g.W*.55,0)}],1000,'ease-out')},
+    hit:(p,b,g)=>{p.classList.remove('back');A(p,[{transform:T(g.W*.55,0)},{transform:T(g.W*2.2,0)}],1100,'ease-in');return A(b,[{transform:T(0,0)},{transform:T(g.W*.25,-g.bh*.4,-200)}],900,'ease-in')},
+    exit:(p,b,g)=>A(b,[{transform:T(g.W*.25,-g.bh*.4,-200)},{transform:T(g.W*.9,-g.bh*1.2,-900,.2)}],1600,'ease-out')},
+  barrel:{boom:'スッポーン！',bye:'ゴロゴロ～！',
+    svg:S('0 0 100 120',`<path d="M14 10c-8 30-8 70 0 100h72c8-30 8-70 0-100z" fill="#9a6a3a"/><path d="M10 34h80M8 60h84M10 86h80" stroke="#3a2a1a" stroke-width="5"/><path d="M30 10c-4 30-4 70 0 100M70 10c4 30 4 70 0 100" fill="none" stroke-width="2"/>`),
+    place:g=>({w:g.bw*1.05,x:g.bcx-g.bw*.525,y:-g.bw*3}),
+    enter:(p,b,g)=>A(p,[{transform:T(0,0)},{transform:T(0,g.bw*3+g.by-g.bw*1.4)}],1000,'ease-out'),
+    hit:(p,b,g)=>A(p,[{transform:T(0,g.bw*3+g.by-g.bw*1.4)},{transform:T(0,g.bw*3+g.by+g.bh*.02)}],220,'ease-in'),
+    exit:(p,b,g)=>{const y=g.bw*3+g.by+g.bh*.02;A(p,[{transform:T(0,y,0)},{transform:T(0,y+g.bh*.35,90)},{transform:T(g.W*1.2,y+g.bh*.35,720)}],1700,'ease-in');return A(b,[{transform:T(0,0)},{transform:T(0,g.bh*.35,90)},{transform:T(g.W*1.2,g.bh*.35,720)}],1700,'ease-in')}},
+  whale:{boom:'プシャーッ！',bye:'空まで～！',
+    svg:S('0 0 200 90',`<path d="M10 60c10-40 120-56 160-30c14 10 18 22 8 30l18 -16c4 10 0 26-12 30c-10 26-150 30-174-14z" fill="#3a6a9a"/><path d="M30 70c40 10 100 10 140-4" fill="none" stroke="#e8f6ff" stroke-width="3"/><circle cx="56" cy="46" r="4" fill="#1a120c"/><path d="M50 58q8 6 18 0" fill="none" stroke-width="2.4"/>`),
+    place:g=>({w:g.bw*2.3,x:g.bcx-g.bw*1.15,y:g.H+10}),
+    enter:(p,b,g)=>A(p,[{transform:T(0,0)},{transform:T(0,-g.bw*2.3*.45-10)}],1000,'ease-out'),
+    hit:(p,b,g,st)=>{const sp=document.createElement('div');sp.className='kdspout';sp.style.left=(g.bcx-g.bw*.3)+'px';sp.style.width=(g.bw*.6)+'px';sp.style.bottom='0px';sp.style.height=(g.H*.9)+'px';st.appendChild(sp);b._kd=sp;
+      A(sp,[{transform:'scaleY(0)'},{transform:'scaleY(1)'}],500,'ease-out');return A(b,[{transform:T(0,0)},{transform:T(0,-g.H*.75)}],500,'ease-out')},
+    exit:(p,b,g)=>{if(b._kd)A(b._kd,[{opacity:1},{opacity:0}],900);A(p,[{transform:T(0,-g.bw*2.3*.45-10),opacity:1},{transform:T(0,0),opacity:0}],1200,'ease-in');return A(b,[{transform:T(0,-g.H*.75)},{transform:T(30,-g.H*3,1080,.3)}],1600,'ease-in')}},
+  bubble:{boom:'ポワワーン！',bye:'ふわふわ～',
+    svg:`<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="rgba(170,220,255,.28)" stroke="rgba(230,248,255,.9)" stroke-width="3"/><path d="M24 34c6-12 18-18 30-18" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/><circle cx="70" cy="74" r="5" fill="rgba(255,255,255,.7)"/></svg>`,
+    place:g=>({w:g.bh*.95,x:g.bcx-g.bh*.475,y:g.by+g.bh*.02}),
+    enter:(p,b,g)=>A(p,[{transform:'scale(0)'},{transform:'scale(1.15)'},{transform:'scale(.95)'},{transform:'scale(1)'}],900,'ease-out'),
+    hit:(p,b,g)=>{A(p,[{transform:T(0,0)},{transform:T(0,-g.bh*.25)}],600,'ease-out');return A(b,[{transform:T(0,0,0,1)},{transform:T(0,-g.bh*.25,-8,.9)}],600,'ease-out')},
+    exit:(p,b,g)=>{const fr=k=>[{transform:T(0,-g.bh*.25,0,k)},{transform:T(-24,-g.H*.9,10,k)},{transform:T(20,-g.H*1.8,-10,k)},{transform:T(-10,-g.H*2.8,8,k)}];A(p,fr(1),2400,'ease-in');return A(b,fr(.9),2400,'ease-in')}},
+  cannon:{boom:'ドッカーン！',bye:'ボヨヨーン！',
+    svg:S('0 0 120 80',`<path d="M18 30l80-16 8 22-82 16z" fill="#3a3a42"/><circle cx="104" cy="25" r="10" fill="#3a3a42"/><circle cx="34" cy="58" r="16" fill="#7a5236"/><circle cx="34" cy="58" r="5" fill="#3a2a1a"/><path d="M4 74h60" stroke-width="5"/>`),
+    place:g=>({w:g.hw*1.2,x:g.hx+g.hw*.2,y:g.H-g.hw*.8}),
+    enter:(p,b,g)=>A(p,[{transform:T(-g.W*.5,0)},{transform:T(0,0)}],800,'ease-out'),
+    hit:(p,b,g,st)=>{const ball=document.createElement('div');ball.className='kdball';const s=g.bw*.5;ball.style.width=ball.style.height=s+'px';ball.style.fontSize=(s*.5)+'px';ball.textContent='法';put(ball,g.hx+g.hw*1.3,g.H-g.hw*.8-s*.3,s);ball.style.height=s+'px';st.appendChild(ball);b._kd=ball;
+      A(p,[{transform:T(0,0)},{transform:T(-16,0)},{transform:T(0,0)}],300);return A(ball,[{transform:T(0,0)},{transform:T(g.bcx-(g.hx+g.hw*1.3)-s/2,g.by+g.bh*.3-(g.H-g.hw*.8-s*.3))}],320,'ease-in')},
+    exit:(p,b,g)=>{if(b._kd)A(b._kd,[{opacity:1},{opacity:0}],400);return A(b,[{transform:T(0,0)},{transform:T(g.W*.25,-g.H*.6,240,.8)},{transform:T(g.W*.6,-g.H*2.2,720,.3)}],1600,'ease-out')}},
+  sail:{boom:'ビュオオオオッ！',bye:'飛ばされる～！',
+    svg:S('0 0 120 160',`<path d="M20 4v152" stroke-width="5"/><path d="M24 10c60 10 84 60 70 130H24z" fill="#f4ecdc"/><path d="M24 50c40 4 60 20 66 44" fill="none" stroke="#c22d22" stroke-width="5"/><text x="56" y="120" text-anchor="middle" font-size="26" font-weight="900" fill="#14243c" stroke="none" font-family="sans-serif">法</text>`),
+    place:g=>({w:g.hw*1.05,x:g.hx+g.hw*.3,y:g.H-g.hw*1.05*1.33}),
+    enter:(p,b,g)=>{p.classList.add('back');return A(p,[{transform:'scaleY(0)',transformOrigin:'50% 100%'},{transform:'scaleY(1)',transformOrigin:'50% 100%'}],800,'ease-out')},
+    hit:(p,b,g,st)=>{for(let i=0;i<6;i++){const l=document.createElement('div');l.className='kdgust';l.style.top=(g.H*(.15+i*.13))+'px';l.style.left=(g.hx)+'px';l.style.width=(g.W*.3)+'px';st.appendChild(l);A(l,[{transform:T(0,0),opacity:1},{transform:T(g.W*.9,0),opacity:0}],700+i*60,'ease-in').then(()=>l.remove())}
+      return A(b,[{transform:T(0,0)},{transform:T(g.W*.06,-g.bh*.2,-25)}],600,'ease-out')},
+    exit:(p,b,g)=>A(b,[{transform:T(g.W*.06,-g.bh*.2,-25)},{transform:T(g.W*.7,-g.H*1.6,-760,.3)}],1600,'ease-in')}
+  }})();
+function finisherGag(){
+  BGM.stop();closeSheet();stopSay();
+  const G=Object.assign({ask:'な、なんだ、これは！？',bye:'おぼえてろ～っ！'},CH.gag||{}),K=KD_GAG[G.type]||KD_GAG.net;
+  const name=EP.lawName||EP.ougi,ov=$('#ov'),bk=VP[EP.efig]?EP.efig:'boss',who=EP.efigName||EP.enemy;ov.hidden=false;ov.classList.add('black');
+  const wait=ms=>new Promise(r=>setTimeout(r,ms)),sayP=(t,k)=>new Promise(r=>say([[t,k]],r));
+  const line=(t,w,cls='')=>{const l=$('#fline');if(l)l.innerHTML=t?`<div class="fl ${cls}"><b>${w}</b>${t}</div>`:''};
+  const pop=(st,txt,top,left,big)=>{const v=document.createElement('div');v.className='kiai hyk'+(big?' big':'');v.textContent=txt;v.style.top=top;v.style.left=left;if(big)v.style.fontSize=Math.min(44,Math.floor(330/[...txt].length))+'px';st.appendChild(v);return v};
+  ov.innerHTML=`<div class="finisher hk"><div class="stage fstage" id="fstage">${stageHTML(EP.efig||'boss',EP.enemy,1,EP.efigName)}</div><div class="fline" id="fline"></div></div>`;
+  const st=$('#fstage'),boss=st.querySelector('.fig.r'),hero=st.querySelector('.fig.l');
+  (async()=>{
+    await wait(400);
+    const sr=st.getBoundingClientRect(),br=boss.getBoundingClientRect(),hr=hero.getBoundingClientRect();
+    const g={W:sr.width,H:sr.height,bx:br.left-sr.left,by:br.top-sr.top,bw:br.width,bh:br.height,bcx:br.left-sr.left+br.width/2,hx:hr.left-sr.left,hw:hr.width};
+    const p=document.createElement('div');p.className='kdgag';p.innerHTML=K.svg;const pl=K.place(g);p.style.left=pl.x+'px';p.style.top=pl.y+'px';p.style.width=pl.w+'px';
+    // 1. 強がりと、決めぜりふ
+    line(G.taunt,who);await Promise.all([sayP(G.taunt,bk),wait(1700)]);
+    line(G.reply,'佐藤','hero');await Promise.all([sayP(G.reply,'hero'),wait(1500)]);line('');
+    // 2. 海の道具が現れる
+    st.appendChild(p);hero.classList.add('leap');const a=ac();if(a){I.bell(a,a.destination,79,a.currentTime,.06,2);I.bell(a,a.destination,86,a.currentTime+.3,.05,2)}
+    await K.enter(p,boss,g);hero.classList.remove('leap');
+    line(G.ask,who);await Promise.all([sayP(G.ask,bk),wait(1200)]);
+    // 3. 技の名前と、一撃
+    const k=pop(st,G.name,'6%','4%',1);say([[G.name,'hero']]);await wait(500);
+    const hp=K.hit(p,boss,g,st);await wait(180);const w=document.createElement('div');w.className='whiteout-mini';st.appendChild(w);setTimeout(()=>w.remove(),400);
+    st.classList.remove('shake','impact');void st.offsetWidth;st.classList.add('shake','impact');punch(2.4);hit(2);const b=pop(st,K.boom,'58%','36%');
+    await hp;await wait(700);k.remove();b.remove();
+    // 4. 相手の、おかしな悲鳴
+    line(G.react,who,'big');await Promise.all([sayP(G.react,bk),wait(1500)]);
+    // 5. 遠くへ飛んでいく
+    const v=pop(st,K.bye,'22%','40%');line(G.bye,who,'big');say([[G.bye,bk]]);
+    await K.exit(p,boss,g);v.remove();
+    const star=document.createElement('div');star.className='kiran top';star.textContent='キラーン';st.appendChild(star);
+    const a3=ac();if(a3){I.bell(a3,a3.destination,88,a3.currentTime,.12);I.bell(a3,a3.destination,91,a3.currentTime+.12,.12)}
+    await wait(1500);line('');p.remove();if(boss._kd)boss._kd.remove();
+    await ougiTail(ov,name,sayP,wait);
+  })();
+}
+{const _fin2=finisher;finisher=function(){if(hokuto()&&CH&&CH.fin==='gag')return finisherGag();return _fin2.apply(this,arguments)}}
