@@ -545,3 +545,82 @@ Object.assign(TR,{
  t10boss:{bpm:150,f(a,o,s,t,d){const bar=s>>3,r=[41,41,44,39][bar];if(s%4===0)I.kick(a,o,t,.65);if(s%4===2)I.snare(a,o,t,.24);I.hat(a,o,t,.025);I.bass(a,o,r-12+(s%2?12:0),t,d*.6,.16,1);if(s%2===0)I.cello(a,o,r+12,t,d*.9,.04);
   if(s%8===0)I.choir(a,o,[[65,68,72],[65,68,72],[68,72,75],[63,67,70]][bar],t,8*d,.028);const m={0:[77,3],3:[79,1],4:[80,4],8:[79,2],10:[77,2],12:[75,4],16:[72,3],19:[75,1],20:[77,4],24:[80,4],28:[82,4]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d,.065);if(s===31)I.whip(a,o,t,.3)}}
 });
+
+/* ===================================================================
+   第11話〜第20話「黒鍵の逆襲編」の登場人物・小道具・曲
+   =================================================================== */
+// ボスの姿を組み立てる小さな道具（体・服・髪・顔・持ち物）
+const TKFIG=c=>mk(`${c.back||''}<path d="${B[c.body||'wide']}" fill="${c.coat}"/>${SHD(B[c.body||'wide'])}${c.front||`<path d="M38 70L50 ${c.vy||110}L62 70" fill="${c.shirt||'#efe8d8'}"/><path d="M50 74l-4 6 3 30 1 3 1-3 3-30z" fill="${c.tie||'#7a1a2a'}"/>`}${c.over||''}${NECK(50,14)}<ellipse cx="50" cy="40" rx="15" ry="17" fill="${SK}"/>${c.hair||''}${c.face||`<path d="M39 34l8 3M61 34l-8 3" stroke-width="2.4" fill="none"/><path d="M41 41h5M54 41h5" stroke-width="2" fill="none"/><path d="M42 50q8 4 16-1" fill="none" stroke-width="1.8"/>`}${c.top||''}`);
+const HAIR={
+ slick:`<path d="M35 34C34 20 43 15 51 15C60 15 66 21 65 34C61 26 54 24 48 25C42 26 38 29 35 34Z" fill="#141216"/>`,
+ side:`<path d="M36 32C35 20 43 16 50 16C58 16 65 20 64 32L60 26C54 24 46 24 40 26Z" fill="#2a2420"/>`,
+ gray:`<path d="M35 33C33 19 43 15 50 15C58 15 67 19 65 33C62 27 57 25 50 26C43 25 38 27 35 33Z" fill="#9aa0a8"/>`,
+ spike:`<path d="M34 34L36 18L42 24L46 12L51 22L56 11L59 22L65 16L66 34C60 27 40 27 34 34Z" fill="#3a2a1a"/>`,
+ long:`<path d="M33 36C30 18 42 13 50 13C58 13 70 18 67 36L68 58L62 54C64 44 62 32 50 29C38 32 36 44 38 54L32 58Z" fill="#1a1418"/>`,
+ bald:`<path d="M36 34q14-12 28 0" fill="none" stroke="#d8b090" stroke-width="1.2"/>`
+};
+Object.assign(SIL,{
+// 名取：黒鍵の「名義屋」。白いスーツに、他人の免許証を何枚も持つ
+natori:TKFIG({body:'slim',coat:'#e8e2d6',tie:'#1d2a5a',hair:HAIR.side,over:`<rect x="64" y="98" width="20" height="13" rx="2" fill="#f4ecdc" transform="rotate(-12 74 104)"/><rect x="66" y="104" width="20" height="13" rx="2" fill="#f4ecdc" transform="rotate(6 76 110)"/><text x="76" y="114" text-anchor="middle" font-size="7" font-weight="900" fill="#c22d22" stroke="none" font-family="sans-serif">免許</text>`}),
+// 影浦：黒鍵の「なりすまし屋」。黒いマスクのような眼鏡
+kageura:TKFIG({body:'slim',coat:'#2a2830',shirt:'#4a4650',tie:'#c22d22',hair:HAIR.long,face:`<rect x="37" y="36" width="26" height="8" rx="3" fill="#111" stroke-width="1.2"/><path d="M43 51q7 2 14-1" fill="none" stroke-width="1.8"/>`}),
+// 銀次：黒鍵の「金庫番」。金庫を抱えた太った男
+ginji:TKFIG({body:'inn',coat:'#5a4a2a',tie:'#d9a441',hair:HAIR.bald,over:`<rect x="58" y="100" width="30" height="30" rx="3" fill="#4a5058"/><circle cx="73" cy="115" r="6" fill="none" stroke="#d9a441" stroke-width="2.4"/><path d="M73 109v4" stroke="#d9a441" stroke-width="2"/>`,face:`<path d="M40 36l7 2M60 36l-7 2" stroke-width="2.2" fill="none"/><circle cx="44" cy="42" r="1.6" fill="${O}" stroke="none"/><circle cx="56" cy="42" r="1.6" fill="${O}" stroke="none"/><path d="M41 50q9 7 18 0" fill="none" stroke-width="1.8"/><path d="M44 47q6-3 12 0" fill="none" stroke-width="2"/>`}),
+// 早瀬：黒鍵の「先売り屋」。まだ自分のものでない土地の権利証を振りかざす
+hayase:TKFIG({body:'thug',coat:'#1d4a5a',tie:'#f0c040',hair:HAIR.spike,over:`<path d="M14 104l18-14" stroke="#1d4a5a" stroke-width="9"/><rect x="2" y="72" width="22" height="28" rx="2" fill="#f4ecdc" transform="rotate(-14 13 86)"/><path d="M6 80h14M6 86h14M6 92h9" stroke-width="1.2" transform="rotate(-14 13 86)"/>`}),
+// 九条：黒鍵の「解約屋」。大きなはさみで契約を切る
+kujo:TKFIG({body:'coat',coat:'#3a1a2a',tie:'#e8e2d6',hair:HAIR.slick,over:`<path d="M70 120l20-40M84 120l2-44" stroke="#b8bcc4" stroke-width="4"/><circle cx="68" cy="126" r="6" fill="none" stroke="#c22d22" stroke-width="3"/><circle cx="85" cy="126" r="6" fill="none" stroke="#c22d22" stroke-width="3"/>`}),
+// 岩鬼：黒鍵の「造成屋」。ヘルメットとつるはし
+iwaki:TKFIG({body:'dogra',coat:'#c8701a',shirt:'#3a3a3a',tie:'#3a3a3a',hair:'',top:`<path d="M33 30q17-22 34 0z" fill="#f0c040"/><path d="M30 30h40" stroke-width="3"/>`,over:`<path d="M80 150L88 64" stroke="#6b4a2a" stroke-width="5"/><path d="M70 66q18-12 30 6" stroke="#8a8f98" stroke-width="6" fill="none"/>`}),
+// 角田：黒鍵の「違反建築屋」。巻き尺と設計図
+kakuta:TKFIG({body:'wide',coat:'#4a5a3a',tie:'#c22d22',hair:HAIR.gray,over:`<rect x="62" y="100" width="24" height="18" rx="2" fill="#2a6ad4"/><path d="M66 106h16M66 112h10" stroke="#e8f0ff" stroke-width="1.4"/><circle cx="20" cy="112" r="9" fill="#f0c040"/><path d="M20 112h-14" stroke="#f0c040" stroke-width="3"/>`,face:`<path d="M39 34l8 3M61 34l-8 3" stroke-width="2.4" fill="none"/><circle cx="44" cy="41" r="4.4" fill="none" stroke-width="1.6"/><circle cx="56" cy="41" r="4.4" fill="none" stroke-width="1.6"/><path d="M48.6 41h2.8" stroke-width="1.4"/><path d="M42 51q8 3 16-1" fill="none" stroke-width="1.8"/>`}),
+// 稲垣：黒鍵の「農地ころがし」。麦わら帽子に札束
+inagaki:TKFIG({body:'haru',coat:'#6a5a2a',shirt:'#e8e2d6',tie:'#2a6a3a',hair:'',top:`<ellipse cx="50" cy="27" rx="27" ry="6" fill="#e0c068"/><path d="M38 27q12-18 24 0z" fill="#e0c068"/><path d="M38 25h24" stroke="#c22d22" stroke-width="2.4"/>`,over:`<rect x="62" y="102" width="22" height="12" rx="1" fill="#9fd08a"/><rect x="64" y="110" width="22" height="12" rx="1" fill="#9fd08a"/><text x="75" y="120" text-anchor="middle" font-size="8" font-weight="900" fill="#2a5a2a" stroke="none">￥</text>`}),
+// 袋田：黒鍵の「税逃れの算盤」。そろばんを弾く
+fukuroda:TKFIG({body:'old',coat:'#2a3a5a',tie:'#d9a441',hair:HAIR.side,over:`<rect x="52" y="104" width="34" height="18" rx="2" fill="#6b4a2a"/><path d="M56 109h26M56 117h26" stroke="#3a2418" stroke-width="1.2"/><g fill="#1d1a22" stroke="none"><circle cx="58" cy="109" r="2"/><circle cx="64" cy="109" r="2"/><circle cx="72" cy="117" r="2"/><circle cx="78" cy="117" r="2"/><circle cx="62" cy="117" r="2"/></g>`,face:`<path d="M40 35l7 3M60 35l-7 3" stroke-width="2.2" fill="none"/><path d="M41 42q3-2 6 0M53 42q3-2 6 0" stroke-width="1.8" fill="none"/><path d="M44 50q6 4 12 0" fill="none" stroke-width="1.8"/><path d="M36 46q-2 10 6 14" stroke="#2a2420" stroke-width="1.6" fill="none"/>`}),
+// 黒鉄：黒鍵商会の会長。黒いマントと、街を閉じる巨大な鍵
+kurogane:TKFIG({body:'coat',coat:'#0e0c12',shirt:'#5a1414',tie:'#d9a441',hair:HAIR.gray,back:`<path d="M2 160L20 70L50 58L80 70L98 160Z" fill="#3a0e14"/>`,top:`<rect x="36" y="4" width="28" height="18" fill="#0e0c12"/><path d="M28 22h44" stroke="#0e0c12" stroke-width="5"/><path d="M36 18h28" stroke="#d9a441" stroke-width="2.4"/>`,over:`<circle cx="80" cy="84" r="9" fill="none" stroke="#d9a441" stroke-width="4"/><path d="M80 93v54M80 130h8M80 140h7" stroke="#d9a441" stroke-width="4" fill="none"/>`,face:`<path d="M38 33l10 4M62 33l-10 4" stroke-width="2.8" fill="none"/><path d="M41 41h6M53 41h6" stroke-width="2.4" fill="none"/><path d="M40 52q10 -4 20 0" fill="none" stroke-width="2"/><path d="M40 47q10 6 20 0" fill="#9aa0a8" stroke="none"/>`})
+});
+Object.assign(NAMES,{natori:'名取',kageura:'影浦',ginji:'銀次',hayase:'早瀬',kujo:'九条',iwaki:'岩鬼',kakuta:'角田',inagaki:'稲垣',fukuroda:'袋田',kurogane:'黒鉄'});
+Object.assign(VP,{natori:{p:1,r:1.05,g:'m',i:1},kageura:{p:.7,r:.9,g:'m',i:3},ginji:{p:.4,r:.85,g:'m',i:2},hayase:{p:1.2,r:1.2,g:'m',i:2},kujo:{p:.6,r:.95,g:'m',i:0},iwaki:{p:.2,r:.85,g:'m',i:1},kakuta:{p:.8,r:1,g:'m',i:3},inagaki:{p:.9,r:1.05,g:'m',i:1},fukuroda:{p:.7,r:.9,g:'m',i:3},kurogane:{p:.1,r:.72,g:'m',i:0}});
+Object.assign(PROPS,{
+ menkyo:{vb:[110,76],s:.34,svg:PROP_S(`<rect x="4" y="4" width="102" height="68" rx="5" fill="#f4ecdc"/><text x="55" y="26" text-anchor="middle" font-size="13" font-weight="900" fill="${O}" stroke="none" font-family="sans-serif">宅建業 免許証</text><path d="M14 40h56M14 52h56M14 62h40" stroke-width="1.4"/><circle cx="88" cy="54" r="10" fill="none" stroke="#c22d22" stroke-width="2.4"/>`)},
+ tcard:{vb:[110,72],s:.3,svg:PROP_S(`<rect x="4" y="4" width="102" height="64" rx="6" fill="#e8f0ff"/><rect x="10" y="16" width="26" height="34" fill="#c8d4e8"/><circle cx="23" cy="28" r="6" fill="#8a9ab0" stroke="none"/><text x="72" y="22" text-anchor="middle" font-size="11" font-weight="900" fill="${O}" stroke="none" font-family="sans-serif">宅地建物取引士証</text><path d="M44 36h52M44 46h52M44 56h34" stroke-width="1.3"/>`)},
+ inshi:{vb:[100,104],s:.32,svg:PROP_S(`<path d="M6 6h88v92H6z" fill="#f4ecdc"/><text x="50" y="24" text-anchor="middle" font-size="12" font-weight="900" fill="${O}" stroke="none" font-family="serif">売買契約書</text><path d="M14 38h52M14 48h52M14 58h52M14 68h36" stroke-width="1.3"/><rect x="70" y="34" width="20" height="26" fill="none" stroke="#c22d22" stroke-width="2" stroke-dasharray="3 2"/><text x="80" y="51" text-anchor="middle" font-size="8" fill="#c22d22" stroke="none">印紙</text>`)},
+ kyotaku:{vb:[100,90],s:.34,svg:PROP_S(`<rect x="6" y="20" width="88" height="64" rx="4" fill="#4a5058"/><rect x="14" y="28" width="72" height="48" rx="3" fill="#5a6068"/><circle cx="50" cy="52" r="12" fill="none" stroke="#d9a441" stroke-width="3"/><path d="M50 40v6M50 58v6M38 52h6M56 52h6" stroke="#d9a441" stroke-width="2"/><text x="50" y="14" text-anchor="middle" font-size="12" font-weight="900" fill="#d9a441" stroke="none" font-family="sans-serif">供託所</text>`)},
+ zumen:{vb:[120,90],s:.4,svg:PROP_S(`<rect x="4" y="4" width="112" height="82" rx="3" fill="#2a6ad4"/><path d="M14 74V22h40v26h50v26z" fill="none" stroke="#e8f0ff" stroke-width="2"/><path d="M14 48h40M34 22v52M70 48v26" stroke="#e8f0ff" stroke-width="1.2"/><text x="84" y="34" text-anchor="middle" font-size="11" font-weight="900" fill="#e8f0ff" stroke="none" font-family="sans-serif">図面</text>`)},
+ tanbo:{vb:[140,70],s:.5,svg:PROP_S(`<path d="M4 66L22 24h96l18 42z" fill="#7aa84a"/><path d="M30 34h80M24 46h92M16 58h108" stroke="#5a8a3a" stroke-width="2"/><g stroke="#3a6a2a" stroke-width="2">${[30,46,62,78,94,110].map(x=>`<path d="M${x} 40v-8M${x-6} 52v-8M${x+4} 64v-8"/>`).join('')}</g>`)}
+});
+
+// 曲の工場：話ごとに、調・楽器・旋律を変えて8曲（op/町/衝撃/バトル3つ/ボス登場/ボス戦）を作る
+const TKN=(a,o,inst,n,t,d,len,v)=>{const V={piano:.04,koto:.065,pluck:.045,twang:.055,vib:.022,bell:.035,brass:.06,whistle:.05,cello:.045,harp:.03,breath:.04}[inst]||.04;v=v||V;
+ if(inst==='piano'||inst==='koto'||inst==='pluck'||inst==='twang')I[inst](a,o,n,t,v);else if(inst==='vib')I.vib(a,o,n,t,v,len*d);else if(inst==='bell')I.bell(a,o,n,t,v,Math.max(1.5,len*d*1.5));else I[inst](a,o,n,t,len*d,v)};
+function TKSET(P,c){
+ const sc=c.minor?[0,2,3,5,7,8,10]:[0,2,4,5,7,9,11],R=c.root;
+ const dg=i=>R+sc[((i%7)+7)%7]+12*Math.floor(i/7);
+ const tri=i=>[dg(i),dg(i+2),dg(i+4)];
+ const pr=c.prog,mel=c.mel; // pr: 4つの和音の度数、mel: 16音（2拍ごと）の度数か null
+ const M=(s,base,inst,a,o,t,d,v)=>{if(s%2)return;const k=mel[s>>1];if(k==null)return;let len=2;for(let j=(s>>1)+1;j<16&&mel[j]==null;j++)len+=2;TKN(a,o,inst,dg(k+base),t,d,Math.min(len,6)*.95,v)};
+ const S={};
+ S[P+'op']={bpm:c.opb||70,f(a,o,s,t,d){const ch=tri(pr[s>>3]);if(s%8===0){I.pad(a,o,ch.map(n=>n-12),t,8*d,.022,700);I.taiko(a,o,t,.3)}if(s%4===2)I.tick(a,o,t,1800,.014);if(s%4===0)M(s,7,c.opI||'koto',a,o,t,d)}};
+ S[P+'town']={bpm:c.townb||104,f(a,o,s,t,d){const ch=tri(pr[s>>3]);if(s%2===0)I.bass(a,o,ch[(s>>1)%3]-24,t,d*1.6,.12);if(s%4===2)I.hat(a,o,t,.02);if([0,3,6].includes(s%8))TKN(a,o,c.compI||'pluck',ch[(s%3)]+12,t,d,1,.03);M(s,14,c.leadI||'whistle',a,o,t,d)}};
+ S[P+'shock']={bpm:92,f(a,o,s,t,d){if(s%4===0){I.taiko(a,o,t,.45);I.bass(a,o,R-12+[0,0,1,-1][s>>3],t,d*3,.17,1)}if(s%8===0)I.cello(a,o,R+[6,7][(s>>4)&1],t,8*d*.9,.05);if(s%2===1)I.tick(a,o,t,2500,.02);if(s===0)I.bell(a,o,R+37,t,.045,3)}};
+ S[P+'b1']={bpm:(c.bb||150),f(a,o,s,t,d){const r=dg(pr[s>>3])-12;if(s%4===0)I.kick(a,o,t,.6);if(s%4===2)I.snare(a,o,t,.24);I.hat(a,o,t,.022);I.bass(a,o,r-12+[0,12,7,12][s%4],t,d*.7,.16,1);if(s%2===0)TKN(a,o,c.b1I||'twang',r+24+[0,7,12,7][(s>>1)%4],t,d,1,.045);if(s===31)I.whip(a,o,t,.3)}};
+ S[P+'b2']={bpm:(c.bb||150)-12,f(a,o,s,t,d){const k=[1,0,0,1,0,1,0,0][s%8];if(k)I.kick(a,o,t,.58);if(s%8===4)I.snare(a,o,t,.24);I.hat(a,o,t,s%2?.032:.015);const r=dg(pr[s>>3])-12;if([0,3,5,7].includes(s%8))I.bass(a,o,r-12+(s%8===7?12:0),t,d*.7,.17,1);if(s%8===2)TKN(a,o,c.b2I||'brass',r+24,t,d,.6,.05);if(s%8===6)TKN(a,o,c.b2I||'brass',r+31,t,d,.6,.045)}};
+ S[P+'b3']={bpm:(c.bb||150)+8,f(a,o,s,t,d){if(s%4===0)I.kick(a,o,t,.6);if([1,3,6].includes(s%8))I.taiko(a,o,t,.25);if(s%8===4)I.snare(a,o,t,.22);const r=dg(pr[s>>3])-12;I.bass(a,o,r-12+(s%2?12:0),t,d*.6,.16,1);if(s%4===0)TKN(a,o,c.b3I||'koto',r+36,t,d,1,.04);if(s===31)I.whip(a,o,t,.3)}};
+ S[P+'bossin']={bpm:58,f(a,o,s,t,d){if(s%8===0)I.taiko(a,o,t,.5);if(s%16===0)I.organ(a,o,tri(pr[(s>>4)*2]).map(n=>n-12),t,16*d*.95,.024);if(s%4===2)I.wood(a,o,t,520,.06);if(s===12||s===28)I.bell(a,o,R+35,t,.035,3);if(s%16===8)TKN(a,o,c.bossI||'brass',R-12,t,d,6,.045)}};
+ S[P+'boss']={bpm:c.bossb||154,f(a,o,s,t,d){const bar=s>>3,ch=tri(pr[bar]);if(s%4===0)I.kick(a,o,t,.64);if(s%4===2)I.snare(a,o,t,.24);if(s%2===1)I.taiko(a,o,t,.18);I.bass(a,o,ch[0]-24+[0,7,12,7][(s>>1)%4],t,d*.7,.16,1);
+   if(s%8===0)I.choir(a,o,ch.map(n=>n+12),t,8*d,.028);M(s,14,c.bossI||'brass',a,o,t,d,.065);if(s===31)I.whip(a,o,t,.3)}};
+ Object.assign(TR,S);
+}
+// 話ごとの曲の性格（root：主音、minor：短調、prog：和音、mel：旋律）
+TKSET('t11',{root:50,minor:1,prog:[0,5,3,4],mel:[4,null,3,2,4,null,7,null,6,null,4,3,2,null,0,null],opI:'bell',leadI:'whistle',compI:'pluck',b1I:'twang',b2I:'brass',b3I:'koto',bossI:'brass',bb:150});
+TKSET('t12',{root:52,minor:0,prog:[0,4,5,3],mel:[2,4,7,null,6,4,5,null,4,2,3,null,1,null,0,null],opI:'piano',leadI:'vib',compI:'piano',b1I:'pluck',b2I:'brass',b3I:'twang',bossI:'brass',bb:156,townb:112});
+TKSET('t13',{root:45,minor:1,prog:[0,3,4,0],mel:[0,2,4,null,3,2,1,null,2,4,5,null,4,null,null,null],opI:'koto',leadI:'cello',compI:'vib',b1I:'koto',b2I:'brass',b3I:'twang',bossI:'brass',bb:146,townb:96});
+TKSET('t14',{root:47,minor:1,prog:[0,6,5,4],mel:[7,null,6,4,5,null,4,2,4,null,2,1,0,null,null,null],opI:'harp',leadI:'whistle',compI:'pluck',b1I:'twang',b2I:'brass',b3I:'pluck',bossI:'brass',bb:158});
+TKSET('t15',{root:53,minor:0,prog:[0,5,3,4],mel:[4,5,4,2,0,null,2,null,4,5,7,null,5,null,4,null],opI:'piano',leadI:'whistle',compI:'piano',b1I:'pluck',b2I:'brass',b3I:'koto',bossI:'brass',bb:152,townb:100});
+TKSET('t16',{root:43,minor:1,prog:[0,0,5,4],mel:[0,null,3,null,4,null,7,6,4,null,3,null,2,null,0,null],opI:'koto',leadI:'cello',compI:'pluck',b1I:'twang',b2I:'brass',b3I:'koto',bossI:'brass',bb:148,opb:64});
+TKSET('t17',{root:48,minor:0,prog:[0,3,4,4],mel:[0,2,4,5,7,null,5,4,2,null,4,null,2,1,0,null],opI:'vib',leadI:'whistle',compI:'pluck',b1I:'pluck',b2I:'brass',b3I:'twang',bossI:'brass',bb:156,townb:116});
+TKSET('t18',{root:55,minor:0,prog:[0,5,3,4],mel:[4,null,2,4,5,null,4,2,0,null,2,null,4,null,null,null],opI:'koto',leadI:'whistle',compI:'koto',b1I:'twang',b2I:'brass',b3I:'koto',bossI:'brass',bb:146,townb:96,opb:76});
+TKSET('t19',{root:46,minor:1,prog:[0,3,6,4],mel:[0,1,2,null,4,null,2,1,0,null,6,null,4,null,null,null],opI:'pluck',leadI:'vib',compI:'pluck',b1I:'pluck',b2I:'brass',b3I:'twang',bossI:'brass',bb:150,townb:108});
+TKSET('t20',{root:45,minor:1,prog:[0,5,6,4],mel:[0,null,4,null,7,null,6,5,4,null,6,null,7,null,null,null],opI:'bell',leadI:'cello',compI:'vib',b1I:'twang',b2I:'brass',b3I:'koto',bossI:'brass',bb:160,bossb:162,opb:62});
