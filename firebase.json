@@ -6,6 +6,7 @@
       ".firebaserc",
       ".github/**",
       "tools/**",
+      "story/**",
       "README.md",
       "firestore.rules",
       "**/.*",
