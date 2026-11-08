@@ -46,6 +46,8 @@ for(const m of html.matchAll(/\{name:'(独学[^']+)',need:/g))add(`お前は今�
 const ctx={window:{},LB:{eps:[],episode(e){this.eps.push(e)}}};vm.createContext(ctx);
 vm.runInContext(fs.readFileSync(ROOT+'episodes/list.js','utf8'),ctx);
 for(const m of ctx.window.LB_LIST)vm.runInContext(fs.readFileSync(ROOT+'episodes/'+m.file,'utf8'),ctx);
+// 本試験ボーナス（BONUS STAGE 0-1〜）：episodes/hon01.js など（行政書士版だけ）
+for(const f of fs.readdirSync(ROOT+'episodes').filter(f=>/^hon\d+\.js$/.test(f)).sort())vm.runInContext(fs.readFileSync(ROOT+'episodes/'+f,'utf8'),ctx);
 const enemyKey=f=>VPKEYS.has(f)?f:'boss';
 for(const ep of ctx.LB.eps){
   CURN=ep.no>=11?'narrf':null;

@@ -7,6 +7,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 h = (ROOT / 'index.html').read_text(encoding='utf-8')
 # 行政書士版だけのおまけ（BONUS STAGE・CM）は、外す
 h = h.replace('\n<script src="bonus.js"></script>', '')
+h = h.replace('\n<script src="hon.js"></script>', '')
 # 行政書士版だけの「おことわり」は、外す
 h = re.sub(r'\n    <details class="okotowari"[\s\S]*?</details>', '', h, count=1)
 
