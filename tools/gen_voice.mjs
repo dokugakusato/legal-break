@@ -28,7 +28,7 @@ const CAST={
 
 // ゲーム本体と同じ計算でファイル名を決める
 // 読み方の直し（画面の文字はそのまま、声だけ読み方を変える）
-const yomi=t=>t.replace(/現る/g,'あらわる').replace(/留置権/g,'りゅうちけん').replace(/留置/g,'りゅうち').replace(/汐見/g,'しおみ').replace(/鉄錨/g,'てついかり').replace(/凪/g,'なぎ').replace(/海事代理士/g,'かいじだいりし').replace(/書換/g,'かきかえ').replace(/毀損/g,'きそん').replace(/解撤/g,'かいてつ').replace(/喫水/g,'きっすい').replace(/端舟/g,'たんしゅう').replace(/臨検/g,'りんけん').replace(/信号符字/g,'しんごうふじ').replace(/存否/g,'そんぴ').replace(/改測/g,'かいそく').replace(/点附/g,'てんぷ').replace(/両舷/g,'りょうげん').replace(/黒霧/g,'くろぎり').replace(/大渦/g,'おおうず').replace(/櫓櫂/g,'ろかい').replace(/宅建/g,'たっけん').replace(/黒鍵/g,'くろかぎ').replace(/取消(?!し)/g,'取り消し').replace(/荒野/g,'こうや').replace(/(?<![一-龯々])金(?![一-龯々])/g,'カネ');
+const yomi=t=>t.replace(/札束/g,'さつたば').replace(/札/g,'ふだ').replace(/現る/g,'あらわる').replace(/留置権/g,'りゅうちけん').replace(/留置/g,'りゅうち').replace(/汐見/g,'しおみ').replace(/鉄錨/g,'てついかり').replace(/凪/g,'なぎ').replace(/海事代理士/g,'かいじだいりし').replace(/書換/g,'かきかえ').replace(/毀損/g,'きそん').replace(/解撤/g,'かいてつ').replace(/喫水/g,'きっすい').replace(/端舟/g,'たんしゅう').replace(/臨検/g,'りんけん').replace(/信号符字/g,'しんごうふじ').replace(/存否/g,'そんぴ').replace(/改測/g,'かいそく').replace(/点附/g,'てんぷ').replace(/両舷/g,'りょうげん').replace(/黒霧/g,'くろぎり').replace(/大渦/g,'おおうず').replace(/櫓櫂/g,'ろかい').replace(/宅建/g,'たっけん').replace(/黒鍵/g,'くろかぎ').replace(/取消(?!し)/g,'取り消し').replace(/荒野/g,'こうや').replace(/(?<![一-龯々])金(?![一-龯々])/g,'カネ');
 const cleanTxt=t=>t.replace(/<br>/g,'').replace(/[「」―]/g,'').replace(/　/g,'');
 function vHash(s){let h=0x811c9dc5;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,0x01000193)}return (h>>>0).toString(16).padStart(8,'0')}
 const VPKEYS=new Set([...html.matchAll(/([a-zA-Z]+):\{p:/g)].map(m=>m[1]));
