@@ -155,6 +155,14 @@ const ylabel=it=>it.y.split(",").map(x=>x==="元"?"R元":"R"+x).join("・");
 const EDITION="trial"; // trial（お試し版）/ full（完全版）/ dev
 const NOTE_URL="https://note.com/fiola/n/nd2ac5bf87f37";   // 完全版を買うnote記事
 function initBank(){BANK.forEach((it,i)=>{it.id=i;it.n=it.n||it.k.length})}
+// 言えなかった問題をこのスマホに覚えておく（問題文をキーにする）
+const MISS_KEY="miss_"+(typeof EDITION!=="undefined"?EDITION:"dev");
+function missGet(){return store.get(MISS_KEY,{})}
+function missMark(q,r){ // r: "ok"なら消す、それ以外は覚える
+  if(!q)return;const m=missGet();
+  if(r==="ok")delete m[q];else m[q]=Date.now();
+  store.set(MISS_KEY,m);
+}
 const store={get(k,d){try{const v=localStorage.getItem("kaiji_"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
   set(k,v){try{localStorage.setItem("kaiji_"+k,JSON.stringify(v))}catch(e){}}};
 const S=Object.assign({mode:"oral",judge:true,showText:true,weighted:true,subjects:[0,1,2,3],voice:"",
@@ -369,6 +377,10 @@ function renderHome(){
         <select id="sel-cnt">${[10,20,30,50,0].map(n=>`<option value="${n}" ${S.oxCount===n?"selected":""}>${n?n+"問":"全部"}</option>`).join("")}</select></div>
     </div>
     <div class="row"><button class="btn big" style="flex:1" id="oxgo">一問一答を始める</button><button class="btn ghost" id="oxlist">一覧で見る</button></div>
+    ${(()=>{const n=missPool(S.oxSubject).length;return n?`<div class="ansbox stack" style="gap:8px">
+      <div><b>前回までに言えなかった問題：${n}問</b><span class="small muted" style="display:block">このスマホに記録しています。「言えた」にすると記録から消えます。</span></div>
+      <button class="btn wide" id="oxmiss">言えなかった問題だけ練習する</button>
+      <button class="btn ghost wide small" id="oxmissclear">記録を消す</button></div>`:`<div class="small muted">言えなかった問題は、このスマホに記録され、次に開いたときにここから練習できます。</div>`})()}
   </section>`}
   <p class="small muted" style="margin:0">出典：「海事代理士試験 口述試験問題・解答例」（国土交通省）<a href="https://www.mlit.go.jp/about/file000049.html" target="_blank" rel="noopener" style="color:inherit">https://www.mlit.go.jp/about/file000049.html</a> を加工して作成。国土交通省が作成・公表したものではありません。模範解答は作成時点の法令にもとづいています。</p>
   <p class="small muted" style="margin:0">（版：${BUILD}）口述試験は、口頭で正しく答えられるかを見る試験です。回答のあとは模範解答と自分の回答を見比べて、「言えた」「言えなかった」を自分で付けてください。問題の下の「模範解答を見る」でいつでも確認できます。</p>`;
@@ -391,7 +403,11 @@ function renderHome(){
     $("#sw-oxt").onchange=e=>{S.showText=e.target.checked;save()};
     $("#sel-order").onchange=e=>{S.oxOrder=e.target.value;save()};
     $("#sel-cnt").onchange=e=>{S.oxCount=+e.target.value;save()};
-    $("#oxgo").onclick=startOx;
+    $("#oxgo").onclick=()=>startOx(false);
+    if($("#oxmiss"))$("#oxmiss").onclick=()=>startOx(true);
+    if($("#oxmissclear"))$("#oxmissclear").onclick=e=>{const b=e.currentTarget;
+      if(b.dataset.sure){const m=missGet();missPool(S.oxSubject).forEach(x=>delete m[x.q]);store.set(MISS_KEY,m);renderHome()}
+      else{b.dataset.sure="1";b.textContent="本当に消す（もう一度押す）"}};
     $("#oxlist").onclick=renderOxList;
   }
 }
@@ -562,6 +578,7 @@ function subjectEnd(timeup){
   view="break";
   const E=current.exam;const R=E.results.at(-1);
   R.qs.forEach(q=>{if(q.status!=="done")q.status="skip"});
+  R.qs.forEach(q=>missMark(q.q,q.status==="skip"?"ng":q.r));
   const ok=R.qs.filter(q=>q.r==="ok").length;
   const last=E.si>=E.subjects.length-1;
   app.innerHTML=`
@@ -593,7 +610,7 @@ function renderResults(){
     </div>`}).join("")}</div></section>`).join("")}
   <button class="btn big wide" id="again">もう一度</button>
   <button class="btn ghost wide" id="home">メニューへ</button>`;
-  document.querySelectorAll(".fx").forEach(b=>b.onclick=()=>{const d=b.closest(".ritem");const q=E.results[+d.dataset.r].qs[+d.dataset.q];q.r=b.dataset.v;if(q.status==="skip")q.status="done";const y=window.scrollY;renderResults();window.scrollTo(0,y)});
+  document.querySelectorAll(".fx").forEach(b=>b.onclick=()=>{const d=b.closest(".ritem");const q=E.results[+d.dataset.r].qs[+d.dataset.q];q.r=b.dataset.v;if(q.status==="skip")q.status="done";missMark(q.q,q.r);const y=window.scrollY;renderResults();window.scrollTo(0,y)});
   $("#again").onclick=startExam;$("#home").onclick=()=>{stopAll();renderHome()};
 }
 
@@ -606,10 +623,11 @@ function drillPool(subject){
   return items;
 }
 function sortImp(items){return items.slice().sort((a,b)=>b.imp-a.imp||a.it.s-b.it.s||a.it.id-b.it.id||a.vi-b.vi)}
-function startOx(){
-  let items=drillPool(S.oxSubject);
+function missPool(subject){const m=missGet();return drillPool(subject).filter(x=>m[x.q])}
+function startOx(onlyMiss){
+  let items=onlyMiss?missPool(S.oxSubject):drillPool(S.oxSubject);
   items=S.oxOrder==="imp"?sortImp(items):items.sort(()=>Math.random()-.5);
-  if(S.oxCount)items=items.slice(0,S.oxCount);
+  if(S.oxCount&&!onlyMiss)items=items.slice(0,S.oxCount);
   try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(" ");u.volume=0;speechSynthesis.speak(u)}catch(e){}
   current.ox={items:items.map(x=>Object.assign({},x,{text:"",r:null,hits:null,status:"wait"})),i:0,round:1};
   renderOx();
@@ -670,8 +688,8 @@ function renderOx(){
       <div class="ctrl"><button class="btn" id="fixok">言えた</button><button class="btn ghost" id="fixng">言えなかった</button></div>`;
     document.querySelector(".mic").after(box);
     box.querySelector("#hear").onclick=()=>speak(Q.it.a.replace(/[／\n]/g,"、"));
-    box.querySelector("#fixok").onclick=()=>{Q.r="ok";nextOx()};
-    box.querySelector("#fixng").onclick=()=>{Q.r="ng";nextOx()};
+    box.querySelector("#fixok").onclick=()=>{Q.r="ok";missMark(Q.q,"ok");nextOx()};
+    box.querySelector("#fixng").onclick=()=>{Q.r="ng";missMark(Q.q,"ng");nextOx()};
     box.scrollIntoView({behavior:"smooth",block:"start"});
   }
   run();
@@ -691,6 +709,7 @@ function renderOxResult(){
   stopAll();view="oxres";const O=current.ox;
   const all=(O.done||[]).concat(O.items);
   const done=all.filter(q=>q.status==="done"||q.status==="pass");
+  done.forEach(q=>missMark(q.q,q.status==="pass"?"ng":q.r));
   const ok=done.filter(q=>q.r==="ok").length;
   app.innerHTML=`
   <div class="stack" style="gap:4px"><div class="eyebrow">一問一答 結果</div><h1>言えた ${ok} / ${done.length}</h1></div>
@@ -726,7 +745,7 @@ function renderOxList(){
 }
 
 // 古い版がスマホに残っていたら、自動で最新版に入れ替える
-const BUILD="2026-11-06-1355";
+const BUILD="2026-11-09-2010";
 (async()=>{try{
   const r=await fetch(location.pathname+"?_="+Date.now(),{cache:"no-store"});if(!r.ok)return;
   const t=await r.text();const m=t.match(/const BUILD="([^"]+)"/);
