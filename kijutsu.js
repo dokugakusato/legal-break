@@ -346,6 +346,49 @@ document.body.insertAdjacentHTML('beforeend',`<style>
 @keyframes trip{0%{transform:none}30%{transform:rotate(-70deg) translateY(-10%)}55%{transform:rotate(-90deg) translateY(10%)}100%{transform:none}}
 </style>`);
 
+/* ---------- 第41話〜の曲（4話ごとに入れかえる）：スパイ映画ふうのジャズ ---------- */
+Object.assign(TR,{
+ // 物語：ウッドベースの歩くような低音と、ビブラフォン。忍び足のジャズ
+ k41case:{bpm:110,f(a,o,s,t,d){const bar=s>>4,R=[40,40,45,43][bar&3],W=[0,3,5,6,7,10,7,5];
+  if(s%2===0)I.bass(a,o,R+W[(s>>1)%8],t,d*1.6,.14,1);if(s%4===2)I.hat(a,o,t,.03);if(s%8===6)I.tick(a,o,t,1800,.02);
+  const m={0:[64,3],4:[67,1],6:[70,2],8:[69,6],16:[67,2],18:[64,2],20:[63,4],24:[62,2],26:[64,6]}[s%32];if(m)I.vib(a,o,m[0]+12,t,.05,m[1]*d*1.5)}},
+ // 対戦：速いスウィング。ミュートしたトランペットの合いの手
+ k41battle:{bpm:168,f(a,o,s,t,d){const R=[40,43,45,47][(s>>3)&3];if(s%2===0)I.bass(a,o,R+[0,7,12,7][(s>>1)%4],t,d*1.2,.17,1);
+  if(s%8===0)I.kick(a,o,t,.5);if(s%8===4)I.snare(a,o,t,.24);if(s%2===1)I.hat(a,o,t,.035);
+  if([3,11].includes(s%16))I.brass(a,o,R+24+[0,3][(s>>4)&1],t,d*.6,.06);if(s===30)I.brass(a,o,R+31,t,2*d,.07);if(s===31)I.whip(a,o,t,.3)}},
+ // ボス登場：暗い部屋の時計と、ゆっくり下がるベース
+ k41bossin:{bpm:64,f(a,o,s,t,d){if(s%2===0)I.tick(a,o,t,s%4?1700:1250,.03);if(s%4===0)I.bass(a,o,[40,39,38,37,36,35,34,33][(s>>2)&7],t,4*d,.12,1);
+  if(s===12||s===28)I.vib(a,o,s===12?75:74,t,.045,3)}},
+ // ボス戦：ビッグバンドの総攻撃
+ k41boss:{bpm:176,f(a,o,s,t,d){const R=[40,40,43,45][(s>>3)&3];I.bass(a,o,R+[0,12,7,12,10,12,7,5][s%8],t,d*.8,.18,1);
+  if(s%4===0)I.kick(a,o,t,.65);if(s%8===4)I.snare(a,o,t,.3);if(s%2===1)I.hat(a,o,t,.035);
+  if(s%8===0)I.brass(a,o,R+24,t,d*.7,.065);if(s%8===3)I.brass(a,o,R+27,t,d*.7,.06);if(s%16===14)I.brass(a,o,R+31,t,2*d,.075);if(s===31)I.whip(a,o,t,.35)}}
+});
+
+/* ---------- 第41話〜の新しい技：デコピン・回し蹴り ---------- */
+Object.assign(MOVES,{
+ dekopin:{kiai:'法のデコピン！',k:1.05,hit:'ペチーン！'},
+ mawashi:{kiai:'回し蹴りっ！',k:1.2,hit:'ズバーン！'}
+});
+const MOVE41=['dekopin','mawashi'];
+{const _ok=moveOK;moveOK=k=>MOVE41.includes(k)?!!(CH&&CH.no>=41):_ok(k)}
+{const _atk=attack;attack=function(then,style){
+  if(!MOVE41.includes(style))return _atk(then,style);
+  const M=MOVES[style];kiai(M.k);const h=$('#stage .fig.l'),st=$('#stage'),e=$('#stage .fig.r');
+  const v=document.createElement('div');v.className='kiai';v.textContent=M.kiai;st.appendChild(v);setTimeout(()=>v.remove(),1000);
+  h.classList.remove('lunge','kickmove','dkick','hbutt','chopup','hipatk','sobat','gpun','kneeup','edrop','abarai','mawashi');void h.offsetWidth;h.classList.add(style==='dekopin'?'lunge':'mawashi');
+  setTimeout(()=>{const sr=st.getBoundingClientRect(),er=e.getBoundingClientRect(),fx=er.left-sr.left+er.width*.5,fy=er.top-sr.top+er.height*(style==='dekopin'?.12:.45);
+    const b=document.createElement('div');b.className='boom';b.style.left=fx+'px';b.style.top=fy+'px';b.innerHTML=BOOM+`<span>${M.hit}</span>`;st.appendChild(b);setTimeout(()=>b.remove(),700);
+    e.classList.remove('knock','knockkick','pinned','hit','squashy','trip','deko');void e.offsetWidth;e.classList.add(style==='dekopin'?'deko':'knockkick');setTimeout(()=>e.classList.remove('deko','knockkick'),1100);
+    st.classList.remove('shake','impact');void st.offsetWidth;st.classList.add('shake','impact');punch(style==='dekopin'?1:1.7);then()},style==='dekopin'?300:420);
+}}
+document.body.insertAdjacentHTML('beforeend',`<style>
+.fig.l.mawashi{animation:mawashi .75s}
+@keyframes mawashi{0%{transform:none}35%{transform:translateX(46%) rotateY(180deg)}65%{transform:translateX(52%) rotateY(360deg)}100%{transform:none}}
+.fig.r.deko{animation:deko .9s;transform-origin:50% 100%}
+@keyframes deko{0%{transform:none}20%{transform:rotate(14deg)}40%{transform:rotate(-8deg)}60%{transform:rotate(5deg)}100%{transform:none}}
+</style>`);
+
 /* ---------- 記述の章の流れ ---------- */
 const KJ={};
 {const _bp=beginPart;beginPart=function(){const sb=$('#s-battle');if(sb)sb.classList.remove('kj','kjboss');if(CH&&CH.kijutsu)return kjStart();return _bp()}}

@@ -467,6 +467,22 @@ b.gold{color:var(--gold)}
 .bball.roll{animation:broll .9s cubic-bezier(.4,0,.8,.6) forwards}
 @keyframes broll{0%{transform:translateX(0) rotate(0)}100%{transform:translateX(300%) rotate(1080deg)}}
 .fig.l.bwlthrow{transform:translateX(10%) translateY(8%) rotate(14deg);transition:transform .3s}
+.fig.l.hbup{animation:hbup .6s}
+@keyframes hbup{0%{transform:none}50%{transform:translateX(30%) translateY(-18%) rotate(-8deg)}100%{transform:translateX(10%)}}
+.fig.r.hblaunch{animation:hblaunch 1.2s cubic-bezier(.3,.1,.5,1) forwards}
+@keyframes hblaunch{0%{transform:none}100%{transform:translateY(-260%) rotate(540deg) scale(.4);opacity:0}}
+.fstage.hbnight{background:radial-gradient(ellipse at 50% 120%,#1a2848,#05060f 70%)!important}
+.fstage.hbnight .fig{opacity:.25}
+.hbfire{position:absolute;width:0;height:0;z-index:4;pointer-events:none}
+.hbfire i{position:absolute;left:-3px;top:-3px;width:6px;height:6px;border-radius:50%;box-shadow:0 0 8px currentColor;animation:hbspark 1.4s ease-out forwards;transform:rotate(var(--r)) translateY(0)}
+@keyframes hbspark{0%{transform:rotate(var(--r)) translateY(0);opacity:1}70%{opacity:1}100%{transform:rotate(var(--r)) translateY(-70px);opacity:0}}
+.hbsky{position:absolute;left:4%;right:4%;top:6%;z-index:5;text-align:center;font-weight:900;font-size:clamp(26px,8vw,40px);color:#fff6c8;text-shadow:0 0 12px #ffd84a,0 0 24px #ff8a3a;animation:hbsky 1.6s ease}
+@keyframes hbsky{0%{opacity:0;transform:scale(.3)}40%{opacity:1;transform:scale(1.15)}100%{transform:none}}
+.hbfloat{position:absolute;left:50%;top:-20%;z-index:6;display:flex;flex-direction:column;align-items:center;transform:translateX(-50%);animation:hbfloat 2.2s ease-in-out forwards;color:#fff}
+.hbfloat .um{font-size:54px;line-height:1;animation:hbsway 1s ease-in-out infinite alternate}
+.hbfloat .nm{font-weight:900;font-size:14px;background:#0b0807;padding:2px 8px;border-radius:8px}
+@keyframes hbfloat{0%{top:-20%}100%{top:52%}}
+@keyframes hbsway{0%{transform:rotate(-14deg)}100%{transform:rotate(14deg)}}
 .dohyo{position:absolute;left:4%;right:4%;bottom:-6%;height:22%;border-radius:50%;background:radial-gradient(ellipse,#c9a46a 55%,#8a6a3a 62%,transparent 64%);border-top:4px solid #f2e6c8;z-index:1;pointer-events:none}
 .fig.l.tsuppari{animation:tsup .24s linear infinite;transform:translateX(40%)}
 @keyframes tsup{0%{transform:translateX(40%)}50%{transform:translateX(48%)}100%{transform:translateX(40%)}}
@@ -1273,8 +1289,8 @@ function bossBattle(){
 }
 // 北斗風の決め・エルボーは第3話から（第1・2話は元の演出のまま）。話データで hokuto:true/false を指定すれば上書き
 const hokuto=()=>!!CH&&(CH.hokuto??CH.no>=3);
-const finStyle=()=>!CH?'hokuto':CH.fin||(CH.no>=37&&CH.no<=40?'sumo':CH.no>=33&&CH.no<=36?'bowling':CH.no>=29&&CH.no<=32?'homerun':CH.no>=25&&CH.no<=28?'chabudai':CH.no>=21&&CH.no<=24?'ryusei':CH.no>=17&&CH.no<=20?'swing':CH.no>=10&&CH.no<=13?'hyaku':CH.no>=6?'slash':'hokuto');
-function finisher(){if(!hokuto())return finisherClassic();const fs=finStyle();return fs==='sumo'?finisherSumo():fs==='bowling'?finisherBowling():fs==='homerun'?finisherHomerun():fs==='chabudai'?finisherChabudai():fs==='ryusei'?finisherRyusei():fs==='jihi'?finisherJihi():fs==='swing'?finisherSwing():fs==='harisen'?finisherHarisen():fs==='tekken'?finisherTekken():fs==='hyaku'?finisherHyaku():fs==='slash'?finisherSlash():finisherHokuto()}
+const finStyle=()=>!CH?'hokuto':CH.fin||(CH.no>=41&&CH.no<=44?'hanabi':CH.no>=37&&CH.no<=40?'sumo':CH.no>=33&&CH.no<=36?'bowling':CH.no>=29&&CH.no<=32?'homerun':CH.no>=25&&CH.no<=28?'chabudai':CH.no>=21&&CH.no<=24?'ryusei':CH.no>=17&&CH.no<=20?'swing':CH.no>=10&&CH.no<=13?'hyaku':CH.no>=6?'slash':'hokuto');
+function finisher(){if(!hokuto())return finisherClassic();const fs=finStyle();return fs==='hanabi'?finisherHanabi():fs==='sumo'?finisherSumo():fs==='bowling'?finisherBowling():fs==='homerun'?finisherHomerun():fs==='chabudai'?finisherChabudai():fs==='ryusei'?finisherRyusei():fs==='jihi'?finisherJihi():fs==='swing'?finisherSwing():fs==='harisen'?finisherHarisen():fs==='tekken'?finisherTekken():fs==='hyaku'?finisherHyaku():fs==='slash'?finisherSlash():finisherHokuto()}
 function finisherClassic(){
   BGM.stop();closeSheet();stopSay();
   const name=EP.lawName||EP.ougi,ov=$('#ov');ov.hidden=false;ov.classList.add('black');
@@ -1717,6 +1733,39 @@ function finisherSumo(){
     await wait(1100);k.remove();hero.classList.remove('tsuppari');
     const j=document.createElement('div');j.className='hrboard';j.innerHTML='<small>決まり手</small>押し出し！ 勝負あり！';st.appendChild(j);
     if(typeof fanfare==='function')fanfare();await wait(1800);$('#fline').innerHTML='';
+    await ougiTail(ov,name,sayP,wait);
+  })();
+}
+// 法の打ち上げ花火（41〜44話）：アッパーで夜空へ打ち上げ → 花火になって条文が夜空に → 「たまや～！」→ 傘でふわふわ落ちてくる
+const HANABI_DEF={taunt:'わしらの悪事は、闇の中。誰にも見えはせんよ！',reply:'なら、夜空にでかでかと照らしてやる！',name:'法の打ち上げ花火！'};
+function finisherHanabi(){
+  BGM.stop();closeSheet();stopSay();
+  const name=EP.lawName||EP.ougi,ov=$('#ov'),bk=VP[EP.efig]?EP.efig:'boss',H=Object.assign({},HANABI_DEF,CH.hanabi||{});ov.hidden=false;ov.classList.add('black');
+  const wait=ms=>new Promise(r=>setTimeout(r,ms)),sayP=(t,k)=>new Promise(r=>say([[t,k]],r));
+  const line=(t,who,cls='')=>{const l=$('#fline');if(l)l.innerHTML=`<div class="fl ${cls}"><b>${who}</b>${t}</div>`};
+  ov.innerHTML=`<div class="finisher hk"><div class="stage fstage" id="fstage">${stageHTML(EP.efig||'boss',EP.enemy,1,EP.efigName)}</div><div class="fline" id="fline"></div></div>`;
+  const st=$('#fstage'),boss=st.querySelector('.fig.r'),hero=st.querySelector('.fig.l');
+  (async()=>{
+    await wait(400);line(H.taunt,EP.efigName||EP.enemy);await Promise.all([sayP(H.taunt,bk),wait(1700)]);
+    line(H.reply,'佐藤','hero');await Promise.all([sayP(H.reply,'hero'),wait(1500)]);$('#fline').innerHTML='';
+    // 1. 打ち上げのアッパー
+    const k=document.createElement('div');k.className='kiai hyk big';k.textContent=H.name;k.style.fontSize=Math.min(44,Math.floor(330/[...H.name].length))+'px';k.style.left='4%';st.appendChild(k);say([[H.name,'hero']]);
+    hero.classList.add('hbup');await wait(380);punch(2.4);hit(2);const a=ac();if(a){I.whip(a,a.destination,a.currentTime,.5)}
+    boss.classList.add('hblaunch');line('ひゅるるるる～～っ！',EP.efigName||EP.enemy,'big');
+    await wait(1300);k.remove();hero.classList.remove('hbup');$('#fline').innerHTML='';
+    // 2. 夜空に花火。真ん中に条文の名前
+    st.classList.add('hbnight');
+    const cols=['#ffd84a','#ff6a4a','#6ad8ff','#c08aff','#7dff9a'];
+    for(let n=0;n<5;n++){const f=document.createElement('div');f.className='hbfire';f.style.left=(14+Math.random()*72)+'%';f.style.top=(10+Math.random()*38)+'%';
+      const c=cols[n%cols.length];f.innerHTML=Array.from({length:16},(_,i)=>`<i style="--r:${i*22.5}deg;background:${c}"></i>`).join('');st.appendChild(f);setTimeout(()=>f.remove(),1600);
+      if(a)I.taiko(a,a.destination,a.currentTime,.6);punch(.8);await wait(260)}
+    const sky=document.createElement('div');sky.className='hbsky';sky.textContent=name;st.appendChild(sky);
+    const ty=document.createElement('div');ty.className='hrboard';ty.innerHTML='<small>町のみんな</small>たまや～～っ！';st.appendChild(ty);
+    if(typeof fanfare==='function')fanfare();await wait(1700);ty.remove();
+    // 3. 傘でふわふわ落ちてくる
+    const fl=document.createElement('div');fl.className='hbfloat';fl.innerHTML=`<span class="um">☂</span><span class="nm">${EP.efigName||EP.enemy}</span>`;st.appendChild(fl);
+    line('……見えた、見えましたぞ……夜空に、条文が……',EP.efigName||EP.enemy);say([['見えた、見えましたぞ',bk]]);
+    await wait(2200);$('#fline').innerHTML='';sky.remove();fl.remove();st.classList.remove('hbnight');
     await ougiTail(ov,name,sayP,wait);
   })();
 }

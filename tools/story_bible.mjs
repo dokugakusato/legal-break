@@ -30,8 +30,8 @@ function panel(p,ep,lines){
   if(p.figs&&p.figs.length)lines.push(`　〔登場：${p.figs.map(f=>f[2]||(f[0]==='hero'?'佐藤':NAMES[f[0]]||f[0])).join('・')}${p.bg?`／背景：${p.bg}`:''}${p.props?`／小物：${p.props.map(x=>x[0]).join('・')}`:''}〕`);
 }
 const panels=(arr,ep,L,head)=>{if(!arr||!arr.length)return;if(head)L.push('',`#### ${head}`);arr.forEach(p=>{panel(p,ep,L);L.push('')})};
-const fin=e=>e.fin||(e.no>=37&&e.no<=40?'sumo':e.no>=33&&e.no<=36?'bowling':e.no>=29&&e.no<=32?'homerun':e.no>=25&&e.no<=28?'chabudai':e.no>=21&&e.no<=24?'ryusei':e.no>=17&&e.no<=20?'swing':e.no>=10&&e.no<=13?'hyaku':e.no>=6?'slash':'hokuto');
-const FIN={hokuto:'北斗の拳ふうの奥義',slash:'法の一閃',hyaku:'佐藤百裂拳（最後はアッパー）',tekken:'鉄拳',swing:'ジャイアントスイング',ryusei:'流星キック',chabudai:'ちゃぶ台返し',homerun:'ホームラン',bowling:'ボウリング',jihi:'慈悲の法拳（痛みなく天へ送る）',sumo:'法の突っ張り（押し出し）'};
+const fin=e=>e.fin||(e.no>=41&&e.no<=44?'hanabi':e.no>=37&&e.no<=40?'sumo':e.no>=33&&e.no<=36?'bowling':e.no>=29&&e.no<=32?'homerun':e.no>=25&&e.no<=28?'chabudai':e.no>=21&&e.no<=24?'ryusei':e.no>=17&&e.no<=20?'swing':e.no>=10&&e.no<=13?'hyaku':e.no>=6?'slash':'hokuto');
+const FIN={hokuto:'北斗の拳ふうの奥義',slash:'法の一閃',hyaku:'佐藤百裂拳（最後はアッパー）',tekken:'鉄拳',swing:'ジャイアントスイング',ryusei:'流星キック',chabudai:'ちゃぶ台返し',homerun:'ホームラン',bowling:'ボウリング',jihi:'慈悲の法拳（痛みなく天へ送る）',sumo:'法の突っ張り（押し出し）',hanabi:'法の打ち上げ花火（夜空に条文、たまや～）'};
 
 const L=['# LEGAL BREAK ―法の拳― 全話の物語（台本）','',
 '> このファイルは `node tools/story_bible.mjs` でゲームのデータから自動で作っている。直接書きかえず、ゲームの各話（episodes/*.js）を直してから作り直す。',
