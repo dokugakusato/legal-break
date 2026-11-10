@@ -1849,7 +1849,7 @@ function myNick(){if(!P.nick){P.nick='独学者'+String(Math.floor(1000+Math.ran
 const rankScore=()=>cleared()*1000+avgBest();
 const isMember=()=>!!(ACC.user&&!ACC.user.isAnonymous);
 function pushRank(){
-  if(!isMember()||!cleared())return Promise.resolve();
+  if(!isMember()||!cleared()||ACC.pulled!==ACC.user.uid)return Promise.resolve(); // ネットの記録を読み込む前は、ランキングを書きかえない
   const d={name:myNick(),cleared:cleared(),avg:avgBest(),score:rankScore(),updated:firebase.firestore.FieldValue.serverTimestamp()};
   return ACC.db.collection('kd_ranking').doc(ACC.user.uid).set(d).catch(()=>{});
 }
@@ -1901,8 +1901,12 @@ function mergeP(a,b){
   ['best','ok','n','clears'].forEach(k=>o[k]=Math.max(a[k]||0,b[k]||0));
   o.streak=(b.clears||0)>(a.clears||0)?(b.streak||0):(a.streak||0);return o;
 }
+// ネットの記録が消えていても、全国ランキングに残っている本人の記録（クリア数・正答率・ニックネーム）から進み具合を戻す。
+// 話は1話から順にしか開かないので、クリア数がnなら1〜n話をクリア済みにする
+function restoreFromRank(d){const n=Math.min(d.cleared|0,LIST.length);if(n>cleared()){for(const m of LIST.slice(0,n))if(!P.eps[m.no])P.eps[m.no]={best:d.avg|0,clears:1};P.clears=Math.max(P.clears||0,n)}
+  if(d.name&&(!P.nick||(/^独学者\d{4}$/.test(P.nick)&&P.nick!==d.name)))P.nick=d.name}
 function pushCloud(){if(!ACC.user||ACC.pulled!==ACC.user.uid)return;clearTimeout(ACC.timer);ACC.timer=setTimeout(()=>{ACC.db.collection('kd_progress').doc(ACC.user.uid).set({p:P,updated:firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{});pushRank()},700)}
-function pullCloud(n=0){const uid=ACC.user&&ACC.user.uid;if(!uid)return;ACC.db.collection('kd_progress').doc(uid).get({source:'server'}).then(d=>{if(!ACC.user||ACC.user.uid!==uid)return;if(d.exists&&d.data().p)P=mergeP(P,d.data().p);ACC.pulled=uid;saveP();refreshTitle();if(!$('#s-select').hidden)renderSelect()}).catch(()=>{if(n<5)setTimeout(()=>pullCloud(n+1),2000*(n+1))})}
+function pullCloud(n=0){const uid=ACC.user&&ACC.user.uid;if(!uid)return;ACC.db.collection('kd_progress').doc(uid).get({source:'server'}).then(d=>{if(!ACC.user||ACC.user.uid!==uid)return;if(d.exists&&d.data().p)P=mergeP(P,d.data().p);const fin=()=>{ACC.pulled=uid;saveP();refreshTitle();if(!$('#s-select').hidden)renderSelect()};if(ACC.user.isAnonymous)return fin();ACC.db.collection('kd_ranking').doc(uid).get({source:'server'}).then(r=>{if(r.exists)restoreFromRank(r.data())}).catch(()=>{}).finally(fin)}).catch(()=>{if(n<5)setTimeout(()=>pullCloud(n+1),2000*(n+1))})}
 function accInit(){
   const cfg=window.LB_FIREBASE;if(!cfg||!cfg.apiKey)return;
   const base='https://www.gstatic.com/firebasejs/10.12.2/';
