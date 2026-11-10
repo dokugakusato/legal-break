@@ -1748,8 +1748,8 @@ function mergeP(a,b){
   ['best','ok','n','clears'].forEach(k=>o[k]=Math.max(a[k]||0,b[k]||0));
   o.streak=(b.clears||0)>(a.clears||0)?(b.streak||0):(a.streak||0);return o;
 }
-function pushCloud(){if(!ACC.user)return;clearTimeout(ACC.timer);ACC.timer=setTimeout(()=>{ACC.db.collection('tk_progress').doc(ACC.user.uid).set({p:P,updated:firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{});pushRank()},700)}
-function pullCloud(){ACC.db.collection('tk_progress').doc(ACC.user.uid).get().then(d=>{if(d.exists&&d.data().p)P=mergeP(P,d.data().p);saveP();refreshTitle();if(!$('#s-select').hidden)renderSelect()}).catch(()=>{})}
+function pushCloud(){if(!ACC.user||ACC.pulled!==ACC.user.uid)return;clearTimeout(ACC.timer);ACC.timer=setTimeout(()=>{ACC.db.collection('tk_progress').doc(ACC.user.uid).set({p:P,updated:firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{});pushRank()},700)}
+function pullCloud(n=0){const uid=ACC.user&&ACC.user.uid;if(!uid)return;ACC.db.collection('tk_progress').doc(uid).get({source:'server'}).then(d=>{if(!ACC.user||ACC.user.uid!==uid)return;if(d.exists&&d.data().p)P=mergeP(P,d.data().p);ACC.pulled=uid;saveP();refreshTitle();if(!$('#s-select').hidden)renderSelect()}).catch(()=>{if(n<5)setTimeout(()=>pullCloud(n+1),2000*(n+1))})}
 function accInit(){
   const cfg=window.LB_FIREBASE;if(!cfg||!cfg.apiKey)return;
   const base='https://www.gstatic.com/firebasejs/10.12.2/';

@@ -1961,8 +1961,9 @@ function mergeP(a,b){
   ['best','ok','n','clears'].forEach(k=>o[k]=Math.max(a[k]||0,b[k]||0));
   o.streak=(b.clears||0)>(a.clears||0)?(b.streak||0):(a.streak||0);return o;
 }
-function pushCloud(){if(!ACC.user)return;clearTimeout(ACC.timer);ACC.timer=setTimeout(()=>{ACC.db.collection('progress').doc(ACC.user.uid).set({p:P,updated:firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{});pushRank()},700)}
-function pullCloud(){ACC.db.collection('progress').doc(ACC.user.uid).get().then(d=>{if(d.exists&&d.data().p)P=mergeP(P,d.data().p);saveP();refreshTitle();if(!$('#s-select').hidden)renderSelect()}).catch(()=>{})}
+// ネットの記録を読み込む前に書きこむと、ネットの記録をこの端末の少ない記録で上書きしてしまう。読み込めた人だけ書きこむ
+function pushCloud(){if(!ACC.user||ACC.pulled!==ACC.user.uid)return;clearTimeout(ACC.timer);ACC.timer=setTimeout(()=>{ACC.db.collection('progress').doc(ACC.user.uid).set({p:P,updated:firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{});pushRank()},700)}
+function pullCloud(n=0){const uid=ACC.user&&ACC.user.uid;if(!uid)return;ACC.db.collection('progress').doc(uid).get({source:'server'}).then(d=>{if(!ACC.user||ACC.user.uid!==uid)return;if(d.exists&&d.data().p)P=mergeP(P,d.data().p);ACC.pulled=uid;saveP();refreshTitle();accRender();if(!$('#s-select').hidden)renderSelect()}).catch(()=>{if(n<5)setTimeout(()=>pullCloud(n+1),2000*(n+1))})}
 function accInit(){
   const cfg=window.LB_FIREBASE;if(!cfg||!cfg.apiKey)return;
   const base='https://www.gstatic.com/firebasejs/10.12.2/';
@@ -1994,7 +1995,7 @@ function finishLink(em){
    .catch(()=>{history.replaceState(null,'',location.pathname);accSheet('fail')});
 }
 function accRender(){
-  const t=ACC.on?(ACC.user&&!ACC.user.isAnonymous?`<p class="accline">ログイン中：${escH(ACC.user.email||'Googleアカウント')}<br>記録はネットに保存されている。</p><div class="minirow"><button class="btn ghost mini" type="button" id="accOut">ログアウト</button><button class="btn ghost mini" type="button" id="accDel">登録を消す</button></div>`:`<button class="btn ghost" type="button" id="accIn">記録をネットに保存する（ログイン）</button>`):'';
+  const t=ACC.on?(ACC.user&&!ACC.user.isAnonymous?`<p class="accline">ログイン中：${escH(ACC.user.email||'Googleアカウント')}<br>記録はネットに保存されている。</p><div class="minirow"><button class="btn ghost mini" type="button" id="accOut">ログアウト</button><button class="btn ghost mini" type="button" id="accDel">登録を消す</button></div>`:`<button class="btn ghost" type="button" id="accIn">記録をネットに保存する（ログイン）</button>${cleared()===0?'<p class="note">前に遊んだことがある人は、前と同じGoogleアカウントかメールでログインすれば、記録が戻る。LINEやXのアプリの中で開くと、記録が別になることがある。</p>':''}`):'';
   document.querySelectorAll('.accbox').forEach(b=>{b.innerHTML=t;b.hidden=!t});
   document.querySelectorAll('#accIn').forEach(b=>b.onclick=()=>accSheet('form'));
   document.querySelectorAll('#accOut').forEach(b=>b.onclick=()=>ACC.auth.signOut().then(()=>ACC.auth.signInAnonymously()).catch(()=>{}));
