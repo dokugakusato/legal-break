@@ -389,6 +389,53 @@ document.body.insertAdjacentHTML('beforeend',`<style>
 @keyframes deko{0%{transform:none}20%{transform:rotate(14deg)}40%{transform:rotate(-8deg)}60%{transform:rotate(5deg)}100%{transform:none}}
 </style>`);
 
+/* ---------- 第45話〜の曲（4話ごとに入れかえる）：荒野のウエスタン ---------- */
+Object.assign(TR,{
+ // 物語：口笛とトワンギーなギター。馬のひづめのようなリズム
+ k45case:{bpm:96,f(a,o,s,t,d){const bar=s>>4,R=[45,45,43,40][bar&3];
+  if(s%4===0)I.bass(a,o,R,t,d*1.5,.13,1);if(s%4===2)I.bass(a,o,R+7,t,d*1.2,.1,1);if(s%2===1)I.wood(a,o,t,s%4===1?900:1200,.03);
+  if(s%16===8)I.twang(a,o,R+24,t,.05);
+  const m={0:[69,4],4:[74,2],6:[76,2],8:[74,6],16:[72,2],18:[71,2],20:[69,4],24:[64,8]}[s%32];if(m)I.whistle(a,o,m[0]+12,t,m[1]*d,.045)}},
+ // 対戦：早駆けのギャロップ
+ k45battle:{bpm:160,f(a,o,s,t,d){const R=[45,43,41,40][(s>>3)&3];if(s%2===0)I.bass(a,o,R+(s%4?7:0),t,d*.9,.17,1);
+  if([0,3].includes(s%4))I.kick(a,o,t,.5);if(s%8===4)I.snare(a,o,t,.24);if(s%2===1)I.wood(a,o,t,1100,.04);
+  const m={0:[81,2],2:[79,2],4:[76,4],8:[74,2],10:[76,2],12:[69,4],16:[72,2],18:[74,2],20:[76,4],24:[81,6]}[s];if(m)I.twang(a,o,m[0],t,.06);if(s===31)I.whip(a,o,t,.3)}},
+ // ボス登場：決闘前の静けさ。鐘と口笛
+ k45bossin:{bpm:58,f(a,o,s,t,d){if(s%8===0)I.bell(a,o,s%16?57:52,t,.05,3);if(s%4===2)I.wood(a,o,t,700,.03);
+  if(s===4||s===20)I.whistle(a,o,s===4?81:79,t,6*d,.04);if(s%16===0)I.cello(a,o,[33,31][s>>4],t,14*d,.05)}},
+ // ボス戦：決闘のウエスタン・ロック
+ k45boss:{bpm:170,f(a,o,s,t,d){const R=[45,43,41,40][(s>>3)&3];I.bass(a,o,[R,R,R+12,R,R+7,R,R+10,R+12][s%8],t,d*.8,.18,1);
+  if(s%4===0)I.kick(a,o,t,.65);if(s%8===4)I.snare(a,o,t,.3);if(s%2===1)I.hat(a,o,t,.03);
+  const m={0:[81,2],2:[84,2],4:[81,4],8:[79,2],10:[76,2],12:[74,4],16:[76,2],18:[79,2],20:[81,4],24:[88,6]}[s];if(m)I.twang(a,o,m[0],t,.07);if(s===31)I.whip(a,o,t,.35)}}
+});
+
+/* ---------- 第45話〜の新しい技：投げ縄・エルボー ---------- */
+Object.assign(MOVES,{
+ nagenawa:{kiai:'法の投げ縄！',k:1.1,hit:'ギュギュッ！'},
+ elbow:{kiai:'エルボーっ！',k:1.2,hit:'ドゴォ！'}
+});
+const MOVE45=['nagenawa','elbow'];
+{const _ok=moveOK;moveOK=k=>MOVE45.includes(k)?!!(CH&&CH.no>=45):_ok(k)}
+{const _atk=attack;attack=function(then,style){
+  if(!MOVE45.includes(style))return _atk(then,style);
+  const M=MOVES[style];kiai(M.k);const h=$('#stage .fig.l'),st=$('#stage'),e=$('#stage .fig.r');
+  const v=document.createElement('div');v.className='kiai';v.textContent=M.kiai;st.appendChild(v);setTimeout(()=>v.remove(),1000);
+  h.classList.remove('lunge','kickmove','dkick','hbutt','chopup','hipatk','sobat','gpun','kneeup','edrop','abarai','mawashi','lasso');void h.offsetWidth;h.classList.add(style==='nagenawa'?'lasso':'lunge');
+  if(style==='nagenawa'){const r=document.createElement('div');r.className='lassorope';st.appendChild(r);setTimeout(()=>r.remove(),900)}
+  setTimeout(()=>{const sr=st.getBoundingClientRect(),er=e.getBoundingClientRect(),fx=er.left-sr.left+er.width*.5,fy=er.top-sr.top+er.height*(style==='nagenawa'?.5:.3);
+    const b=document.createElement('div');b.className='boom';b.style.left=fx+'px';b.style.top=fy+'px';b.innerHTML=BOOM+`<span>${M.hit}</span>`;st.appendChild(b);setTimeout(()=>b.remove(),700);
+    e.classList.remove('knock','knockkick','pinned','hit','squashy','trip','deko','tied');void e.offsetWidth;e.classList.add(style==='nagenawa'?'tied':'knock');setTimeout(()=>e.classList.remove('tied','knock'),1100);
+    st.classList.remove('shake','impact');void st.offsetWidth;st.classList.add('shake','impact');punch(style==='nagenawa'?1.2:1.7);then()},style==='nagenawa'?520:380);
+}}
+document.body.insertAdjacentHTML('beforeend',`<style>
+.fig.l.lasso{animation:lasso .8s}
+@keyframes lasso{0%{transform:none}30%{transform:rotate(-8deg)}60%{transform:translateX(10%) rotate(6deg)}100%{transform:none}}
+.lassorope{position:absolute;left:30%;top:28%;width:44%;height:4px;background:repeating-linear-gradient(90deg,#c9a46a 0 8px,#8a6a3a 8px 12px);border-radius:3px;transform-origin:0 50%;animation:rope .8s ease-out forwards;z-index:4;pointer-events:none}
+@keyframes rope{0%{transform:scaleX(0) rotate(-20deg)}50%{transform:scaleX(1) rotate(4deg)}100%{transform:scaleX(1) rotate(0);opacity:0}}
+.fig.r.tied{animation:tied 1s}
+@keyframes tied{0%{transform:none}20%{transform:scaleX(.82)}40%{transform:scaleX(.86) translateX(-6%)}70%{transform:scaleX(.84) translateX(-10%)}100%{transform:none}}
+</style>`);
+
 /* ---------- 記述の章の流れ ---------- */
 const KJ={};
 {const _bp=beginPart;beginPart=function(){const sb=$('#s-battle');if(sb)sb.classList.remove('kj','kjboss');if(CH&&CH.kijutsu)return kjStart();return _bp()}}

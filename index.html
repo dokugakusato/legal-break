@@ -467,6 +467,17 @@ b.gold{color:var(--gold)}
 .bball.roll{animation:broll .9s cubic-bezier(.4,0,.8,.6) forwards}
 @keyframes broll{0%{transform:translateX(0) rotate(0)}100%{transform:translateX(300%) rotate(1080deg)}}
 .fig.l.bwlthrow{transform:translateX(10%) translateY(8%) rotate(14deg);transition:transform .3s}
+.fig.l.tdspin{animation:tdspin .3s linear infinite}
+@keyframes tdspin{0%{transform:translateX(20%) rotateY(0)}100%{transform:translateX(20%) rotateY(360deg)}}
+.twister{position:absolute;left:28%;width:44%;bottom:4%;height:80%;z-index:3;pointer-events:none;background:repeating-linear-gradient(170deg,rgba(220,200,160,.0) 0 10px,rgba(220,200,160,.35) 10px 16px);clip-path:polygon(0 0,100% 0,62% 100%,38% 100%);animation:twist .25s linear infinite}
+@keyframes twist{0%{background-position:0 0}100%{background-position:0 32px}}
+.tdpaper{position:absolute;bottom:10%;z-index:4;font-weight:900;color:#2a221c;background:#f5eedd;border:2px solid #0b0807;padding:1px 4px;font-size:13px;animation:tdpaper 1.8s ease-in forwards;pointer-events:none}
+@keyframes tdpaper{0%{transform:translate(0,0) rotate(0)}100%{transform:translate(40px,-360px) rotate(900deg);opacity:0}}
+.fig.r.tdlift{animation:tdlift 1.4s ease-in forwards}
+@keyframes tdlift{0%{transform:none}100%{transform:translate(-30%,-240%) rotate(1080deg) scale(.5);opacity:0}}
+.hay{position:absolute;left:50%;bottom:4%;transform:translateX(-50%);width:62%;height:26%;z-index:4;border-radius:50% 50% 8px 8px;background:repeating-linear-gradient(80deg,#e8c25a 0 4px,#c9a03a 4px 7px);border:3px solid #0b0807;display:flex;align-items:center;justify-content:center;animation:hay .5s ease}
+.hay span{font-weight:900;font-size:26px;color:#fff;-webkit-text-stroke:2px #0b0807}
+@keyframes hay{0%{transform:translateX(-50%) scaleY(.4)}60%{transform:translateX(-50%) scaleY(1.15)}100%{transform:translateX(-50%)}}
 .fig.l.hbup{animation:hbup .6s}
 @keyframes hbup{0%{transform:none}50%{transform:translateX(30%) translateY(-18%) rotate(-8deg)}100%{transform:translateX(10%)}}
 .fig.r.hblaunch{animation:hblaunch 1.2s cubic-bezier(.3,.1,.5,1) forwards}
@@ -1289,8 +1300,8 @@ function bossBattle(){
 }
 // 北斗風の決め・エルボーは第3話から（第1・2話は元の演出のまま）。話データで hokuto:true/false を指定すれば上書き
 const hokuto=()=>!!CH&&(CH.hokuto??CH.no>=3);
-const finStyle=()=>!CH?'hokuto':CH.fin||(CH.no>=41&&CH.no<=44?'hanabi':CH.no>=37&&CH.no<=40?'sumo':CH.no>=33&&CH.no<=36?'bowling':CH.no>=29&&CH.no<=32?'homerun':CH.no>=25&&CH.no<=28?'chabudai':CH.no>=21&&CH.no<=24?'ryusei':CH.no>=17&&CH.no<=20?'swing':CH.no>=10&&CH.no<=13?'hyaku':CH.no>=6?'slash':'hokuto');
-function finisher(){if(!hokuto())return finisherClassic();const fs=finStyle();return fs==='hanabi'?finisherHanabi():fs==='sumo'?finisherSumo():fs==='bowling'?finisherBowling():fs==='homerun'?finisherHomerun():fs==='chabudai'?finisherChabudai():fs==='ryusei'?finisherRyusei():fs==='jihi'?finisherJihi():fs==='swing'?finisherSwing():fs==='harisen'?finisherHarisen():fs==='tekken'?finisherTekken():fs==='hyaku'?finisherHyaku():fs==='slash'?finisherSlash():finisherHokuto()}
+const finStyle=()=>!CH?'hokuto':CH.fin||(CH.no>=45&&CH.no<=48?'tornado':CH.no>=41&&CH.no<=44?'hanabi':CH.no>=37&&CH.no<=40?'sumo':CH.no>=33&&CH.no<=36?'bowling':CH.no>=29&&CH.no<=32?'homerun':CH.no>=25&&CH.no<=28?'chabudai':CH.no>=21&&CH.no<=24?'ryusei':CH.no>=17&&CH.no<=20?'swing':CH.no>=10&&CH.no<=13?'hyaku':CH.no>=6?'slash':'hokuto');
+function finisher(){if(!hokuto())return finisherClassic();const fs=finStyle();return fs==='tornado'?finisherTornado():fs==='hanabi'?finisherHanabi():fs==='sumo'?finisherSumo():fs==='bowling'?finisherBowling():fs==='homerun'?finisherHomerun():fs==='chabudai'?finisherChabudai():fs==='ryusei'?finisherRyusei():fs==='jihi'?finisherJihi():fs==='swing'?finisherSwing():fs==='harisen'?finisherHarisen():fs==='tekken'?finisherTekken():fs==='hyaku'?finisherHyaku():fs==='slash'?finisherSlash():finisherHokuto()}
 function finisherClassic(){
   BGM.stop();closeSheet();stopSay();
   const name=EP.lawName||EP.ougi,ov=$('#ov');ov.hidden=false;ov.classList.add('black');
@@ -1766,6 +1777,33 @@ function finisherHanabi(){
     const fl=document.createElement('div');fl.className='hbfloat';fl.innerHTML=`<span class="um">☂</span><span class="nm">${EP.efigName||EP.enemy}</span>`;st.appendChild(fl);
     line('……見えた、見えましたぞ……夜空に、条文が……',EP.efigName||EP.enemy);say([['見えた、見えましたぞ',bk]]);
     await wait(2200);$('#fline').innerHTML='';sky.remove();fl.remove();st.classList.remove('hbnight');
+    await ougiTail(ov,name,sayP,wait);
+  })();
+}
+// 法のトルネード（45〜48話）：佐藤がこまのように回って竜巻を起こす → 敵が書類といっしょに空へ → 干し草の山に「ボフッ」
+const TORNADO_DEF={taunt:'荒野の風は、わしらの味方よ！',reply:'なら、その風ごと巻き上げてやる！',name:'法のトルネード！'};
+function finisherTornado(){
+  BGM.stop();closeSheet();stopSay();
+  const name=EP.lawName||EP.ougi,ov=$('#ov'),bk=VP[EP.efig]?EP.efig:'boss',H=Object.assign({},TORNADO_DEF,CH.tornado||{});ov.hidden=false;ov.classList.add('black');
+  const wait=ms=>new Promise(r=>setTimeout(r,ms)),sayP=(t,k)=>new Promise(r=>say([[t,k]],r));
+  const line=(t,who,cls='')=>{const l=$('#fline');if(l)l.innerHTML=`<div class="fl ${cls}"><b>${who}</b>${t}</div>`};
+  ov.innerHTML=`<div class="finisher hk"><div class="stage fstage" id="fstage">${stageHTML(EP.efig||'boss',EP.enemy,1,EP.efigName)}</div><div class="fline" id="fline"></div></div>`;
+  const st=$('#fstage'),boss=st.querySelector('.fig.r'),hero=st.querySelector('.fig.l');
+  (async()=>{
+    await wait(400);line(H.taunt,EP.efigName||EP.enemy);await Promise.all([sayP(H.taunt,bk),wait(1700)]);
+    line(H.reply,'佐藤','hero');await Promise.all([sayP(H.reply,'hero'),wait(1500)]);$('#fline').innerHTML='';
+    // 1. 佐藤が回って、竜巻が起きる
+    const k=document.createElement('div');k.className='kiai hyk big';k.textContent=H.name;k.style.fontSize=Math.min(44,Math.floor(330/[...H.name].length))+'px';k.style.left='4%';st.appendChild(k);say([[H.name,'hero']]);
+    hero.classList.add('tdspin');const tw=document.createElement('div');tw.className='twister';st.appendChild(tw);const a=ac();
+    for(let i=0;i<10;i++){const p=document.createElement('div');p.className='tdpaper';p.textContent=['条','法','§','判','令'][i%5];p.style.left=(30+Math.random()*40)+'%';p.style.animationDelay=(i*.09)+'s';st.appendChild(p);setTimeout(()=>p.remove(),1900);
+      if(a&&i%2===0)I.whip(a,a.destination,a.currentTime,.25);await wait(110)}
+    // 2. 敵が巻き上げられる
+    punch(2);hit(1.6);boss.classList.add('tdlift');line('うわわわわ～～っ、目が回る～！',EP.efigName||EP.enemy,'big');say([['目が回る～！',bk]]);
+    await wait(1500);k.remove();tw.remove();hero.classList.remove('tdspin');$('#fline').innerHTML='';
+    // 3. 干し草の山に、ボフッ
+    const hay=document.createElement('div');hay.className='hay';hay.innerHTML='<span>ボフッ！</span>';st.appendChild(hay);if(a)I.taiko(a,a.destination,a.currentTime,.7);punch(1.2);
+    const g=document.createElement('div');g.className='hrboard';g.innerHTML='<small>荒野の風</small>着地！';g.style.top='4%';st.appendChild(g);
+    if(typeof fanfare==='function')fanfare();await wait(1900);g.remove();hay.remove();
     await ougiTail(ov,name,sayP,wait);
   })();
 }
