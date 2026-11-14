@@ -467,6 +467,13 @@ b.gold{color:var(--gold)}
 .bball.roll{animation:broll .9s cubic-bezier(.4,0,.8,.6) forwards}
 @keyframes broll{0%{transform:translateX(0) rotate(0)}100%{transform:translateX(300%) rotate(1080deg)}}
 .fig.l.bwlthrow{transform:translateX(10%) translateY(8%) rotate(14deg);transition:transform .3s}
+.dstack{position:absolute;display:flex;flex-direction:column;justify-content:flex-end;z-index:3;pointer-events:none}
+.dstack i{display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-size:12px!important;border:3px solid #0b0807;border-radius:6px;margin-top:-3px;font-style:normal;font-weight:900;color:#fff;font-size:18px;-webkit-text-stroke:1px #0b0807;transition:transform .45s ease-in,opacity .45s}
+.dstack i.out{transform:translateX(220%) rotate(40deg);opacity:0}
+.fig.l.mallet{animation:mallet .35s}
+@keyframes mallet{0%{transform:none}50%{transform:translateX(30%) rotate(-14deg)}100%{transform:none}}
+.fig.r.zukko{animation:zukko 1s forwards;transform-origin:50% 100%}
+@keyframes zukko{0%{transform:none}40%{transform:rotate(-20deg) translateY(4%)}100%{transform:rotate(-90deg) translate(-10%,10%)}}
 .fig.l.tdspin{animation:tdspin .3s linear infinite}
 @keyframes tdspin{0%{transform:translateX(20%) rotateY(0)}100%{transform:translateX(20%) rotateY(360deg)}}
 .twister{position:absolute;left:28%;width:44%;bottom:4%;height:80%;z-index:3;pointer-events:none;background:repeating-linear-gradient(170deg,rgba(220,200,160,.0) 0 10px,rgba(220,200,160,.35) 10px 16px);clip-path:polygon(0 0,100% 0,62% 100%,38% 100%);animation:twist .25s linear infinite}
@@ -1300,8 +1307,8 @@ function bossBattle(){
 }
 // 北斗風の決め・エルボーは第3話から（第1・2話は元の演出のまま）。話データで hokuto:true/false を指定すれば上書き
 const hokuto=()=>!!CH&&(CH.hokuto??CH.no>=3);
-const finStyle=()=>!CH?'hokuto':CH.fin||(CH.no>=45&&CH.no<=48?'tornado':CH.no>=41&&CH.no<=44?'hanabi':CH.no>=37&&CH.no<=40?'sumo':CH.no>=33&&CH.no<=36?'bowling':CH.no>=29&&CH.no<=32?'homerun':CH.no>=25&&CH.no<=28?'chabudai':CH.no>=21&&CH.no<=24?'ryusei':CH.no>=17&&CH.no<=20?'swing':CH.no>=10&&CH.no<=13?'hyaku':CH.no>=6?'slash':'hokuto');
-function finisher(){if(!hokuto())return finisherClassic();const fs=finStyle();return fs==='tornado'?finisherTornado():fs==='hanabi'?finisherHanabi():fs==='sumo'?finisherSumo():fs==='bowling'?finisherBowling():fs==='homerun'?finisherHomerun():fs==='chabudai'?finisherChabudai():fs==='ryusei'?finisherRyusei():fs==='jihi'?finisherJihi():fs==='swing'?finisherSwing():fs==='harisen'?finisherHarisen():fs==='tekken'?finisherTekken():fs==='hyaku'?finisherHyaku():fs==='slash'?finisherSlash():finisherHokuto()}
+const finStyle=()=>!CH?'hokuto':CH.fin||(CH.no>=49&&CH.no<=52?'daruma':CH.no>=45&&CH.no<=48?'tornado':CH.no>=41&&CH.no<=44?'hanabi':CH.no>=37&&CH.no<=40?'sumo':CH.no>=33&&CH.no<=36?'bowling':CH.no>=29&&CH.no<=32?'homerun':CH.no>=25&&CH.no<=28?'chabudai':CH.no>=21&&CH.no<=24?'ryusei':CH.no>=17&&CH.no<=20?'swing':CH.no>=10&&CH.no<=13?'hyaku':CH.no>=6?'slash':'hokuto');
+function finisher(){if(!hokuto())return finisherClassic();const fs=finStyle();return fs==='daruma'?finisherDaruma():fs==='tornado'?finisherTornado():fs==='hanabi'?finisherHanabi():fs==='sumo'?finisherSumo():fs==='bowling'?finisherBowling():fs==='homerun'?finisherHomerun():fs==='chabudai'?finisherChabudai():fs==='ryusei'?finisherRyusei():fs==='jihi'?finisherJihi():fs==='swing'?finisherSwing():fs==='harisen'?finisherHarisen():fs==='tekken'?finisherTekken():fs==='hyaku'?finisherHyaku():fs==='slash'?finisherSlash():finisherHokuto()}
 function finisherClassic(){
   BGM.stop();closeSheet();stopSay();
   const name=EP.lawName||EP.ougi,ov=$('#ov');ov.hidden=false;ov.classList.add('black');
@@ -1804,6 +1811,39 @@ function finisherTornado(){
     const hay=document.createElement('div');hay.className='hay';hay.innerHTML='<span>ボフッ！</span>';st.appendChild(hay);if(a)I.taiko(a,a.destination,a.currentTime,.7);punch(1.2);
     const g=document.createElement('div');g.className='hrboard';g.innerHTML='<small>荒野の風</small>着地！';g.style.top='4%';st.appendChild(g);
     if(typeof fanfare==='function')fanfare();await wait(1900);g.remove();hay.remove();
+    await ougiTail(ov,name,sayP,wait);
+  })();
+}
+// 法のだるま落とし（49〜52話）：敵を六法のブロックの塔の上に乗せ、佐藤が木づちで一段ずつ「カーン！」→ 最後は「ズコーッ！」
+const DARUMA_DEF={taunt:'わしは、高いところから見下ろすのが好きなんじゃ！',reply:'なら、足もとから一段ずつ崩してやる！',name:'法のだるま落とし！'};
+function finisherDaruma(){
+  BGM.stop();closeSheet();stopSay();
+  const name=EP.lawName||EP.ougi,ov=$('#ov'),bk=VP[EP.efig]?EP.efig:'boss',H=Object.assign({},DARUMA_DEF,CH.daruma||{});ov.hidden=false;ov.classList.add('black');
+  const wait=ms=>new Promise(r=>setTimeout(r,ms)),sayP=(t,k)=>new Promise(r=>say([[t,k]],r));
+  const line=(t,who,cls='')=>{const l=$('#fline');if(l)l.innerHTML=`<div class="fl ${cls}"><b>${who}</b>${t}</div>`};
+  ov.innerHTML=`<div class="finisher hk"><div class="stage fstage" id="fstage">${stageHTML(EP.efig||'boss',EP.enemy,1,EP.efigName)}</div><div class="fline" id="fline"></div></div>`;
+  const st=$('#fstage'),boss=st.querySelector('.fig.r'),hero=st.querySelector('.fig.l');
+  const N=5,stack=document.createElement('div');stack.className='dstack';
+  stack.innerHTML=Array.from({length:N},(_,i)=>`<i style="background:${['#c0392b','#2e86c1','#27ae60','#f1c40f','#8e44ad'][i]}">${['条','法','令','判','例'][i]}</i>`).join('');st.appendChild(stack);
+  const sr=st.getBoundingClientRect(),br=boss.getBoundingClientRect(),bh=Math.max(14,br.height*.075);stack.style.left=(br.left-sr.left+br.width*.12)+'px';stack.style.width=(br.width*.76)+'px';const by=Math.min(br.bottom,sr.bottom)-sr.top;stack.style.top=(by-N*bh)+'px';stack.style.height=(N*bh)+'px';stack.querySelectorAll('i').forEach(x=>x.style.height=bh+'px');
+  boss.style.transition='transform .25s';boss.style.transform=`translateY(-${N*bh}px)`;
+  (async()=>{
+    await wait(400);line(H.taunt,EP.efigName||EP.enemy);await Promise.all([sayP(H.taunt,bk),wait(1700)]);
+    line(H.reply,'佐藤','hero');await Promise.all([sayP(H.reply,'hero'),wait(1500)]);$('#fline').innerHTML='';
+    const k=document.createElement('div');k.className='kiai hyk big';k.textContent=H.name;k.style.fontSize=Math.min(44,Math.floor(330/[...H.name].length))+'px';k.style.left='4%';st.appendChild(k);say([[H.name,'hero']]);
+    const a=ac();
+    // 1. 一段ずつ、カーン！
+    for(let i=0;i<N;i++){hero.classList.remove('mallet');void hero.offsetWidth;hero.classList.add('mallet');await wait(220);
+      const b=stack.querySelector('i:last-child');if(b){b.classList.add('out');setTimeout(()=>b.remove(),500)}
+      const c=document.createElement('div');c.className='kiai';c.textContent='カーン！';c.style.left=(30+i*6)+'%';c.style.top='60%';st.appendChild(c);setTimeout(()=>c.remove(),600);
+      if(a)I.wood(a,a.destination,a.currentTime,1500-i*120,.14);punch(.9);
+      boss.style.transform=`translateY(-${(N-1-i)*bh}px)`;await wait(i<N-1?420:300)}
+    k.remove();
+    // 2. 最後は、ズコーッ！
+    boss.style.transition='';boss.style.transform='';boss.classList.add('zukko');hit(1.6);punch(2);if(a)I.taiko(a,a.destination,a.currentTime,.8);
+    line('ズコーッ！',EP.efigName||EP.enemy,'big');say([['ズコーッ！',bk]]);
+    const g=document.createElement('div');g.className='hrboard';g.innerHTML='<small>だるま落とし</small>見事、全段成功！';g.style.top='4%';st.appendChild(g);
+    if(typeof fanfare==='function')fanfare();await wait(2000);g.remove();stack.remove();$('#fline').innerHTML='';
     await ougiTail(ov,name,sayP,wait);
   })();
 }

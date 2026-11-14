@@ -436,6 +436,48 @@ document.body.insertAdjacentHTML('beforeend',`<style>
 @keyframes tied{0%{transform:none}20%{transform:scaleX(.82)}40%{transform:scaleX(.86) translateX(-6%)}70%{transform:scaleX(.84) translateX(-10%)}100%{transform:none}}
 </style>`);
 
+/* ---------- 第49話〜の曲（4話ごとに入れかえる）：にぎやかなスカ ---------- */
+Object.assign(TR,{
+ // 物語：裏打ちのギターと、のんびりしたトロンボーン
+ k49case:{bpm:120,f(a,o,s,t,d){const R=[48,48,53,55][(s>>4)&3];
+  if(s%4===0)I.bass(a,o,R-12,t,d*1.4,.13,1);if(s%4===2)I.bass(a,o,R-5,t,d*1.2,.1,1);
+  if(s%4===2)I.pluck(a,o,R+12,t,.035);if(s%8===4)I.snare(a,o,t,.08);if(s%2===1)I.hat(a,o,t,.02);
+  const m={0:[72,2],2:[74,2],4:[76,4],8:[79,2],10:[76,2],12:[72,4],16:[74,2],18:[72,2],20:[69,4],24:[67,6]}[s%32];if(m)I.brass(a,o,m[0]-12,t,m[1]*d,.04)}},
+ // 対戦：速いスカ・パンク
+ k49battle:{bpm:172,f(a,o,s,t,d){const R=[48,53,55,53][(s>>3)&3];if(s%2===0)I.bass(a,o,R-12+(s%4?7:0),t,d*.8,.17,1);
+  if(s%4===0)I.kick(a,o,t,.55);if(s%8===4)I.snare(a,o,t,.26);if(s%2===1){I.pluck(a,o,R+12,t,.04);I.hat(a,o,t,.025)}
+  const m={0:[79,1],1:[81,1],2:[84,2],4:[81,2],6:[79,2],8:[76,4],16:[77,2],18:[79,2],20:[81,4],24:[84,6]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d,.06);if(s===31)I.whip(a,o,t,.3)}},
+ // ボス登場：ちょっととぼけた低音とベル
+ k49bossin:{bpm:76,f(a,o,s,t,d){if(s%4===0)I.bass(a,o,[36,35,34,33,32,31,30,31][(s>>2)&7],t,3*d,.12,1);if(s%2===1)I.tick(a,o,t,1500,.025);
+  if(s===8||s===24)I.bell(a,o,s===8?72:71,t,.04,2.5)}},
+ // ボス戦：ブラス全開のスカ
+ k49boss:{bpm:180,f(a,o,s,t,d){const R=[48,53,55,52][(s>>3)&3];I.bass(a,o,R-12+[0,12,7,12,5,12,7,10][s%8],t,d*.8,.18,1);
+  if(s%4===0)I.kick(a,o,t,.65);if(s%8===4)I.snare(a,o,t,.3);if(s%2===1)I.pluck(a,o,R+12,t,.045);
+  const m={0:[84,2],2:[83,2],4:[81,4],8:[79,2],10:[81,2],12:[84,4],16:[86,2],18:[84,2],20:[81,4],24:[79,6]}[s];if(m)I.brass(a,o,m[0],t,m[1]*d,.07);if(s===31)I.whip(a,o,t,.35)}}
+});
+
+/* ---------- 第49話〜の新しい技：小手返し・しっぺ ---------- */
+Object.assign(MOVES,{
+ kote:{kiai:'小手返しっ！',k:1.15,hit:'クルッ！'},
+ shippe:{kiai:'法のしっぺ！',k:1.0,hit:'ピシッ！'}
+});
+const MOVE49=['kote','shippe'];
+{const _ok=moveOK;moveOK=k=>MOVE49.includes(k)?!!(CH&&CH.no>=49):_ok(k)}
+{const _atk=attack;attack=function(then,style){
+  if(!MOVE49.includes(style))return _atk(then,style);
+  const M=MOVES[style];kiai(M.k);const h=$('#stage .fig.l'),st=$('#stage'),e=$('#stage .fig.r');
+  const v=document.createElement('div');v.className='kiai';v.textContent=M.kiai;st.appendChild(v);setTimeout(()=>v.remove(),1000);
+  h.classList.remove('lunge','kickmove','dkick','hbutt','chopup','hipatk','sobat','gpun','kneeup','edrop','abarai','mawashi','lasso');void h.offsetWidth;h.classList.add('lunge');
+  setTimeout(()=>{const sr=st.getBoundingClientRect(),er=e.getBoundingClientRect(),fx=er.left-sr.left+er.width*.5,fy=er.top-sr.top+er.height*(style==='kote'?.5:.4);
+    const b=document.createElement('div');b.className='boom';b.style.left=fx+'px';b.style.top=fy+'px';b.innerHTML=BOOM+`<span>${M.hit}</span>`;st.appendChild(b);setTimeout(()=>b.remove(),700);
+    e.classList.remove('knock','knockkick','pinned','hit','squashy','trip','deko','tied','flip');void e.offsetWidth;e.classList.add(style==='kote'?'flip':'deko');setTimeout(()=>e.classList.remove('flip','deko'),1100);
+    st.classList.remove('shake','impact');void st.offsetWidth;st.classList.add('shake','impact');punch(style==='kote'?1.6:1);then()},360);
+}}
+document.body.insertAdjacentHTML('beforeend',`<style>
+.fig.r.flip{animation:flip 1s;transform-origin:50% 60%}
+@keyframes flip{0%{transform:none}40%{transform:rotate(-200deg) translateY(-10%)}70%{transform:rotate(-360deg)}100%{transform:none}}
+</style>`);
+
 /* ---------- 記述の章の流れ ---------- */
 const KJ={};
 {const _bp=beginPart;beginPart=function(){const sb=$('#s-battle');if(sb)sb.classList.remove('kj','kjboss');if(CH&&CH.kijutsu)return kjStart();return _bp()}}
