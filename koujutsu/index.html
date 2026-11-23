@@ -137,6 +137,7 @@ details summary{cursor:pointer;color:var(--navy);font-weight:700}
 </head>
 <body>
 <div class="wrap" id="app"></div>
+<pre id="dbg" style="white-space:pre-wrap;font-size:11px;max-width:640px;margin:0 auto;padding:0 16px;color:var(--muted)"></pre>
 <script>
 // 口述問題データ（令和元年〜令和7年を統合・重複整理）
 // s:科目 y:出題年 q:問題 v:別パターンの問い方 a:模範解答 k:判定キーワード群（|は言い換え） n:必要数 t:肢別（先頭○×、｜以降は解説）
@@ -236,51 +237,44 @@ function speakChunks(text){
   });
   return out.length?out:[text];
 }
+// 読み上げ中の文章をここに持っておく（持っていないとiPhoneが途中で捨てて、読み上げが止まるため）
+const UTTER_KEEP=[];
+function dbg(m){if(!DEBUG)return;const el=document.getElementById("dbg");const t=((performance.now()/1000).toFixed(1))+"s "+m;DBGLOG.push(t);if(DBGLOG.length>40)DBGLOG.shift();if(el)el.textContent=DBGLOG.slice().reverse().join("\n")}
+const DEBUG=/[?&]debug=1/.test(location.search);const DBGLOG=[];
 function speak(text){
   text=toReading(text);
   return new Promise(res=>{
     if(!("speechSynthesis" in window)){setTimeout(res,300);return}
-    let done=false,timers=[];
-    const clear=()=>{timers.forEach(t=>{clearTimeout(t);clearInterval(t)});timers=[]};
-    const fin=()=>{if(done)return;done=true;clear();if(current.speakFin===fin)current.speakFin=null;res()};
+    let done=false,timer=null;
+    const fin=()=>{if(done)return;done=true;clearTimeout(timer);if(current.speakFin===fin)current.speakFin=null;res()};
     current.speakFin=fin;
     try{speechSynthesis.cancel()}catch(e){}
+    UTTER_KEEP.length=0;
     const parts=speakChunks(text);
     const v=pickVoice();
-    const one=(i,again)=>{
+    const one=(i)=>{
       if(done)return;
-      if(!again)retried=false;
       if(i>=parts.length){fin();return}
-      clear();
       const t=parts[i];
       const u=new SpeechSynthesisUtterance(t);
+      UTTER_KEEP.push(u);
       u.lang="ja-JP";u.rate=1.0;
       if(v){u.voice=v;u.pitch=MALE.test(v.name)?1:0.7}else u.pitch=0.7; // 男性音声がない端末は声を低めにする
       let ended=false;
-      const next=()=>{if(ended||done)return;ended=true;clear();
-        // 終わりの合図が来ないまま次へ進むときは、残った読み上げを止めて詰まりを防ぐ
-        try{if(speechSynthesis.speaking||speechSynthesis.pending)speechSynthesis.cancel()}catch(e){}
-        setTimeout(()=>one(i+1),40)};
-      u.onend=next;u.onerror=next;
-      // 読み始めの合図が来たら、文字数に見合った時間だけ待つ
-      let started=false;
-      u.onstart=()=>{started=true;clear();timers.push(setTimeout(next,1000+t.length*140))};
-      // 2.5秒たっても読み始めないとき：話している最中なら文字数ぶん待つ、話していなければ1回だけ読み直す
-      timers.push(setTimeout(()=>{
-        if(started||ended||done)return;
-        if(speechSynthesis.speaking&&!speechSynthesis.pending){timers.push(setTimeout(next,t.length*140));return}
-        if(!retried){retried=true;ended=true;clear();try{speechSynthesis.cancel()}catch(e){}setTimeout(()=>{ended=false;one(i,true)},120);return}
-        // 読み直しても話さないときは、読み上げが使えない状態なので残りも飛ばす
-        try{speechSynthesis.cancel()}catch(e){}fin();
-      },2500));
-      try{speechSynthesis.resume();speechSynthesis.speak(u)}catch(e){next()}
+      // 次の部分へ。読み上げは途中で止めない（止めるのは「次へ」などのボタンを押したときだけ）
+      const next=why=>{if(ended||done)return;ended=true;clearTimeout(timer);dbg("終了("+why+") "+(i+1)+"/"+parts.length);setTimeout(()=>one(i+1),30)};
+      u.onend=()=>next("end");
+      u.onerror=e=>next("error:"+(e&&e.error));
+      u.onstart=()=>dbg("開始 "+(i+1)+"/"+parts.length+" "+t.length+"字");
+      // 終わりの合図がどうしても来ないときだけ、ゆっくり読んだ場合の時間を過ぎたら次へ進む（読み上げ自体は止めない）
+      clearTimeout(timer);timer=setTimeout(()=>next("時間"),3000+t.length*260);
+      try{speechSynthesis.resume();speechSynthesis.speak(u);dbg("speak "+(i+1)+"/"+parts.length)}catch(e){next("例外")}
     };
-    let retried=false;
     // マイクを止めた直後は、iPhoneの音声の切り替えが終わるまで少し待ってから読み上げる
-    setTimeout(()=>one(0),Math.max(60,400-(Date.now()-recEndAt)));
+    setTimeout(()=>one(0),Math.max(80,400-(Date.now()-recEndAt)));
   });
 }
-function skipSpeak(){try{speechSynthesis.cancel()}catch(e){}if(current.speakFin)current.speakFin()}
+function skipSpeak(){dbg("止める(ボタン等)");try{speechSynthesis.cancel()}catch(e){}if(current.speakFin)current.speakFin()}
 const sayText=q=>q.replace(/【[^】]*】/g,"").replace(/第(\d+)条の(\d+)/g,"第$1条の$2");
 
 // ───── 音声認識 ─────
@@ -794,7 +788,7 @@ function renderOxList(){
 }
 
 // 古い版がスマホに残っていたら、自動で最新版に入れ替える
-const BUILD="2026-11-23-1700";
+const BUILD="2026-11-24-0610";
 (async()=>{try{
   const r=await fetch(location.pathname+"?_="+Date.now(),{cache:"no-store"});if(!r.ok)return;
   const t=await r.text();const m=t.match(/const BUILD="([^"]+)"/);
