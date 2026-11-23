@@ -223,34 +223,68 @@ const READINGS=[
 function toReading(t){for(const [w,r] of READINGS)t=t.split(w).join(r);
   // 「〜の者」「〜する者」のように、ひらがなの後の「者」は「もの」と読む（所有者・製造者などは「しゃ」のまま）
   return t.replace(/([ぁ-ん])者/g,"$1もの")}
+function speakChunks(text){
+  // 長い文は区切って読む（長いと途中で止まって終わりの合図が来ない端末があるため）
+  const out=[];
+  text.split(/(?<=[。？！\n])/).forEach(sen=>{
+    sen=sen.trim();if(!sen)return;
+    while(sen.length>60){
+      let cut=sen.lastIndexOf("、",60);if(cut<20)cut=60;else cut+=1;
+      out.push(sen.slice(0,cut));sen=sen.slice(cut);
+    }
+    if(sen)out.push(sen);
+  });
+  return out.length?out:[text];
+}
 function speak(text){
   text=toReading(text);
   return new Promise(res=>{
     if(!("speechSynthesis" in window)){setTimeout(res,300);return}
-    let done=false,guard=null,watch=null;
-    const fin=()=>{if(done)return;done=true;clearTimeout(guard);clearInterval(watch);if(current.speakFin===fin)current.speakFin=null;res()};
+    let done=false,timers=[];
+    const clear=()=>{timers.forEach(t=>{clearTimeout(t);clearInterval(t)});timers=[]};
+    const fin=()=>{if(done)return;done=true;clear();if(current.speakFin===fin)current.speakFin=null;res()};
     current.speakFin=fin;
     try{speechSynthesis.cancel()}catch(e){}
-    // 止めた直後に話させると無音で終わらない端末があるので少し待つ
-    setTimeout(()=>{
+    const parts=speakChunks(text);
+    const v=pickVoice();
+    const one=(i,again)=>{
       if(done)return;
-      const u=new SpeechSynthesisUtterance(text);
+      if(!again)retried=false;
+      if(i>=parts.length){fin();return}
+      clear();
+      const t=parts[i];
+      const u=new SpeechSynthesisUtterance(t);
       u.lang="ja-JP";u.rate=1.0;
-      const v=pickVoice();
       if(v){u.voice=v;u.pitch=MALE.test(v.name)?1:0.7}else u.pitch=0.7; // 男性音声がない端末は声を低めにする
-      u.onend=fin;u.onerror=fin;
-      guard=setTimeout(fin,3000+text.length*220);
-      let started=Date.now();
-      // 読み上げが始まらない・終わったのに知らせが来ない場合の見張り
-      watch=setInterval(()=>{if(Date.now()-started>1500&&!speechSynthesis.speaking&&!speechSynthesis.pending)fin()},400);
-      try{speechSynthesis.speak(u)}catch(e){fin()}
-    },120);
+      let ended=false;
+      const next=()=>{if(ended||done)return;ended=true;clear();
+        // 終わりの合図が来ないまま次へ進むときは、残った読み上げを止めて詰まりを防ぐ
+        try{if(speechSynthesis.speaking||speechSynthesis.pending)speechSynthesis.cancel()}catch(e){}
+        setTimeout(()=>one(i+1),40)};
+      u.onend=next;u.onerror=next;
+      // 読み始めの合図が来たら、文字数に見合った時間だけ待つ
+      let started=false;
+      u.onstart=()=>{started=true;clear();timers.push(setTimeout(next,1000+t.length*140))};
+      // 2.5秒たっても読み始めないとき：話している最中なら文字数ぶん待つ、話していなければ1回だけ読み直す
+      timers.push(setTimeout(()=>{
+        if(started||ended||done)return;
+        if(speechSynthesis.speaking&&!speechSynthesis.pending){timers.push(setTimeout(next,t.length*140));return}
+        if(!retried){retried=true;ended=true;clear();try{speechSynthesis.cancel()}catch(e){}setTimeout(()=>{ended=false;one(i,true)},120);return}
+        // 読み直しても話さないときは、読み上げが使えない状態なので残りも飛ばす
+        try{speechSynthesis.cancel()}catch(e){}fin();
+      },2500));
+      try{speechSynthesis.resume();speechSynthesis.speak(u)}catch(e){next()}
+    };
+    let retried=false;
+    // マイクを止めた直後は、iPhoneの音声の切り替えが終わるまで少し待ってから読み上げる
+    setTimeout(()=>one(0),Math.max(60,400-(Date.now()-recEndAt)));
   });
 }
 function skipSpeak(){try{speechSynthesis.cancel()}catch(e){}if(current.speakFin)current.speakFin()}
 const sayText=q=>q.replace(/【[^】]*】/g,"").replace(/第(\d+)条の(\d+)/g,"第$1条の$2");
 
 // ───── 音声認識 ─────
+let recEndAt=0; // マイクを止めた時刻
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 let micBroken=false;
 function listen(ms,ui){
@@ -262,6 +296,7 @@ function listen(ms,ui){
       if(finished)return;finished=true;
       clearInterval(tm);clearTimeout(silence);
       try{rec&&rec.abort()}catch(e){}
+      recEndAt=Date.now();
       if(current.listen===handle)current.listen=null;
       const t=(final+interim).trim();
       if(type==="timeout"&&t)type="answer";
@@ -745,7 +780,7 @@ function renderOxList(){
 }
 
 // 古い版がスマホに残っていたら、自動で最新版に入れ替える
-const BUILD="2026-11-09-2010";
+const BUILD="2026-11-23-1550";
 (async()=>{try{
   const r=await fetch(location.pathname+"?_="+Date.now(),{cache:"no-store"});if(!r.ok)return;
   const t=await r.text();const m=t.match(/const BUILD="([^"]+)"/);
