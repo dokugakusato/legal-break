@@ -117,7 +117,7 @@ select{font:inherit;padding:6px 8px;border-radius:8px;border:1px solid var(--lin
 .ritem.ok{border-left-color:var(--ok)}.ritem.ng{border-left-color:var(--ng)}.ritem.part{border-left-color:var(--part)}.ritem.skip{border-left-color:var(--brass)}
 .ritem .q{font-weight:700}
 .tag{display:inline-block;font-size:.75rem;font-weight:700;padding:1px 8px;border-radius:4px;margin-right:6px}
-.tag.ok{background:var(--ok-bg);color:var(--ok)}.tag.ng{background:var(--ng-bg);color:var(--ng)}.tag.part{background:var(--part-bg);color:var(--part)}.tag.skip{background:var(--soft);color:var(--brass)}
+.tag.ok{background:var(--ok-bg);color:var(--ok)}.tag.ng{background:var(--ng-bg);color:var(--ng)}.tag.part{background:var(--part-bg);color:var(--part)}.tag.skip{background:var(--soft);color:var(--brass)}.tag.none{background:var(--soft);color:var(--muted)}
 .score{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .score div{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:10px;text-align:center}
 .score b{display:block;font-family:var(--f-disp);font-size:1.4rem;font-variant-numeric:tabular-nums}
@@ -199,7 +199,7 @@ function grade(it,text){
   const r=c>=it.n?"ok":c>0?"part":"ng";
   return {r,hits};
 }
-const VERD={ok:"言えた",part:"一部言えた",ng:"言えなかった",skip:"パス・時間切れ",none:"無回答"};
+const VERD={ok:"言えた",part:"一部言えた",ng:"言えなかった",skip:"パス・時間切れ",none:"未判定"};
 
 // ───── 音声合成（男性・普通の速さ） ─────
 let voices=[];
@@ -285,6 +285,9 @@ const sayText=q=>q.replace(/【[^】]*】/g,"").replace(/第(\d+)条の(\d+)/g,"
 
 // ───── 音声認識 ─────
 let recEndAt=0; // マイクを止めた時刻
+// iPhone/iPad は「マイクの聞き取り」と「読み上げ」の切り替えが遅く、動きが重くなるので、最初はマイクを使わない
+const IS_IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+function useMic(){return S.useMic===undefined?!IS_IOS:!!S.useMic}
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 let micBroken=false;
 function listen(ms,ui){
@@ -305,16 +308,20 @@ function listen(ms,ui){
     const handle={finish};current.listen=handle;
     const tm=ms>0?setInterval(()=>{const left=Math.max(0,ms-(Date.now()-start));ui.tick&&ui.tick(left);if(left<=0)finish("timeout")},100):null;
     const isPass=s=>{const n=norm(s);return /^(ぱす|ぱすします|ぱすで|ぱすです|ぱすでお願いします|ぱすおねがいします|bus|pass|パス)$/.test(n)||(/^ぱす/.test(n)&&n.length<=6)};
+    if(!useMic())return; // マイクOFF：声に出して答え、「回答終了」か「パス」のボタンで進む
     if(!SR||micBroken){ui.fallback&&ui.fallback(v=>{final=v;finish(isPass(v)?"pass":"answer")});return}
     const boot=()=>{
       if(finished)return;
-      rec=new SR();rec.lang="ja-JP";rec.interimResults=true;rec.continuous=false;rec.maxAlternatives=1;
+      rec=new SR();rec.lang="ja-JP";rec.interimResults=true;rec.continuous=!!ui.manual;rec.maxAlternatives=1;
+      const base=final;
       rec.onresult=e=>{
-        interim="";
-        for(let i=e.resultIndex;i<e.results.length;i++){
+        // 毎回すべての結果から組み立て直す（端末によって同じ結果が何度も届くため）
+        let f="";interim="";
+        for(let i=0;i<e.results.length;i++){
           const r=e.results[i];
-          if(r.isFinal)final+=r[0].transcript;else interim+=r[0].transcript;
+          if(r.isFinal)f+=r[0].transcript;else interim+=r[0].transcript;
         }
+        final=base+f;
         ui.text(final,interim);
         if(ui.check){if(ui.check(final+interim)){finish("answer")}return}
         if(ui.manual)return; // 「回答終了」か「パス」のボタンを押すまで聞き続ける
@@ -328,7 +335,7 @@ function listen(ms,ui){
           micBroken=true;ui.error&&ui.error(e.error);ui.fallback&&ui.fallback(v=>{final=v;finish(isPass(v)?"pass":"answer")});
         }
       };
-      rec.onend=()=>{if(!finished&&!micBroken)setTimeout(boot,120)};
+      rec.onend=()=>{if(!finished&&!micBroken)setTimeout(boot,400)};
       try{rec.start()}catch(e){setTimeout(boot,300)}
     };
     boot();
@@ -381,6 +388,7 @@ function renderHome(){
     <h2>本番形式で口頭回答</h2>
     <p class="muted small" style="margin:0">本試験と同じく、1科目5問を3分で答えます。3分には問題の読み上げ時間も含まれます。1問ごとの時間制限はありません。答え終わったら「回答終了・次へ」、分からなければ「パス」を押すと次の問題へ進みます。5問終わって時間が残っていれば、パスした問題に戻ります。3分で何問言えるかを試す形式です。</p>
     <div>
+<div class="set"><label for="sw-mic">マイクで聞き取る<span class="sub">ONにすると答えを文字で残します。iPhoneでは動きが重くなることがあるのでOFFがおすすめです（OFFでも声に出して答え、ボタンで進みます）</span></label>${sw("sw-mic",useMic())}</div>
       <div class="set"><label for="sw-clock">ストップウォッチを表示<span class="sub">試験中も画面上の「時計」ボタンで切り替えられます</span></label>${sw("sw-clock",S.showClock!==false)}</div>
       <div class="set"><label for="sw-text">問題文を画面に表示<span class="sub">OFFにすると本番同様に耳だけで聞きます</span></label>${sw("sw-text",S.showText)}</div>
       ${EDITION==="trial"?"":`<div class="set"><label for="sw-w">よく出る問題を出やすくする<span class="sub">出題年数が多い問題ほど選ばれやすくなります</span></label>${sw("sw-w",S.weighted)}</div>`}
@@ -405,6 +413,7 @@ function renderHome(){
     </div>
     <div>
       <div class="set"><label for="sw-oxj">模範解答を1問ごとに表示<span class="sub">ONなら回答のたびに模範解答を表示、OFFなら最後にまとめて表示</span></label>${sw("sw-oxj",S.oxJudge)}</div>
+      <div class="set"><label for="sw-mic2">マイクで聞き取る<span class="sub">ONにすると答えを文字で残します。iPhoneでは動きが重くなることがあるのでOFFがおすすめです（OFFでも声に出して答え、ボタンで進みます）</span></label>${sw("sw-mic2",useMic())}</div>
       <div class="set"><label for="sw-oxt">問題文を画面に表示<span class="sub">OFFにすると本番同様に耳だけで聞きます</span></label>${sw("sw-oxt",S.showText)}</div>
       <div class="set"><label for="sel-order">出題順</label>
         <select id="sel-order"><option value="imp" ${S.oxOrder==="imp"?"selected":""}>重要論点順</option><option value="rand" ${S.oxOrder==="rand"?"selected":""}>ランダム</option></select></div>
@@ -424,6 +433,7 @@ function renderHome(){
   if(S.mode==="ox"&&EDITION==="trial"){}
   else if(S.mode==="oral"){
     $("#sw-clock").onchange=e=>{S.showClock=e.target.checked;save()};
+    $("#sw-mic").onchange=e=>{S.useMic=e.target.checked;save()};
     $("#sw-text").onchange=e=>{S.showText=e.target.checked;save()};
     if($("#sw-w"))$("#sw-w").onchange=e=>{S.weighted=e.target.checked;save()};
     $("#sel-voice").onchange=e=>{S.voice=e.target.value;save();speak("船舶法の問題です。")};
@@ -436,6 +446,7 @@ function renderHome(){
     document.querySelectorAll("#oxs .chip").forEach(b=>b.onclick=()=>{S.oxSubject=+b.dataset.s;save();renderHome()});
     $("#sw-oxj").onchange=e=>{S.oxJudge=e.target.checked;save()};
     $("#sw-oxt").onchange=e=>{S.showText=e.target.checked;save()};
+    $("#sw-mic2").onchange=e=>{S.useMic=e.target.checked;save()};
     $("#sel-order").onchange=e=>{S.oxOrder=e.target.value;save()};
     $("#sel-cnt").onchange=e=>{S.oxCount=+e.target.value;save()};
     $("#oxgo").onclick=()=>startOx(false);
@@ -512,7 +523,7 @@ async function runSubject(){
     });
     if(over||g!==gen||res.type==="abort")return "over";
     if(res.type==="pass"){Q.status="pass";Q.wasPassed=true;Q.text="";return "pass"}
-    Q.text=res.text||"";const gr=grade(Q.it,Q.text);Q.hits=gr.hits;Q.r=Q.text?gr.r:"ng";Q.status="done";
+    Q.text=res.text||"";const gr=grade(Q.it,Q.text);Q.hits=gr.hits;Q.r=Q.text?gr.r:(useMic()?"ng":null);Q.status="done";
     return "done";
   };
   for(let i=0;i<qs.length;i++){const r=await ask(i);if(r==="over")return}
@@ -535,8 +546,8 @@ function timeUp(){
 }
 function setMic(state){
   const st=$("#status"),d=$("#micdot");
-  if(d)d.classList.toggle("on",state==="listening");
-  if(st)st.textContent=state==="listening"?"回答してください（答え終わったら「回答終了・次へ」を押す）":state==="speak"?"出題中…":"";
+  if(d)d.classList.toggle("on",state==="listening"&&useMic());
+  if(st)st.textContent=state==="listening"?(useMic()?"回答してください（答え終わったら「回答終了・次へ」を押す）":"声に出して答え、終わったら「回答終了・次へ」を押す"):state==="speak"?"出題中…":"";
 }
 function renderExamShell(R,qi){
   view="exam";
@@ -583,7 +594,7 @@ function reviewHTML(Q){
   const it=Q.it;
   return `<div class="ansbox">
     <div class="lbl">あなたの回答</div>
-    <p class="model" style="color:var(--muted)">${Q.text?esc(Q.text):"（回答なし）"}</p>
+    <p class="model" style="color:var(--muted)">${Q.text?esc(Q.text):useMic()?"（回答なし）":"（マイクOFF：声に出した回答を思い出して比べてください）"}</p>
     <div class="lbl" style="margin-top:12px">模範解答</div>
     <p class="model">${esc(it.a)}</p>
     <div class="small muted" style="margin-top:10px">言えていた要点（参考）</div>
@@ -612,17 +623,20 @@ function showVerdict(R,qi){
 function subjectEnd(timeup){
   view="break";
   const E=current.exam;const R=E.results.at(-1);
-  R.qs.forEach(q=>{if(q.status!=="done")q.status="skip"});
-  R.qs.forEach(q=>missMark(q.q,q.status==="skip"?"ng":q.r));
+  if(!R.ended){R.ended=true;
+    R.qs.forEach(q=>{if(q.status!=="done")q.status="skip";if(!useMic()&&q.status==="done"&&!q.rated)q.r=null});
+    R.qs.forEach(q=>{if(q.status==="skip")missMark(q.q,"ng");else if(q.r)missMark(q.q,q.r)})}
   const ok=R.qs.filter(q=>q.r==="ok").length;
   const last=E.si>=E.subjects.length-1;
   app.innerHTML=`
   <div class="stack" style="gap:4px"><div class="eyebrow">${timeup?"時間切れ":"科目終了"}</div><h2>${SUBJECTS[R.s]}</h2></div>
   <div class="card stack"><div class="clock">${ok}<span class="muted" style="font-size:1rem"> / 5 言えた</span></div>
   <div class="muted small">かかった時間 ${fmt(R.elapsed)} / 3:00</div></div>
-  <div class="res">${R.qs.map(q=>`<div class="ritem ${q.status==="skip"?"skip":q.r}"><div class="q">${esc(q.q)}</div><div class="small muted">あなたの回答：${q.text?esc(q.text):"（なし）"}</div><div class="lbl small" style="margin-top:6px;color:var(--brass);font-weight:700">模範解答</div><p class="model">${esc(q.it.a)}</p></div>`).join("")}</div>
+  <div class="res">${R.qs.map(q=>`<div class="ritem ${q.status==="skip"?"skip":(q.r||"none")}"><div class="q">${esc(q.q)}</div>${q.text||useMic()?`<div class="small muted">あなたの回答：${q.text?esc(q.text):"（なし）"}</div>`:""}<div class="lbl small" style="margin-top:6px;color:var(--brass);font-weight:700">模範解答</div><p class="model">${esc(q.it.a)}</p>
+    <div class="row" style="margin-top:6px"><button class="chip sfx" data-i="${R.qs.indexOf(q)}" data-v="ok" aria-pressed="${q.r==="ok"}">言えた</button><button class="chip sfx" data-i="${R.qs.indexOf(q)}" data-v="ng" aria-pressed="${q.r==="ng"}">言えなかった</button></div></div>`).join("")}</div>
   ${last?`<button class="btn big wide" id="nx">結果を見る</button>`:`<button class="btn big wide" id="nx">次の科目へ（${SUBJECTS[E.subjects[E.si+1]]}）</button>`}
   <button class="btn ghost wide" id="bquit">やめる</button>`;
+  document.querySelectorAll(".sfx").forEach(b=>b.onclick=()=>{const q=R.qs[+b.dataset.i];q.r=b.dataset.v;q.rated=true;if(q.status==="skip")q.status="done";missMark(q.q,q.r);const y=window.scrollY;subjectEnd(timeup);window.scrollTo(0,y)});
   $("#nx").onclick=()=>{if(last)renderResults();else{E.si++;try{speechSynthesis.cancel()}catch(e){}runSubject()}};
   $("#bquit").onclick=()=>{stopAll();renderResults()};
 }
@@ -635,11 +649,11 @@ function renderResults(){
   <div class="stack" style="gap:4px"><div class="eyebrow">RESULT</div><h1>言えた ${tot} / ${all}</h1></div>
   <div class="score">${E.results.map(R=>`<div><b>${R.qs.filter(q=>q.r==="ok").length}/5</b><span>${SHORT[R.s]}</span></div>`).join("")}</div>
   ${E.results.map((R,ri)=>`<section class="stack"><h2>${SUBJECTS[R.s]}</h2><div class="res">${R.qs.map((q,qi)=>{
-    const st=q.status==="skip"?"skip":q.r;
+    const st=q.status==="skip"?"skip":(q.r||"none");
     return `<div class="ritem ${st}" data-r="${ri}" data-q="${qi}">
       <div><span class="tag ${st}">${VERD[st]}</span><span class="yr">${ylabel(q.it)}</span></div>
       <div class="q">${esc(q.q)}</div>
-      <div class="small muted">あなたの回答：${q.text?esc(q.text):"（なし）"}</div>
+      ${q.text||useMic()?`<div class="small muted">あなたの回答：${q.text?esc(q.text):"（なし）"}</div>`:""}
       <div class="small" style="margin-top:6px;color:var(--brass);font-weight:700">模範解答</div><p class="model">${esc(q.it.a)}</p>
       <div class="row" style="margin-top:6px"><button class="chip fx" data-v="ok" aria-pressed="${q.r==="ok"}">言えた</button><button class="chip fx" data-v="ng" aria-pressed="${q.r==="ng"&&q.status!=="skip"}">言えなかった</button></div>
     </div>`}).join("")}</div></section>`).join("")}
@@ -698,7 +712,7 @@ function renderOx(){
     await speak(sayText(Q.q));
     if(g!==gen)return;
     if(current.pending==="pass"){current.pending=null;return afterAnswer({type:"pass",text:""})}
-    $("#status").textContent="回答してください（答え終わったら「回答終了」を押す）";$("#micdot").classList.add("on");
+    $("#status").textContent=useMic()?"回答してください（答え終わったら「回答終了」を押す）":"声に出して答え、終わったら「回答終了」を押す";$("#micdot").classList.toggle("on",useMic());
     const res=await listen(0,{
       manual:true,
       text:(f,i)=>{const h=$("#heard");if(h)h.innerHTML=esc(f)+`<span class="interim">${esc(i)}</span>`},
@@ -712,7 +726,7 @@ function renderOx(){
   function afterAnswer(res){
     const g=gen;
     if(res.type==="pass"){Q.status="pass";Q.text="";return nextOx()}
-    Q.text=res.text||"";const gr=grade(Q.it,Q.text);Q.hits=gr.hits;Q.r=Q.text?gr.r:"ng";Q.status="done";
+    Q.text=res.text||"";const gr=grade(Q.it,Q.text);Q.hits=gr.hits;Q.r=Q.text?gr.r:(useMic()?"ng":null);Q.status="done";
     if(!S.oxJudge)return nextOx();
     $("#pctrl").hidden=true;$("#fb").hidden=true;$("#ansbox").hidden=true;$("#bshow").hidden=true;$("#oxagain").hidden=true;
     $("#status").textContent="模範解答を確認";
@@ -744,15 +758,15 @@ function renderOxResult(){
   stopAll();view="oxres";const O=current.ox;
   const all=(O.done||[]).concat(O.items);
   const done=all.filter(q=>q.status==="done"||q.status==="pass");
-  done.forEach(q=>missMark(q.q,q.status==="pass"?"ng":q.r));
+  done.forEach(q=>{if(q.status==="pass")missMark(q.q,"ng");else if(q.r)missMark(q.q,q.r)});
   const ok=done.filter(q=>q.r==="ok").length;
   app.innerHTML=`
   <div class="stack" style="gap:4px"><div class="eyebrow">一問一答 結果</div><h1>言えた ${ok} / ${done.length}</h1></div>
   <div class="row"><button class="chip" id="fall" aria-pressed="true">すべて</button><button class="chip" id="fng" aria-pressed="false">言えなかった問題だけ</button></div>
-  <div class="res" id="oxr">${done.map((q,i)=>{const st=q.status==="pass"?"skip":q.r;return `<div class="ritem ${st}" data-i="${i}" data-r="${q.r==="ok"?"ok":"ng"}">
+  <div class="res" id="oxr">${done.map((q,i)=>{const st=q.status==="pass"?"skip":(q.r||"none");return `<div class="ritem ${st}" data-i="${i}" data-r="${q.r==="ok"?"ok":"ng"}">
     <div><span class="tag ${st}">${VERD[st]}</span><span class="yr">${SHORT[q.it.s]}・${ylabel(q.it)}</span></div>
     <div class="q">${esc(q.q)}</div>
-    <div class="small muted">あなたの回答：${q.text?esc(q.text):"（なし）"}</div>
+    ${q.text||useMic()?`<div class="small muted">あなたの回答：${q.text?esc(q.text):"（なし）"}</div>`:""}
     <div class="small" style="margin-top:6px;color:var(--brass);font-weight:700">模範解答</div><p class="model">${esc(q.it.a)}</p>
     <div class="row" style="margin-top:6px"><button class="chip fx" data-v="ok" aria-pressed="${q.r==="ok"}">言えた</button><button class="chip fx" data-v="ng" aria-pressed="${q.r!=="ok"&&q.status==="done"}">言えなかった</button></div></div>`}).join("")||`<p class="muted">回答した問題がありません。</p>`}</div>
   <button class="btn big wide" id="oxretry">言えなかった問題をもう一度</button>
@@ -780,7 +794,7 @@ function renderOxList(){
 }
 
 // 古い版がスマホに残っていたら、自動で最新版に入れ替える
-const BUILD="2026-11-23-1550";
+const BUILD="2026-11-23-1700";
 (async()=>{try{
   const r=await fetch(location.pathname+"?_="+Date.now(),{cache:"no-store"});if(!r.ok)return;
   const t=await r.text();const m=t.match(/const BUILD="([^"]+)"/);
